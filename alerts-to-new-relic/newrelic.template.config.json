@@ -1,0 +1,8 @@
+{
+  "license_key": "LICENSE_KEY",
+  "log_level": "debug",
+  "account_id": "ACCOUNT_ID",
+  "api_key": "API_KEY",
+  "event_type": "WAFAlerts",
+  "environment": "dev,"
+}

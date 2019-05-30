@@ -1,3 +1,6 @@
+.DS_Store
 .idea/*
 config
 test_config.json
+newrelic.config.json
+config.json

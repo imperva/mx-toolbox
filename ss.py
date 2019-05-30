@@ -289,22 +289,22 @@ def upsertWebPolicy(mx_host, cur_session_id, policy_name, policyAttr):
 				asset["operation"] = "remove"
 				tmpApplyTo[assetstr] = asset
 			# overwrite all applyTo sites as add in master MX policy
-			for asset in policyAttr["config"]["applyTo"]:
+			for asset in policyAttr["config.json"]["applyTo"]:
 				assetstr = str(json.dumps(asset))
 				asset["operation"] = "add"
 				tmpApplyTo[assetstr] = asset
-			policyAttr["config"]["applyTo"] = []
+			policyAttr["config.json"]["applyTo"] = []
 			for asset in tmpApplyTo:
-				policyAttr["config"]["applyTo"].append(tmpApplyTo[asset])
+				policyAttr["config.json"]["applyTo"].append(tmpApplyTo[asset])
 
-			updateresponse = makeCall(mx_host, cur_session_id, "/conf/policies/security/" + policyMapping[policyAttr["policyType"]] + "/" + policy_name, "PUT", json.dumps(policyAttr["config"]))
+			updateresponse = makeCall(mx_host, cur_session_id, "/conf/policies/security/" + policyMapping[policyAttr["policyType"]] + "/" + policy_name, "PUT", json.dumps(policyAttr["config.json"]))
 			if updateresponse.status_code == 200:
 				status = "Success (" + str(updateresponse.status_code) + ")"
 			else:
 				status = "Failed (" + str(updateresponse.status_code) + ") "
 		else:
 			logging.warning("Policy \"" + policy_name + "\" does not exist, attempting to create - REQUEST: \nPUT /conf/policies/security/" + policyMapping[policyAttr["policyType"]] + "/" + policy_name)
-			createresponse = makeCall(mx_host, cur_session_id, "/conf/policies/security/" + policyMapping[policyAttr["policyType"]] + "/" + policy_name, "POST", json.dumps(policyAttr["config"]))
+			createresponse = makeCall(mx_host, cur_session_id, "/conf/policies/security/" + policyMapping[policyAttr["policyType"]] + "/" + policy_name, "POST", json.dumps(policyAttr["config.json"]))
 			if createresponse.status_code == 200:
 				status = "Success (" + str(createresponse.status_code) + ")"
 			else:

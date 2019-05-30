@@ -14,10 +14,10 @@ logging.basicConfig(filename='mx-sync.log', filemode='w', format='%(name)s - %(l
 sourcePolicies = {}
 AUTH = {}
 try:
-	with open('config', 'r') as data:
+	with open('config.json', 'r') as data:
 		AUTH = json.load(data)
 except:
-	logging.warning("Missing \"config\" file, create file named config with the following contents:\n{\n\t\"ENDPOINT\": \"https://127.0.0.1:8083\",\n\t\"REGION\": \"us-east-1\",\n\t\"USERNAME\": \"admin\",\n\t\"PASSWORD\": \"yourpassword\"\n}")
+	logging.warning("Missing \"config.json\" file, create file named config.json with the following contents:\n{\n\t\"ENDPOINT\": \"https://127.0.0.1:8083\",\n\t\"REGION\": \"us-east-1\",\n\t\"USERNAME\": \"admin\",\n\t\"PASSWORD\": \"yourpassword\"\n}")
 	exit()
 MX_SYNC_DATASET = '{"dataset-name":"mx_sync_log","columns":[{"name":"key","key":true},{"name":"type","key":false},{"name":"name","key":false},{"name":"status","key":false},{"name":"timestamp","key":false}]}'
 MX_SYNC_LOG_RECORDS = {"records": []}
@@ -58,7 +58,7 @@ def run():
 			else:
 				policyObj = response.json()
 				ALLPOLICIES[policy_name] = policyObj
-				sourcePolicies[policy_name]["config"] = policyObj
+				sourcePolicies[policy_name]["config.json"] = policyObj
 				sourcePolicies[policy_name]["isok"] = True
 				logging.warning("RESPONSE: \n"+str(policyObj))
 				# No API call for anti-scraping
@@ -179,7 +179,7 @@ def run():
 			try:
 				if policyAttr["policyType"] in ss.policyMapping:
 					#print(ss.policyMapping)
-					for asset in policyAttr["config"]["applyTo"]:
+					for asset in policyAttr["config.json"]["applyTo"]:
 						asset["serverGroupName"] = asset["serverGroupName"].replace(AUTH["REGION"], MX["REGION"])
 					MX_SYNC_LOG_RECORDS["records"].append(ss.upsertWebPolicy(MX["ENDPOINT"], cur_session_id, policy_name, policyAttr))
 			except KeyError as e:

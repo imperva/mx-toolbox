@@ -3,7 +3,7 @@ import json
 
 PRIMARY_MX_HOST = "https://172.31.11.85:8083"
 AUTH = {}
-with open('config', 'r') as data:
+with open('config.json', 'r') as data:
     AUTH = json.load(data)
 
 policyPrefix = "BA_api_test"
