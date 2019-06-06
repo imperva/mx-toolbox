@@ -1,0 +1,4 @@
+"Site","Server_Group","Service","Gateway_Group_Name","KRP_Alias_Name","Inbound_Port","Priority","Internal_Ip_Host","Outbound_Server_Port","Gateway Name","KRP IP Address"
+"ESXi Lab ","SuperVeda PHP CentOS KRP","Apache 2.0","SecureSphere12GWKRP","onearm_12.54","80","1","192.168.12.102","80","SecureSphere12GWKRP","192.168.12.54"
+"ESXi Lab ","SuperVeda PHP CentOS KRP","Apache 2.0","SecureSphere12GWKRP","onearm_12.54","443","1","192.168.12.102","443","SecureSphere12GWKRP","192.168.12.54"
+"SS Lab","MX GUI","HTTP","SecureSphere12GWKRP","onearm_12.54","8083","1","192.168.12.70","8083","SecureSphere12GWKRP","192.168.12.54"

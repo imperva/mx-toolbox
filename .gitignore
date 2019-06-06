@@ -4,3 +4,6 @@ config
 test_config.json
 newrelic.config.json
 config.json
+*.log
+*.pyc
+*__pycache__/
