@@ -10,6 +10,6 @@
   "newrelic_auth": {
     "account_id": "ACCOUNT_ID",
     "api_key": "API_KEY",
-    "event_type": "KRPRules",
+    "event_type": "KRPRules"
   }
 }
