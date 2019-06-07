@@ -1,0 +1,23 @@
+{
+  "log_level": "debug",
+  "environment": "dev",
+  "mx_auth": {
+    "endpoint": "MXENDPOINT",
+    "username": "MXUSERNAME",
+    "password": "MXPASSWORD",
+    "license_key": "LICENSE_KEY"
+  },
+  "newrelic_auth": {
+    "account_id": "ACCOUNT_ID",
+    "api_key": "API_KEY",
+    "event_type": "KRPRules",
+  },
+  "servicenow_auth": {
+    "account_id": "ACCOUNT_ID",
+    "api_key": "API_KEY"
+  },
+  "syslog": {
+    "host": "1.2.3.4",
+    "port": "514"
+  }
+}
