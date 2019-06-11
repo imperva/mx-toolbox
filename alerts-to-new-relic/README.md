@@ -27,7 +27,7 @@ chmod +Xx send_alert_to_new_relic.py.sh
 
 ## Configuring the MX
 
-THe script will be invoked by the MX via an action set by the mxuser os user, and the action set is applied to security policies to run each time a policy is triggered.  
+THe script will be invoked by the MX via an action set by the mxserver os user, and the action set is applied to security policies to run each time a policy is triggered.  
 
 Log into the MX, navigate to Policies->Action Sets and create an action set of type "Security Violations - All".  Add "Run a Shell Command" and populate with the following parameters:
 
