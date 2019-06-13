@@ -1,8 +1,6 @@
-# Alerts to New Relic script for Imperva Management Servers
+# Gateway performance monitoring for Imperva SecureSphere gateways
 
-The Alerts to New Relic script for Imperva Management Servers (MXs) provides a method for outputting alert data in real-time to the New Relic APM solution for aggregation purposes.  Use of this plug-in requires a valid New Relic APM account.
-
-This plugin will enable on-going aggregation to help quantify which sites are protected, which policies are being triggered, and how much of that traffic is being blocked.    
+The Gateway performance monitoring for Imperva SecureSphere gateways provides the ability to output performance and throughput counters from gateway appliances into new relic or into a SIEM via syslog output in JSON format.
 
 ## Getting Started
 

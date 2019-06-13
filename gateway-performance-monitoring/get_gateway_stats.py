@@ -1,26 +1,14 @@
 ﻿#!/usr/bin/env python
 
 import os
-import re
 import socket
 from subprocess import PIPE,Popen
-import time
 from time import localtime, strftime
-import gzip
-import zlib 
-import urllib
-import urllib2
-from urllib2 import request_host, parse_http_list
-# from urllib import request, parse
-# from urllib.error import HTTPError, URLError
 import json
 import requests
 import urllib3
-from socket import timeout
 import logging
-import ssl
 import re
-
 
 ############### Configs ###############
 CONFIGFILE = 'config.json'
@@ -47,24 +35,24 @@ GWStats = {
     "gateway_uptime": GATEWAY_UPTIME,
     "timestamp": TIMESTAMP,
     # start list of all lines from status file
-    "connection_sec":"n/a",
-    "http_hits_sec":"n/a",
-    "kbps":"n/a",
-    "kbps_application":"n/a",
-    "overload_connection_sec":"n/a",
-    #"wfd_successful_hits_sec":"n/a",
-    "sql_audit_phase2_events_sec":"n/a",
-    "sql_hits_sec":"n/a",
-    "overload_sql_audit_phase2_events_sec":"n/a",
-    "overload_sql_hits_sec":"n/a"
-    #"hdfs_hits_sec":"n/a",
-    # "zosfile_hits_sec":"n/a"
-    # "activedirectory_hits_sec":"n/a",
-    # "file_aggregated_hits_sec":"n/a",
-    # "file_hits_sec":"n/a",
-    # "kbps_fam":"n/a",
-    # "sharepoint_aggregated_hits_sec":"n/a",
-    # "sharepoint_hits_sec":"n/a",
+    "connection_sec": "n/a",
+    "http_hits_sec": "n/a",
+    "kbps": "n/a",
+    "kbps_application": "n/a",
+    "overload_connection_sec": "n/a",
+    #"wfd_successful_hits_sec": "n/a",
+    "sql_audit_phase2_events_sec": "n/a",
+    "sql_hits_sec": "n/a",
+    "overload_sql_audit_phase2_events_sec": "n/a",
+    "overload_sql_hits_sec": "n/a"
+    #"hdfs_hits_sec": "n/a",
+    # "zosfile_hits_sec": "n/a"
+    # "activedirectory_hits_sec": "n/a",
+    # "file_aggregated_hits_sec": "n/a",
+    # "file_hits_sec": "n/a",
+    # "kbps_fam": "n/a",
+    # "sharepoint_aggregated_hits_sec": "n/a",
+    # "sharepoint_hits_sec": "n/a",
 }
 
 # Server Group level statistic
@@ -76,19 +64,19 @@ SGStatsTmpl = {
     "server_group_id": 'n/a',
     "timestamp": TIMESTAMP,
     # start list of all lines from status file
-    "kbps":"n/a",
-    "http_hits_sec":"n/a",
-    "connection_sec":"n/a",
-    "wfd_successful_hits_sec":"n/a",
-    "sql_hits_sec":"n/a",
-    "sql_audit_phase2_events_sec":"n/a",
-    "hdfs_hits_sec":"n/a",
-    # "zosfile_hits_sec":"n/a",
-    # "activedirectory_hits_sec":"n/a",
-    # "file_aggregated_hits_sec":"n/a",
-    # "file_hits_sec":"n/a",
-    # "sharepoint_aggregated_hits_sec":"n/a",
-    # "sharepoint_hits_sec":"n/a",
+    "kbps": "n/a",
+    "http_hits_sec": "n/a",
+    "connection_sec": "n/a",
+    "wfd_successful_hits_sec": "n/a",
+    "sql_hits_sec": "n/a",
+    "sql_audit_phase2_events_sec": "n/a",
+    "hdfs_hits_sec": "n/a",
+    # "zosfile_hits_sec": "n/a",
+    # "activedirectory_hits_sec": "n/a",
+    # "file_aggregated_hits_sec": "n/a",
+    # "file_hits_sec": "n/a",
+    # "sharepoint_aggregated_hits_sec": "n/a",
+    # "sharepoint_hits_sec": "n/a",
 }
 
 def run():
