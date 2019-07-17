@@ -4,6 +4,7 @@ import os
 import socket
 from subprocess import PIPE,Popen
 from time import localtime, strftime
+# from datetime import timedelta
 import json
 import requests
 import urllib3
@@ -16,7 +17,7 @@ BASEDIR = '/proc/hades/'
 GATEWAYNAME = os.uname()[1].split('.')[0]
 TIMESTAMP = strftime("%Y/%m/%d %H:%M:%S", localtime())
 pipe = Popen(['uptime'], stdout=PIPE)
-GATEWAY_UPTIME = pipe.communicate()[0].strip()
+# GATEWAY_UPTIME = timedelta(microseconds=round(pipe.communicate()[0].strip(),-3))
 try:
     with open(CONFIGFILE, 'r') as data:
         CONFIG = json.load(data)
@@ -32,51 +33,51 @@ logging.basicConfig(filename=CONFIG["log_file_name"], filemode='w', format='%(na
 GWStats = {
     # start a few enrichment fields to give context
     "gateway": GATEWAYNAME,
-    "gateway_uptime": GATEWAY_UPTIME,
+    # "gateway_uptime": GATEWAY_UPTIME,
     "timestamp": TIMESTAMP,
     # start list of all lines from status file
-    "connection_sec": "n/a",
-    "http_hits_sec": "n/a",
-    "kbps": "n/a",
-    "kbps_application": "n/a",
-    "overload_connection_sec": "n/a",
-    #"wfd_successful_hits_sec": "n/a",
-    "sql_audit_phase2_events_sec": "n/a",
-    "sql_hits_sec": "n/a",
-    "overload_sql_audit_phase2_events_sec": "n/a",
-    "overload_sql_hits_sec": "n/a"
-    #"hdfs_hits_sec": "n/a",
-    # "zosfile_hits_sec": "n/a"
-    # "activedirectory_hits_sec": "n/a",
-    # "file_aggregated_hits_sec": "n/a",
-    # "file_hits_sec": "n/a",
-    # "kbps_fam": "n/a",
-    # "sharepoint_aggregated_hits_sec": "n/a",
-    # "sharepoint_hits_sec": "n/a",
+    "connection_sec": True,
+    "http_hits_sec": True,
+    "kbps": True,
+    "kbps_application": True,
+    "overload_connection_sec": True,
+    # "wfd_successful_hits_sec": True,
+    "sql_audit_phase2_events_sec": True,
+    "sql_hits_sec": True,
+    "overload_sql_audit_phase2_events_sec": True,
+    "overload_sql_hits_sec": True
+    # "hdfs_hits_sec": True,
+    # "zosfile_hits_sec": True
+    # "activedirectory_hits_sec": True,
+    # "file_aggregated_hits_sec": True,
+    # "file_hits_sec": True,
+    # "kbps_fam": True,
+    # "sharepoint_aggregated_hits_sec": True,
+    # "sharepoint_hits_sec": True,
 }
 
 # Server Group level statistic
 SGStatsTmpl = {
     # start a few enrichment fields to give context
     "gateway": GATEWAYNAME,
-    "gateway_uptime": GATEWAY_UPTIME,
-    "server_group": 'n/a',
-    "server_group_id": 'n/a',
+    # "gateway_uptime": GATEWAY_UPTIME,
+    "server_group": True,
+    "server_group_id": True,
     "timestamp": TIMESTAMP,
     # start list of all lines from status file
-    "kbps": "n/a",
-    "http_hits_sec": "n/a",
-    "connection_sec": "n/a",
-    "wfd_successful_hits_sec": "n/a",
-    "sql_hits_sec": "n/a",
-    "sql_audit_phase2_events_sec": "n/a",
-    "hdfs_hits_sec": "n/a",
-    # "zosfile_hits_sec": "n/a",
-    # "activedirectory_hits_sec": "n/a",
-    # "file_aggregated_hits_sec": "n/a",
-    # "file_hits_sec": "n/a",
-    # "sharepoint_aggregated_hits_sec": "n/a",
-    # "sharepoint_hits_sec": "n/a",
+    "kbps": True,
+    "http_hits_sec": True,
+    "connection_sec": True,
+    "wfd_successful_hits_sec": True,
+    "sql_hits_sec": True,
+    "sql_audit_phase2_events_sec": True,
+    "hdfs_hits_sec": True,
+    # "zosfile_hits_sec": True,
+    # "activedirectory_hits_sec": True,
+    # "file_aggregated_hits_sec": True,
+    # "file_hits_sec": True,
+    # "sharepoint_aggregated_hits_sec": True,
+    # "sharepoint_hits_sec": True,
 }
 
 def run():
@@ -107,6 +108,8 @@ def run():
     # if CONFIG["servicenow"]["enabled"]:
     #     print("make servicenow call")
     #     # todo finish integration with ServiceNow
+    if CONFIG["influxdb"]["enabled"]:
+        makeInfluxDBCall(GWStats,"gateway_stats")
     if CONFIG["syslog"]["enabled"]:
         sendSyslog(GWStats)
 
@@ -126,11 +129,15 @@ def run():
             # if CONFIG["servicenow"]["enabled"]:
             #     print("make servicenow call")
             #     # todo finish integration with ServiceNow
+            if CONFIG["influxdb"]["enabled"]:
+                makeInfluxDBCall(SGStats,SGStats["server_group"])
             if CONFIG["syslog"]["enabled"]:
-                sendSyslog(GWStats)
+                sendSyslog(SGStats)
 
 
-############### Global Functions ###############
+#########################################################
+############### General Porpuse Functions ###############
+#########################################################
 def strim(str):
     return re.sub('\s\s+', ' ', str).strip()
 
@@ -146,10 +153,6 @@ def parseGWEventStat(stat):
             statAry = statstr.split(" ")
             GWStats[statKey] = int(statAry[0])
             GWStats[statKey+"_max"] = int(statAry[3])
-            if statAry[3] != '0':
-                GWStats[statKey+"_max_time"] = statAry[4]+" "+statAry[5][:-1]
-            else:
-                GWStats[statKey+"_max_time"] = 'n/a'
 
 # Parse gateway level /proc/hades/status - CPU secion
 def parseGWCPUStat(stat):
@@ -157,16 +160,11 @@ def parseGWCPUStat(stat):
         statstr = strim(stat).lower()
         CPUNum = strim(statstr.split("|")[0])
         CPUStatsAry = statstr.split("|")[1:]
-        # CPU# | kbps 28 (max 237244 2019-03-13 08:20:00) | packets/sec | queue length
+        #example:  CPU# | kbps 28 (max 237244 2019-03-13 08:20:00) | packets/sec | queue length
         CPUStatKey = ["kbps","packets_sec","queue_length"]
         for CPUStat in CPUStatsAry:
             CPUStatAry = CPUStat.strip().split(' ')
             GWStats["CPU_"+CPUNum+"_kbps"] = int(CPUStatAry[0])
-            GWStats["CPU_"+CPUNum+"_kbps_max"] = int(CPUStatAry[2])
-            if CPUStatAry[2]!='0':
-                GWStats["CPU_"+CPUNum+"_kbps_max_time"] = CPUStatAry[3]+" "+CPUStatAry[4][:-1]
-            else:
-                GWStats["CPU_"+CPUNum+"_kbps_max_time"] = 'n/a'
 
 # Parse server group level /proc/hades/sg_[server group name]/status - stats and maximums
 def parseSGStat(sg_stat,SGStats):
@@ -179,10 +177,6 @@ def parseSGStat(sg_stat,SGStats):
                 sg_statAry = sg_statstr.split(" ")
                 SGStats[sg_statKey] = sg_statAry[0]
                 SGStats[sg_statKey+"_max"] = sg_statAry[3]
-                if sg_statAry[3]!='0':
-                    SGStats[sg_statKey+"_max_time"] = sg_statAry[4]+" "+sg_statAry[5][:-1]
-                else:
-                    SGStats[sg_statKey+"_max_time"] = 'n/a'
         else:
             sg_statstr = sg_statstr.replace(sg_statstr[sg_statstr.index(' ')+1:len(sg_statstr)-sg_statstr.index(' ')+1],sg_statstr[sg_statstr.index(' ')+1:len(sg_statstr)-sg_statstr.index(' ')+1].replace('/','_').replace(' ','_'))
             sg_statAry = sg_statstr.split(" ")
@@ -204,6 +198,27 @@ def makeCallNewRelicCall(stat):
     else:
         response = requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False)
 
+def makeInfluxDBCall(stat, measurement):
+    headers = {
+        "Content-Type": "application/octet-stream",
+    }
+    influxdb_url = CONFIG["influxdb"]["host"]
+    logging.warning("INFLUXDB REQUEST (" + influxdb_url + ")" + json.dumps(stat))
+    data = measurement+",gatewayname="+GATEWAYNAME+" "
+    isFirst = True
+    for key in stat:
+        if key!="gateway" and key!="timestamp" and key!="server_group":
+            if not isFirst:
+                data +=","
+            data+=key+"="+str(stat[key])
+        isFirst = False
+    if "proxies" in CONFIG:
+        proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
+        response = requests.post(influxdb_url, data=data, proxies=proxies, headers=headers, verify=False)
+    else:
+        response = requests.post(influxdb_url, data=data, headers=headers, verify=False)
+        if (response.status_code!=204):
+            logging.warning("[ERROR] Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
 
 def searchLogFile(filename, pattern):
     matches = []

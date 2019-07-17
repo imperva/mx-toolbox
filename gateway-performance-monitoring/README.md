@@ -60,6 +60,10 @@ Example:
     "api_key": "API_KEY",
     "event_type": "GWStats"
   },
+  "influxdb": {
+    "enabled": true,
+    "host": "http://1.2.3.4:8086/write?db=imperva_performance_stats",
+  },
   "syslog": {
     "enabled": true,
     "host": "1.2.3.4",
@@ -86,7 +90,13 @@ Example:
 
 `newrelic.api_key` - _(required)_ the API Key for the Insights API
 
-`syslog` - _(optional) sectional is not required, if not using syslog, either set syslog.enabled to false or section can be removed from config
+`influxdb` - _(optional) section is not required, if not using influxdb, either set influxdb.enabled to false or section can be removed from config
+
+`influxdb.enabled` - _(required)_ set to true if using influxdb
+
+`influxdb.host` - _(required)_ the influxdb protocol, host, port, and database name. Ex. `[protocol]://[host]:[port]/write?db=[influx_db_name]` or `http://1.2.3.4:8086/write?db=imperva_performance_stats`
+
+`syslog` - _(optional) section is not required, if not using syslog, either set syslog.enabled to false or section can be removed from config
 
 `syslog.enabled` - _(required)_ set to true if using syslog
 
