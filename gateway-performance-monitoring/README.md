@@ -11,7 +11,7 @@ get_gateway_stats.py
 template.config.json
 ```
 
-The files should be copied to the /var/user-data/ folder on the MX.  The .json config file should live in the same directory, as referenced in the script. 
+The files should be copied to the /var/user-data/ folder on the Gateway appliance(s).  The .json config file should live in the same directory, as referenced in the script. 
 
 The template.config.json file must be re-named config.json.  
 
