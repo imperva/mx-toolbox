@@ -109,7 +109,7 @@ def run():
     #     print("make servicenow call")
     #     # todo finish integration with ServiceNow
     if CONFIG["influxdb"]["enabled"]:
-        makeInfluxDBCall(GWStats,"gateway_stats")
+        makeInfluxDBCall(GWStats,"ImpervaGW","gatewayname="+GATEWAYNAME)
     if CONFIG["syslog"]["enabled"]:
         sendSyslog(GWStats)
 
@@ -130,10 +130,9 @@ def run():
             #     print("make servicenow call")
             #     # todo finish integration with ServiceNow
             if CONFIG["influxdb"]["enabled"]:
-                makeInfluxDBCall(SGStats,SGStats["server_group"])
+                makeInfluxDBCall(GWStats,"ImpervaSG","gatewayname="+GATEWAYNAME+",servergroupname="+SGStats["server_group"])
             if CONFIG["syslog"]["enabled"]:
                 sendSyslog(SGStats)
-
 
 #########################################################
 ############### General Porpuse Functions ###############
@@ -198,13 +197,13 @@ def makeCallNewRelicCall(stat):
     else:
         response = requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False)
 
-def makeInfluxDBCall(stat, measurement):
+def makeInfluxDBCall(stat, measurement, tags):
     headers = {
         "Content-Type": "application/octet-stream",
     }
     influxdb_url = CONFIG["influxdb"]["host"]
     logging.warning("INFLUXDB REQUEST (" + influxdb_url + ")" + json.dumps(stat))
-    data = measurement+",gatewayname="+GATEWAYNAME+" "
+    data = measurement+","+tags+" "
     isFirst = True
     for key in stat:
         if key!="gateway" and key!="timestamp" and key!="server_group":
