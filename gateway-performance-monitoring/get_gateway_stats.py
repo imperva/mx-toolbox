@@ -12,7 +12,7 @@ import logging
 import re
 
 ############### Configs ###############
-CONFIGFILE = 'config.json'
+CONFIGFILE = '/var/user-data/config.json'
 BASEDIR = '/proc/hades/'
 GATEWAYNAME = os.uname()[1].split('.')[0]
 TIMESTAMP = strftime("%Y/%m/%d %H:%M:%S", localtime())
