@@ -11,6 +11,7 @@ import urllib2
 import logging
 import re
 import math
+from decimal import Decimal
 
 ############### Configs ###############
 CONFIGFILE = '/var/user-data/config.json'
@@ -104,6 +105,7 @@ influxDbStats = {
     "imperva_gw_net":{},
     "imperva_gw_disk":{},
     "imperva_gw_sys":{},
+    "imperva_gw_cpu":{},
     "imperva_sg":{}
 }
 
@@ -190,24 +192,24 @@ def getNetworkStats():
                             rxAry = iface[11:].split(" ")
                             influxIfaceStatAry.append("rx_packets="+rxAry[0])
                             influxIfaceStatAry.append("rx_bytes="+rxAry[2])
-                            GWStats["interface_"+ifacename+"_rx_packets"] = rxAry[0]
-                            GWStats["interface_"+ifacename+"_rx_bytes"] = rxAry[2]
+                            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
+                            GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxAry[2])
                         elif (iface[:9].lower()=="rx errors"):
                             rxAry = iface[10:].split(" ")
                             influxIfaceStatAry.append("rx_errors="+rxAry[0])
                             influxIfaceStatAry.append("rx_dropped="+rxAry[2])
                             influxIfaceStatAry.append("rx_overruns="+rxAry[4])
                             influxIfaceStatAry.append("rx_frame="+rxAry[6])
-                            GWStats["interface_"+ifacename+"_rx_errors"] = rxAry[0]
-                            GWStats["interface_"+ifacename+"_rx_dropped"] = rxAry[2]
-                            GWStats["interface_"+ifacename+"_rx_overruns"] = rxAry[4]
-                            GWStats["interface_"+ifacename+"_rx_frame"] = rxAry[6]
+                            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[0])
+                            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[2])
+                            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[4])
+                            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[6])
                         elif (iface[:10].lower()=="tx packets"):
                             txAry = iface[11:].split(" ")
                             influxIfaceStatAry.append("tx_packets="+txAry[0])
                             influxIfaceStatAry.append("tx_bytes="+txAry[2])
-                            GWStats["interface_"+ifacename+"_tx_packets"] = txAry[0]
-                            GWStats["interface_"+ifacename+"_tx_bytes"] = txAry[1]
+                            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
+                            GWStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[1])
                         elif (iface[:9].lower()=="tx errors"):
                             txAry = iface[10:].split(" ")
                             influxIfaceStatAry.append("tx_errors="+txAry[0])
@@ -215,11 +217,11 @@ def getNetworkStats():
                             influxIfaceStatAry.append("tx_overruns="+txAry[4])
                             influxIfaceStatAry.append("tx_carrier="+txAry[6])
                             influxIfaceStatAry.append("collisions="+txAry[8])
-                            GWStats["interface_"+ifacename+"_tx_errors"] = txAry[0]
-                            GWStats["interface_"+ifacename+"_tx_dropped"] = txAry[2]
-                            GWStats["interface_"+ifacename+"_tx_overruns"] = txAry[4]
-                            GWStats["interface_"+ifacename+"_tx_carrier"] = txAry[6]                            
-                            GWStats["interface_"+ifacename+"_collisions"] = txAry[8]
+                            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[0])
+                            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[2])
+                            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
+                            GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
+                            GWStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
                     else:
                         if (iface[:10].lower()=="rx packets"):
                             rxAry = iface[11:].split(" ")
@@ -228,11 +230,11 @@ def getNetworkStats():
                             influxIfaceStatAry.append("rx_dropped="+rxAry[4])
                             influxIfaceStatAry.append("rx_overruns="+rxAry[6])
                             influxIfaceStatAry.append("rx_frame="+rxAry[8])
-                            GWStats["interface_"+ifacename+"_rx_packets"] = rxAry[0]
-                            GWStats["interface_"+ifacename+"_rx_errors"] = rxAry[2]
-                            GWStats["interface_"+ifacename+"_rx_dropped"] = rxAry[4]
-                            GWStats["interface_"+ifacename+"_rx_overruns"] = rxAry[6]
-                            GWStats["interface_"+ifacename+"_rx_frame"] = rxAry[8]
+                            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
+                            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
+                            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
+                            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
+                            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
                         elif (iface[:10].lower()=="tx packets"):
                             txAry = iface[11:].split(" ")
                             influxIfaceStatAry.append("tx_packets="+txAry[0])
@@ -240,21 +242,21 @@ def getNetworkStats():
                             influxIfaceStatAry.append("tx_dropped="+txAry[4])
                             influxIfaceStatAry.append("tx_overruns="+txAry[6])
                             influxIfaceStatAry.append("tx_carrier="+txAry[8])
-                            GWStats["interface_"+ifacename+"_tx_packets"] = txAry[0]
-                            GWStats["interface_"+ifacename+"_tx_errors"] = txAry[2]
-                            GWStats["interface_"+ifacename+"_tx_dropped"] = txAry[4]
-                            GWStats["interface_"+ifacename+"_tx_overruns"] = txAry[6]
-                            GWStats["interface_"+ifacename+"_tx_carrier"] = txAry[8]
+                            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
+                            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
+                            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
+                            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
+                            GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[8])
                         elif (iface[:10].lower()=="collisions"):
                             colAry = iface[11:].split(" ")
                             influxIfaceStatAry.append("collisions="+colAry[0])
-                            GWStats["interface_"+ifacename+"_collisions"] = colAry[0]
+                            GWStats["interface_"+ifacename+"_collisions"] = int(colAry[0])
                         elif (iface[:8].lower()=="rx bytes"):
                             recordAry = iface[9:].split(" ")
                             influxIfaceStatAry.append("rx_bytes="+recordAry[0])
                             influxIfaceStatAry.append("tx_bytes="+recordAry[5])
-                            GWStats["interface_"+ifacename+"_rx_bytes"] = recordAry[0]
-                            GWStats["interface_"+ifacename+"_tx_bytes"] = recordAry[5]
+                            GWStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
+                            GWStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
 
 def getDiskStats():
     pipe = Popen(['cat','/proc/mounts'], stdout=PIPE)
@@ -274,9 +276,9 @@ def getDiskStats():
                 influxIfaceStatAry.append("disk_capacity="+mountStatsAry[1])
                 influxIfaceStatAry.append("disk_used="+mountStatsAry[2])
                 influxIfaceStatAry.append("disk_available="+mountStatsAry[3])
-                GWStats["disk_volume"+mountStatsAry[5]+"_disk_capacity"] = mountStatsAry[1]
-                GWStats["disk_volume"+mountStatsAry[5]+"_disk_used"] = mountStatsAry[2]
-                GWStats["disk_volume"+mountStatsAry[5]+"_disk_available"] = mountStatsAry[3]
+                GWStats["disk_volume"+mountStatsAry[5]+"_disk_capacity"] = int(mountStatsAry[1])
+                GWStats["disk_volume"+mountStatsAry[5]+"_disk_used"] = int(mountStatsAry[2])
+                GWStats["disk_volume"+mountStatsAry[5]+"_disk_available"] = int(mountStatsAry[3])
 
 def getSysStats():
     with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
@@ -287,13 +289,12 @@ def getSysStats():
         global GWMODEL
         GWMODEL = model 
         # TODO: Go back and find a way to get version numver, impctl does not work in cron
-        influxDbStats["imperva_gw_sys"]["model="+model] = []
+        influxDbStats["imperva_gw_sys"]["model="+model] = []        
         sysStat = influxDbStats["imperva_gw_sys"]["model="+model]
         sysStat.append("gw_supported_kbps="+gwSizingStats[model]["gw_supported_kbps"])
         sysStat.append("gw_supported_hps="+gwSizingStats[model]["gw_supported_hps"])
-        GWStats["gw_supported_kbps"] = gwSizingStats[model]["gw_supported_kbps"]
-        GWStats["gw_supported_hps"] = gwSizingStats[model]["gw_supported_hps"]
-
+        GWStats["gw_supported_kbps"] = int(gwSizingStats[model]["gw_supported_kbps"])
+        GWStats["gw_supported_hps"] = int(gwSizingStats[model]["gw_supported_hps"])
         pipe = Popen(['cat','/proc/uptime'], stdout=PIPE)
         output = pipe.communicate()
         uptimeAry = str(output[0]).split("\n")
@@ -310,20 +311,31 @@ def getSysStats():
                 sysStat.append("mem_used="+statAry[3][:-1])
                 sysStat.append("mem_free="+statAry[5][:-1])
                 sysStat.append("mem_buffers="+statAry[7][:-1])
-                GWStats["mem_total"] = statAry[1][:-1]
-                GWStats["mem_used"] = statAry[3][:-1]
-                GWStats["mem_free"] = statAry[5][:-1]
-                GWStats["mem_buffers"] = statAry[7][:-1]
+                GWStats["mem_total"] = int(statAry[1][:-1])
+                GWStats["mem_used"] = int(statAry[3][:-1])
+                GWStats["mem_free"] = int(statAry[5][:-1])
+                GWStats["mem_buffers"] = int(statAry[7][:-1])
             elif stat[:5]=="Swap:":
                 statAry = ' '.join(stat.split()).split(' ')
                 sysStat.append("swap_total="+statAry[1][:-1])
                 sysStat.append("swap_used="+statAry[3][:-1])
                 sysStat.append("swap_free="+statAry[5][:-1])
                 sysStat.append("swap_cached="+statAry[7][:-1])
-                GWStats["swap_total"] = statAry[1][:-1]
-                GWStats["swap_used"] = statAry[3][:-1]
-                GWStats["swap_free"] = statAry[5][:-1]
-                GWStats["swap_cached"] = statAry[7][:-1]
+                GWStats["swap_total"] = int(statAry[1][:-1])
+                GWStats["swap_used"] = int(statAry[3][:-1])
+                GWStats["swap_free"] = int(statAry[5][:-1])
+                GWStats["swap_cached"] = int(statAry[7][:-1])
+            elif stat[:3].lower()=="cpu":
+                cpuStatsAry = ' '.join(stat.replace(":"," ").replace(",","").split()).split(" ")
+                influxDbStats["imperva_gw_cpu"]["cpu="+cpuStatsAry[0].lower()] = []
+                GWCpuStatAry = influxDbStats["imperva_gw_cpu"]["cpu="+cpuStatsAry[0].lower()]
+                for cpuStat in cpuStatsAry[1:]:
+                    cpuStatAry = cpuStat.split("%")
+                    GWCpuStatAry.append(topCpuAttrMap[cpuStatAry[1]]+"="+cpuStatAry[0])
+                    GWStats["top_"+cpuStatsAry[0].lower()+"_"+topCpuAttrMap[cpuStatAry[1]]] = cpuStatAry[0]
+                # statAry = ' '.join(stat.split()).split(' ')
+                # sysStat.append("top_cpu1_="+gwSizingStats[model]["gw_supported_kbps"])
+
 
 # Parse stats and maximums
 # example: 0 connection/sec (max 4 2019-03-20 05:39:56)
@@ -352,9 +364,8 @@ def parseGWCPUStat(stat):
             CPUStatKey = ["kbps","packets_sec","queue_length"]
             for index, CPUStat in enumerate(CPUStatsAry, start=0):
                 CPUStatAry = CPUStat.strip().split(' ')
-                GWStats["CPU_"+CPUNum+"_kbps"] = int(CPUStatAry[0])
-                GWStats["CPU_"+CPUNum+"_worker"] = CPUStatKey[index]
-                GWStats["CPU_"+CPUNum+"_worker_max"] = CPUStatAry[0]
+                GWStats["CPU_"+CPUNum+"_"+CPUStatKey[index]] = int(CPUStatAry[0])
+                GWStats["CPU_"+CPUNum+"_"+CPUStatKey[index]+"_max"] = int(CPUStatAry[2])
                 influxDbStats["imperva_gw_workers"]["worker="+CPUNum].append("worker_"+CPUStatKey[index]+"="+CPUStatAry[0])
                 influxDbStats["imperva_gw_workers"]["worker="+CPUNum].append("worker_"+CPUStatKey[index]+"_max="+CPUStatAry[2])
 
@@ -418,6 +429,17 @@ def searchLogFile(filename, pattern):
             if line.find(pattern) != -1:
                 matches.append(line)
     return(matches)
+
+topCpuAttrMap = {
+    "us":"user",
+    "sy":"system",
+    "ni":"nice",
+    "id":"idle",
+    "wa":"wait",
+    "hi":"hardware",
+    "si":"software",
+    "st":"steal_time"
+}
 
 gwSizingStats = {
     # Physical Appliances
