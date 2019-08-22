@@ -7,14 +7,13 @@ from time import localtime, strftime
 # from datetime import timedelta
 import json
 import requests
-import urllib3
+import urllib2
 import logging
 import re
 import math
 
 ############### Configs ###############
 CONFIGFILE = '/var/user-data/config.json'
-BASEDIR = '/proc/hades/'
 GATEWAYNAME = os.uname()[1].split('.')[0]
 TIMESTAMP = strftime("%Y/%m/%d %H:%M:%S", localtime())
 gwSourceIp = "n/a"
@@ -24,16 +23,20 @@ with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
     sourceIpStr = m.group(0)
     gwSourceIp = sourceIpStr[sourceIpStr.index('address-v4="')+12:sourceIpStr.index('" address-v6=')-3]
 influxDefaultTags = "source="+gwSourceIp+",gatewayname="+GATEWAYNAME+","
-
+GWMODEL = ""
 try:
     with open(CONFIGFILE, 'r') as data:
         CONFIG = json.load(data)
 except:
     print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"debug\",\n\t\"environment\": \"dev\",\n\t\"gw_log_search\": {\n\t\t\"enabled\": true,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"GWStats\"\n\t},\n\t\"servicenow\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"1.2.3.4\",\n\t\t\"port\": 514\n\t}\n}")
     exit()
+if CONFIG["is_userspace"]:
+    BASEDIR = "/opt/SecureSphere/etc/proc/hades/"
+else:
+    BASEDIR = '/proc/hades/'
+    # urllib3.disable_warnings()
 
 ############ ENV Settings ############
-urllib3.disable_warnings()
 logging.basicConfig(filename=CONFIG["log_file_name"], filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
 # Gateway level statistic
@@ -119,10 +122,10 @@ def run():
             statType = 'stat'
         elif strim(stat)[0:6] == "Worker":
             statType = 'cpu'
-    getNetworkStats()
     getDiskStats()
     getSysStats()
-
+    getNetworkStats()
+    
     if CONFIG["gw_log_search"]["enabled"]:
         for fileconfig in CONFIG["gw_log_search"]["files"]:
             for patternconfig in fileconfig["search_patterns"]:
@@ -181,72 +184,146 @@ def getNetworkStats():
                 pipe = Popen(['/sbin/ifconfig',ifacename], stdout=PIPE)
                 ifconfigoutput = pipe.communicate()
                 for iface in ifconfigoutput[0].strip().split("\n"):
-                    iface = iface.strip()
-                    if (iface[:11]=="RX packets:"):
-                        rxAry = iface[11:].split(" ")
-                        influxIfaceStatAry.append("rx_packets="+rxAry[0])
-                        influxIfaceStatAry.append("rx_errors="+rxAry[1][rxAry[1].find(':')+1:])
-                        influxIfaceStatAry.append("rx_dropped="+rxAry[2][rxAry[2].find(':')+1:])
-                        influxIfaceStatAry.append("rx_overruns="+rxAry[3][rxAry[3].find(':')+1:])
-                        influxIfaceStatAry.append("rx_frame="+rxAry[4][rxAry[4].find(':')+1:])
-                    elif (iface[:11]=="TX packets:"):
-                        txAry = iface[11:].split(" ")
-                        influxIfaceStatAry.append("tx_packets="+txAry[0])
-                        influxIfaceStatAry.append("tx_errors="+txAry[1][txAry[1].find(':')+1:])
-                        influxIfaceStatAry.append("tx_dropped="+txAry[2][txAry[2].find(':')+1:])
-                        influxIfaceStatAry.append("tx_overruns="+txAry[3][txAry[3].find(':')+1:])
-                        influxIfaceStatAry.append("tx_carrier="+txAry[4][txAry[4].find(':')+1:])
-                    elif (iface[:11]=="collisions:"):
-                        colAry = iface[11:].split(" ")
-                        influxIfaceStatAry.append("collisions="+colAry[0])
-                    elif (iface[:9]=="RX bytes:"):
-                        rxAry = iface[9:].split(" ")
-                        txBytesAry = rxAry[5].split(":")
-                        influxIfaceStatAry.append("rx_bytes="+rxAry[0])
-                        influxIfaceStatAry.append("tx_bytes="+txBytesAry[1])
+                    iface = ' '.join(iface.replace(":"," ").split())
+                    if GWMODEL[:2].lower()=="av":
+                        if (iface[:10].lower()=="rx packets"):
+                            rxAry = iface[11:].split(" ")
+                            influxIfaceStatAry.append("rx_packets="+rxAry[0])
+                            influxIfaceStatAry.append("rx_bytes="+rxAry[2])
+                            GWStats["interface_"+ifacename+"_rx_packets"] = rxAry[0]
+                            GWStats["interface_"+ifacename+"_rx_bytes"] = rxAry[2]
+                        elif (iface[:9].lower()=="rx errors"):
+                            rxAry = iface[10:].split(" ")
+                            influxIfaceStatAry.append("rx_errors="+rxAry[0])
+                            influxIfaceStatAry.append("rx_dropped="+rxAry[2])
+                            influxIfaceStatAry.append("rx_overruns="+rxAry[4])
+                            influxIfaceStatAry.append("rx_frame="+rxAry[6])
+                            GWStats["interface_"+ifacename+"_rx_errors"] = rxAry[0]
+                            GWStats["interface_"+ifacename+"_rx_dropped"] = rxAry[2]
+                            GWStats["interface_"+ifacename+"_rx_overruns"] = rxAry[4]
+                            GWStats["interface_"+ifacename+"_rx_frame"] = rxAry[6]
+                        elif (iface[:10].lower()=="tx packets"):
+                            txAry = iface[11:].split(" ")
+                            influxIfaceStatAry.append("tx_packets="+txAry[0])
+                            influxIfaceStatAry.append("tx_bytes="+txAry[2])
+                            GWStats["interface_"+ifacename+"_tx_packets"] = txAry[0]
+                            GWStats["interface_"+ifacename+"_tx_bytes"] = txAry[1]
+                        elif (iface[:9].lower()=="tx errors"):
+                            txAry = iface[10:].split(" ")
+                            influxIfaceStatAry.append("tx_errors="+txAry[0])
+                            influxIfaceStatAry.append("tx_dropped="+txAry[2])
+                            influxIfaceStatAry.append("tx_overruns="+txAry[4])
+                            influxIfaceStatAry.append("tx_carrier="+txAry[6])
+                            influxIfaceStatAry.append("collisions="+txAry[8])
+                            GWStats["interface_"+ifacename+"_tx_errors"] = txAry[0]
+                            GWStats["interface_"+ifacename+"_tx_dropped"] = txAry[2]
+                            GWStats["interface_"+ifacename+"_tx_overruns"] = txAry[4]
+                            GWStats["interface_"+ifacename+"_tx_carrier"] = txAry[6]                            
+                            GWStats["interface_"+ifacename+"_collisions"] = txAry[8]
+                    else:
+                        if (iface[:10].lower()=="rx packets"):
+                            rxAry = iface[11:].split(" ")
+                            influxIfaceStatAry.append("rx_packets="+rxAry[0])
+                            influxIfaceStatAry.append("rx_errors="+rxAry[2])
+                            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
+                            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
+                            influxIfaceStatAry.append("rx_frame="+rxAry[8])
+                            GWStats["interface_"+ifacename+"_rx_packets"] = rxAry[0]
+                            GWStats["interface_"+ifacename+"_rx_errors"] = rxAry[2]
+                            GWStats["interface_"+ifacename+"_rx_dropped"] = rxAry[4]
+                            GWStats["interface_"+ifacename+"_rx_overruns"] = rxAry[6]
+                            GWStats["interface_"+ifacename+"_rx_frame"] = rxAry[8]
+                        elif (iface[:10].lower()=="tx packets"):
+                            txAry = iface[11:].split(" ")
+                            influxIfaceStatAry.append("tx_packets="+txAry[0])
+                            influxIfaceStatAry.append("tx_errors="+txAry[2])
+                            influxIfaceStatAry.append("tx_dropped="+txAry[4])
+                            influxIfaceStatAry.append("tx_overruns="+txAry[6])
+                            influxIfaceStatAry.append("tx_carrier="+txAry[8])
+                            GWStats["interface_"+ifacename+"_tx_packets"] = txAry[0]
+                            GWStats["interface_"+ifacename+"_tx_errors"] = txAry[2]
+                            GWStats["interface_"+ifacename+"_tx_dropped"] = txAry[4]
+                            GWStats["interface_"+ifacename+"_tx_overruns"] = txAry[6]
+                            GWStats["interface_"+ifacename+"_tx_carrier"] = txAry[8]
+                        elif (iface[:10].lower()=="collisions"):
+                            colAry = iface[11:].split(" ")
+                            influxIfaceStatAry.append("collisions="+colAry[0])
+                            GWStats["interface_"+ifacename+"_collisions"] = colAry[0]
+                        elif (iface[:8].lower()=="rx bytes"):
+                            recordAry = iface[9:].split(" ")
+                            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
+                            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
+                            GWStats["interface_"+ifacename+"_rx_bytes"] = recordAry[0]
+                            GWStats["interface_"+ifacename+"_tx_bytes"] = recordAry[5]
 
 def getDiskStats():
-    pipe = Popen(['df'], stdout=PIPE)
+    pipe = Popen(['cat','/proc/mounts'], stdout=PIPE)
     output = pipe.communicate()
-    df = str(output[0]).split("\n")
-    sda1Ary = ' '.join(df[4].split()).split(" ")
-    influxDbStats["imperva_gw_disk"]["volume="+sda1Ary[5]] = ["disk_capacity="+sda1Ary[1],"disk_used="+sda1Ary[2],"disk_available="+sda1Ary[3]]
-    sysvgDataAry = ' '.join(df[6].split()).split(" ")
-    influxDbStats["imperva_gw_disk"]["volume="+sysvgDataAry[4]] = ["disk_capacity="+sysvgDataAry[0],"disk_used="+sysvgDataAry[1],"disk_available="+sysvgDataAry[2]]
-    sysvgVarAry = ' '.join(df[8].split()).split(" ")
-    influxDbStats["imperva_gw_disk"]["volume="+sysvgVarAry[4]] = ["disk_capacity="+sysvgVarAry[0],"disk_used="+sysvgVarAry[1],"disk_available="+sysvgVarAry[2]]
+    mountsAry = str(output[0]).split("\n")
+    for mount in mountsAry:
+        if mount.strip()!="":
+            mountAry = mount.split(" ")
+            if mountAry[1][:1]=="/":
+                pipe = Popen(['df',mountAry[1]], stdout=PIPE)
+                output = pipe.communicate()
+                mountStats = str(output[0]).split("\n")
+                mountStats.pop(0)
+                mountStatsAry = ' '.join(mountStats).replace("\n"," ").split()
+                influxDbStats["imperva_gw_disk"]["volume="+mountStatsAry[5]] = []
+                influxIfaceStatAry = influxDbStats["imperva_gw_disk"]["volume="+mountStatsAry[5]]
+                influxIfaceStatAry.append("disk_capacity="+mountStatsAry[1])
+                influxIfaceStatAry.append("disk_used="+mountStatsAry[2])
+                influxIfaceStatAry.append("disk_available="+mountStatsAry[3])
+                GWStats["disk_volume"+mountStatsAry[5]+"_disk_capacity"] = mountStatsAry[1]
+                GWStats["disk_volume"+mountStatsAry[5]+"_disk_used"] = mountStatsAry[2]
+                GWStats["disk_volume"+mountStatsAry[5]+"_disk_available"] = mountStatsAry[3]
 
 def getSysStats():
     with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
         content = content_file.read()
         m = re.search('(appliance)\s(tag=).*',content)
-        logging.warning(m)
         modelStr = m.group(0)
         model = modelStr[modelStr.index('appliance tag=')+15:modelStr.index('" name=')]
+        global GWMODEL
+        GWMODEL = model 
         # TODO: Go back and find a way to get version numver, impctl does not work in cron
         influxDbStats["imperva_gw_sys"]["model="+model] = []
         sysStat = influxDbStats["imperva_gw_sys"]["model="+model]
         sysStat.append("gw_supported_kbps="+gwSizingStats[model]["gw_supported_kbps"])
         sysStat.append("gw_supported_hps="+gwSizingStats[model]["gw_supported_hps"])
+        GWStats["gw_supported_kbps"] = gwSizingStats[model]["gw_supported_kbps"]
+        GWStats["gw_supported_hps"] = gwSizingStats[model]["gw_supported_hps"]
 
         pipe = Popen(['cat','/proc/uptime'], stdout=PIPE)
         output = pipe.communicate()
         uptimeAry = str(output[0]).split("\n")
         uptime = str(uptimeAry[0]).split(" ")
         sysStat.append("uptime="+uptime[0][:-3])
+        GWStats["uptime"] = uptime[0][:-3]
         pipe = Popen(['top','-bn','1'], stdout=PIPE)
         output = pipe.communicate()
-        topRecord = str(output[0]).split("\n")
-        memDataAry = ' '.join(topRecord[4].split()).split(" ")
-        swapDataAry = ' '.join(topRecord[5].split()).split(" ")
-        sysStat.append("mem_total="+memDataAry[1][:-1])
-        sysStat.append("mem_used="+memDataAry[3][:-1])
-        sysStat.append("mem_free="+memDataAry[5][:-1])
-        sysStat.append("mem_buffers="+memDataAry[7][:-1])
-        sysStat.append("swap_total="+swapDataAry[1][:-1])
-        sysStat.append("swap_used="+swapDataAry[3][:-1])
-        sysStat.append("swap_free="+swapDataAry[5][:-1])
-        sysStat.append("swap_cached="+swapDataAry[7][:-1])
+        topOutputAry = str(output[0]).split("\n")
+        for stat in topOutputAry:
+            if stat[:4]=="Mem:":
+                statAry = ' '.join(stat.split()).split(' ')
+                sysStat.append("mem_total="+statAry[1][:-1])
+                sysStat.append("mem_used="+statAry[3][:-1])
+                sysStat.append("mem_free="+statAry[5][:-1])
+                sysStat.append("mem_buffers="+statAry[7][:-1])
+                GWStats["mem_total"] = statAry[1][:-1]
+                GWStats["mem_used"] = statAry[3][:-1]
+                GWStats["mem_free"] = statAry[5][:-1]
+                GWStats["mem_buffers"] = statAry[7][:-1]
+            elif stat[:5]=="Swap:":
+                statAry = ' '.join(stat.split()).split(' ')
+                sysStat.append("swap_total="+statAry[1][:-1])
+                sysStat.append("swap_used="+statAry[3][:-1])
+                sysStat.append("swap_free="+statAry[5][:-1])
+                sysStat.append("swap_cached="+statAry[7][:-1])
+                GWStats["swap_total"] = statAry[1][:-1]
+                GWStats["swap_used"] = statAry[3][:-1]
+                GWStats["swap_free"] = statAry[5][:-1]
+                GWStats["swap_cached"] = statAry[7][:-1]
 
 # Parse stats and maximums
 # example: 0 connection/sec (max 4 2019-03-20 05:39:56)
@@ -276,6 +353,8 @@ def parseGWCPUStat(stat):
             for index, CPUStat in enumerate(CPUStatsAry, start=0):
                 CPUStatAry = CPUStat.strip().split(' ')
                 GWStats["CPU_"+CPUNum+"_kbps"] = int(CPUStatAry[0])
+                GWStats["CPU_"+CPUNum+"_worker"] = CPUStatKey[index]
+                GWStats["CPU_"+CPUNum+"_worker_max"] = CPUStatAry[0]
                 influxDbStats["imperva_gw_workers"]["worker="+CPUNum].append("worker_"+CPUStatKey[index]+"="+CPUStatAry[0])
                 influxDbStats["imperva_gw_workers"]["worker="+CPUNum].append("worker_"+CPUStatKey[index]+"_max="+CPUStatAry[2])
 
@@ -315,16 +394,12 @@ def makeCallNewRelicCall(stat):
         response = requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False)
 
 def makeInfluxDBCall(measurement, tags, params):
-    print("makeInfluxDBCall")
-    print(measurement)
-    print(tags)
-    print(params)
     headers = {
         "Content-Type": "application/octet-stream",
     }
     influxdb_url = CONFIG["influxdb"]["host"]
     data = measurement+","+tags+" "+params
-    print("INFLUXDB REQUEST: "+influxdb_url+"?"+params)
+    # print("INFLUXDB REQUEST: "+influxdb_url+"?"+params)
     logging.warning("INFLUXDB REQUEST: "+influxdb_url+"?"+params)
     if "proxies" in CONFIG:
         proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
@@ -346,31 +421,35 @@ def searchLogFile(filename, pattern):
 
 gwSizingStats = {
     # Physical Appliances
-    "X2500":{"gw_supported_kbps":"62500","gw_supported_hps":"5000"},    
-    "X4500":{"gw_supported_kbps":"125000","gw_supported_hps":"9000"},
-    "X6500":{"gw_supported_kbps":"250000","gw_supported_hps":"18000"},
-    "X8500":{"gw_supported_kbps":"625000","gw_supported_hps":"36000"},
-    "X10k":{"gw_supported_kbps":"1250000","gw_supported_hps":"72000"},
+    "X2500":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},    
+    "X4500":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
+    "X6500":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"},
+    "X8500":{"gw_supported_kbps":"5000000","gw_supported_hps":"36000"},
+    "X10k":{"gw_supported_kbps":"10000000","gw_supported_hps":"72000"},
     # Virtual Appliances
-    "V2500":{"gw_supported_kbps":"62500","gw_supported_hps":"5000"},
-    "V4500":{"gw_supported_kbps":"125000","gw_supported_hps":"9000"},
-    "V6500":{"gw_supported_kbps":"250000","gw_supported_hps":"18000"},
+    "V2500":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},
+    "V4500":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
+    "V6500":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"},
     # AWS Appliances
-    "AV1000":{"gw_supported_kbps":"12500","gw_supported_hps":"2500"},
-    "AV2500":{"gw_supported_kbps":"62500","gw_supported_hps":"5000"},
-    "AV4500":{"gw_supported_kbps":"125000","gw_supported_hps":"9000"},
-    "AV6500":{"gw_supported_kbps":"250000","gw_supported_hps":"18000"},
+    "AV1000":{"gw_supported_kbps":"100000","gw_supported_hps":"2500"},
+    "AV2500":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},
+    "AV4500":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
+    "AV6500":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"},
     # Azure Appliances
-    "MV1000":{"gw_supported_kbps":"12500","gw_supported_hps":"2500"},
-    "MV2500":{"gw_supported_kbps":"62500","gw_supported_hps":"5000"},
-    "MV4500":{"gw_supported_kbps":"125000","gw_supported_hps":"9000"},
-    "MV6500":{"gw_supported_kbps":"250000","gw_supported_hps":"18000"}
+    "MV1000":{"gw_supported_kbps":"100000","gw_supported_hps":"2500"},
+    "MV2500":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},
+    "MV4500":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
+    "MV6500":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"}
 }
 
 def sendSyslog(jsonstr):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.sendto(json.dumps(jsonstr), (CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
-    s.close()
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
+        s.sendall(b'{}'.format(jsonstr))
+        s.close()
+    except socket.error as msg:
+        logging.warning("sendSyslog() exception: "+msg)
 
 if __name__ == '__main__':
     run()
