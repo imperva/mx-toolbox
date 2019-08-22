@@ -125,7 +125,7 @@ def run():
     getDiskStats()
     getSysStats()
     getNetworkStats()
-    
+
     if CONFIG["gw_log_search"]["enabled"]:
         for fileconfig in CONFIG["gw_log_search"]["files"]:
             for patternconfig in fileconfig["search_patterns"]:
@@ -427,6 +427,7 @@ gwSizingStats = {
     "X8500":{"gw_supported_kbps":"5000000","gw_supported_hps":"36000"},
     "X10k":{"gw_supported_kbps":"10000000","gw_supported_hps":"72000"},
     # Virtual Appliances
+    "V1000":{"gw_supported_kbps":"100000","gw_supported_hps":"2500"},
     "V2500":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},
     "V4500":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
     "V6500":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"},
