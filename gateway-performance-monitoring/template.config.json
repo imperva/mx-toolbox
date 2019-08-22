@@ -2,6 +2,7 @@
   "log_level": "debug",
   "log_file_name": "gateway_statistics.log",
   "environment": "dev",
+  "is_userspace": false, 
   "gw_log_search": {
     "enabled": true,
     "files": [{
