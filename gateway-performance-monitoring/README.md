@@ -15,10 +15,6 @@ The files should be copied to the /var/user-data/ folder on the Gateway applianc
 
 The template.config.json file must be re-named config.json.  
 
-## Installing and dynamic initial configuration in AWS Environments
-
-TODO
-
 ## Configuration Options ##
 
 The script has one configuration file, which lives in the same directory as the script.
@@ -32,14 +28,9 @@ Example:
 ```
 {
   "log_level": "debug",
+  "log_file_name": "gateway_statistics.log",
   "environment": "dev",
-  "mx": {
-    "enabled": false,
-    "endpoint": "MXENDPOINT",
-    "username": "MXUSERNAME",
-    "password": "MXPASSWORD",
-    "license_key": "LICENSE_KEY"
-  },
+  "is_userspace": false, 
   "gw_log_search": {
     "enabled": true,
     "files": [{
@@ -62,7 +53,7 @@ Example:
   },
   "influxdb": {
     "enabled": true,
-    "host": "http://1.2.3.4:8086/write?db=imperva_performance_stats",
+    "host": "http://1.2.3.4:8086/write?db=imperva_performance_stats"
   },
   "syslog": {
     "enabled": true,
@@ -76,9 +67,25 @@ Example:
 
 `log_level` - _(optional)_ the log level. Valid values: `debug`, `info`, `warn`, `error`, `fatal`. Defaults to `info`.
 
+`log_file_name` - _(optional)_ the log file name. Defaults to `send_alert_to_new_relic.log`.
+
 `environment` - _(optional)_ the logical environment the server operates in.  This value will be reported with every Event.  Ex. `dev`, `stage`, `uat`, `prod`.  Defaults to `dev`
 
-`log_file_name` - _(optional)_ the log file name. Defaults to `send_alert_to_new_relic.log`.
+`is_userspace` - _(required)_ set to true if using WAF gateway in NGRP mode (version 14.1 or later)
+
+`gw_log_search` - _(optional)_ feature to search a configurable list of local log files for a configurable list of patterns.  Configuring this can add specific events from a local any local log file (/var/log/messges, or /opt/SecureSphere/etc/logs/GatewayLog/GatewayLog.html for example) to be added to syslog output as soon as the event ocurs.
+
+`gw_log_search.enabled` - _(required)_ set to true to enable gw_log_search feature
+
+`gw_log_search.files` - _(required)_ array of objects with the key->value pairs of path and search_patterns
+
+`gw_log_search.files[].path` - _(required)_ the path to a local log file to execute a set of search_patterns against
+
+`gw_log_search.files[].search_patters` - _(required)_ array of objects with the key->value pairs of name and pattern to search for in a the specified file
+
+`gw_log_search.files[].search_patters[].name` - _(required)_ array of objects with the key->value pairs of name and pattern to search for in a the specified 
+
+`gw_log_search.files[].search_patters[].pattern` - _(required)_ any arbitrary string to search for in a specified local log file, the pattern will match even a partial string and return the whole line to be output in syslog feed 
 
 `newrelic` - (optional) sectional is not required, if not using newrelic, either set newrelic.enabled to false section can be removed from config
 
@@ -111,3 +118,49 @@ Example:
 `proxy_username` - _(optional)_ the proxy username
 
 `proxy_password` - _(optional)_ the proxy password
+
+## Installing and dynamic initial configuration in AWS Environments
+
+..Step 1:
+..Populate the ImpervaLicenseKey parameter upon deploying the cloudformation scring. This allows us to run in an “unlocked” mode to initially set up the script and configure the cron. 
+
+..Step 2:
+..Create a new S3 bucket, upload the config.json and get_gateway_stats.py files, and give the Gateway instances permissions to access the S3 bucket.  This should be added to the “GwRolePolicies.Properties.PolicyDocument.Statement” resource array:
+```
+[
+  {
+    "Action": [
+      "s3:GetObject"
+    ],
+    "Resource": "arn:aws:s3::gateway-performance-stats-script",
+    "Effect": "Allow"
+  }
+]
+```
+
+Step 3:
+Edit the commands section so the GW will download and run the script from the S3 bucket during launch.  
+
+```
+      ...
+                    "Fn::FindInMap": [
+                "ImpervaVariables",
+                "LBHealthCheck",
+                "https"
+              ]
+            }
+          ]
+        ]
+      },
+      "mkdir /var/user-data",
+		  "/usr/bin/aws s3 cp s3://gateway-performance-stats-script/config.json /var/user-data",
+		  "/usr/bin/aws s3 cp s3://gateway-performance-stats-script/get_gateway_stats.py /var/user-data",
+		  "echo '* * * * * cd /var/user-data && python /var/user-data/get_gateway_stats.py' | crontab -"          	
+        ],
+        "MXCredentials": [
+          {
+          ...
+```
+ 
+
+ 
