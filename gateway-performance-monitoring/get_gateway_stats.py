@@ -209,7 +209,7 @@ def getNetworkStats():
                             influxIfaceStatAry.append("tx_packets="+txAry[0])
                             influxIfaceStatAry.append("tx_bytes="+txAry[2])
                             GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-                            GWStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[1])
+                            GWStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[2])
                         elif (iface[:9].lower()=="tx errors"):
                             txAry = iface[10:].split(" ")
                             influxIfaceStatAry.append("tx_errors="+txAry[0])
