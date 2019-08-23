@@ -121,13 +121,9 @@ Example:
 
 ## Installing and dynamic initial configuration in AWS Environments
 
-Step 1:
+**Step 1:** Populate the ImpervaLicenseKey parameter upon deploying the cloudformation scring. This allows us to run in an “unlocked” mode to initially set up the script and configure the cron.  
 
-   Populate the ImpervaLicenseKey parameter upon deploying the cloudformation scring. This allows us to run in an “unlocked” mode to initially set up the script and configure the cron.  
-
-Step 2:
-
-   Create a new S3 bucket, upload the config.json and get_gateway_stats.py files, and give the Gateway instances permissions to access the S3 bucket.  This should be added to the “GwRolePolicies.Properties.PolicyDocument.Statement” resource array:
+**Step 2:** Create a new S3 bucket, upload the config.json and get_gateway_stats.py files, and give the Gateway instances permissions to access the S3 bucket.  This should be added to the “GwRolePolicies.Properties.PolicyDocument.Statement” resource array:
 ```
 ...
 [
@@ -142,9 +138,7 @@ Step 2:
 ...
 ```
 
-Step 3:
-
-   Edit the commands section so the GW will download and run the script from the S3 bucket during launch.  
+**Step 3:** Edit the commands section so the GW will download and run the script from the S3 bucket during launch.  
 
 ```
       ...
