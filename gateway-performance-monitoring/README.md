@@ -153,13 +153,13 @@ Edit the commands section so the GW will download and run the script from the S3
         ]
       },
       "mkdir /var/user-data",
-		  "/usr/bin/aws s3 cp s3://gateway-performance-stats-script/config.json /var/user-data",
-		  "/usr/bin/aws s3 cp s3://gateway-performance-stats-script/get_gateway_stats.py /var/user-data",
-		  "echo '* * * * * cd /var/user-data && python /var/user-data/get_gateway_stats.py' | crontab -"          	
-        ],
-        "MXCredentials": [
-          {
-          ...
+      "/usr/bin/aws s3 cp s3://gateway-performance-stats-script/config.json /var/user-data",
+      "/usr/bin/aws s3 cp s3://gateway-performance-stats-script/get_gateway_stats.py /var/user-data",
+      "echo '* * * * * cd /var/user-data && python /var/user-data/get_gateway_stats.py' | crontab -"          	
+    ],
+    "MXCredentials": [
+      {
+      ...
 ```
  
 
