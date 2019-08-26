@@ -43,6 +43,7 @@ logging.basicConfig(filename=CONFIG["log_file_name"], filemode='w', format='%(na
 # Gateway level statistic
 GWStats = {
     # start a few enrichment fields to give context
+    "event_type": "gateway",
     "gateway": GATEWAYNAME,
     # "gateway_uptime": GATEWAY_UPTIME,
     "timestamp": TIMESTAMP,
@@ -70,6 +71,7 @@ GWStats = {
 # Server Group level statistic
 SGStatsTmpl = {
     # start a few enrichment fields to give context
+    "event_type": "server_group",
     "gateway": GATEWAYNAME,
     # "gateway_uptime": GATEWAY_UPTIME,
     "server_group": True,
