@@ -465,11 +465,11 @@ gwSizingStats = {
     "MV6500":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"}
 }
 
-def sendSyslog(jsonstr):
+def sendSyslog(jsonObj):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
-        s.sendall(b'{}'.format(jsonstr))
+        s.sendall(b'{}'.format(json.dumps(jsonObj)))
         s.close()
     except socket.error as msg:
         logging.warning("sendSyslog() exception: "+msg)
