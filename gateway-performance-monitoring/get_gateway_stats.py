@@ -134,7 +134,7 @@ def run():
         for fileconfig in CONFIG["gw_log_search"]["files"]:
             for patternconfig in fileconfig["search_patterns"]:
                 matches = searchLogFile(fileconfig["path"], patternconfig["pattern"])
-                GWStats[patternconfig["name"]] = "\n".join(matches)
+                GWStats[patternconfig["name"]] = "\n".join(matches).replace('"',"'")
 
     if CONFIG["newrelic"]["enabled"]:
         makeCallNewRelicCall(GWStats)
