@@ -138,7 +138,7 @@ Example:
 ...
 ```
 
-**Step 3:** Edit the commands section so the GW will download and run the script from the S3 bucket during launch.  
+**Step 3:** Edit the commands section so the GW will download and run the script from the S3 bucket during launch.  Command entries should be added to the “Resources.LaunchConfig.Metadata.commands” resource array:
 
 ```
       ...
