@@ -11,6 +11,7 @@ import urllib2
 import logging
 import re
 import math
+import codecs
 from decimal import Decimal
 
 ############### Configs ###############
@@ -224,6 +225,12 @@ def getNetworkStats():
                             GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
                             GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
                             GWStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
+                        elif (iface[:8].lower()=="rx bytes"):
+                            recordAry = iface[9:].split(" ")
+                            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
+                            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
+                            GWStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
+                            GWStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
                     else:
                         if (iface[:10].lower()=="rx packets"):
                             rxAry = iface[11:].split(" ")
@@ -328,7 +335,7 @@ def getSysStats():
                 GWStats["swap_free"] = int(statAry[5][:-1])
                 GWStats["swap_cached"] = int(statAry[7][:-1])
             elif stat[:3].lower()=="cpu":
-                cpuStatsAry = ' '.join(stat.replace(":"," ").replace(",","").split()).split(" ")
+                cpuStatsAry = ' '.join(stat.replace(":"," ").replace(",",", ").replace(",","").split()).split(" ")
                 influxDbStats["imperva_gw_cpu"]["cpu="+cpuStatsAry[0].lower()] = []
                 GWCpuStatAry = influxDbStats["imperva_gw_cpu"]["cpu="+cpuStatsAry[0].lower()]
                 for cpuStat in cpuStatsAry[1:]:
@@ -428,7 +435,7 @@ def searchLogFile(filename, pattern):
         line_list = list(file_)
         line_list.reverse()
         for line in line_list:
-            if line.find(pattern) != -1:
+            if ''.join(i for i in line if ord(i)<128).find(pattern) != -1:
                 matches.append(line)
     return(matches)
 
@@ -445,11 +452,15 @@ topCpuAttrMap = {
 
 gwSizingStats = {
     # Physical Appliances
-    "X2500":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},    
+    "X2500":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},
     "X4500":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
     "X6500":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"},
     "X8500":{"gw_supported_kbps":"5000000","gw_supported_hps":"36000"},
-    "X10k":{"gw_supported_kbps":"10000000","gw_supported_hps":"72000"},
+    "X10K":{"gw_supported_kbps":"10000000","gw_supported_hps":"72000"},
+    "X2510":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},
+    "X4510":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
+    "X6510":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"},
+    "X8510":{"gw_supported_kbps":"5000000","gw_supported_hps":"36000"},
     # Virtual Appliances
     "V1000":{"gw_supported_kbps":"100000","gw_supported_hps":"2500"},
     "V2500":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},
@@ -471,7 +482,7 @@ def sendSyslog(jsonObj):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
-        s.sendall(b'{}'.format(json.dumps(jsonObj)))
+        s.sendall(b'{0}'.format(json.dumps(jsonObj)))
         s.close()
     except socket.error as msg:
         logging.warning("sendSyslog() exception: "+msg)
