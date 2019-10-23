@@ -1,0 +1,9 @@
+{
+  "log_level": "debug",
+  "environment": "dev",
+  "mx": {
+    "endpoint": "MXENDPOINT",
+    "username": "MXUSERNAME",
+    "password": "MXPASSWORD"
+  }
+}
