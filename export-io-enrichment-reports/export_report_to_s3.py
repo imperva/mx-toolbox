@@ -1,5 +1,6 @@
 #!/usr/bin/env python
  
+import os
 import sys
 import json
 import csv
@@ -40,9 +41,10 @@ recordsTblCol = {}
 logging.warning("\n\n===========  Start MX policy sync ===========\n")
 logging.warning('PATH2REPORT='+sys.argv[1])
 PATH2REPORT = '/opt/SecureSphere/server/SecureSphere/jakarta-tomcat-secsph/webapps/SecureSphere/'+sys.argv[1]
-# Example argv[1] = /WEB-INF/reptemp/ISBT_DB_Classification_Scan_Report_admin_17Sep2019_13-19-28.csv 
+# Example argv[1] = /WEB-INF/reptemp/ISBT_DB_Classification_Scan_Report_admin_01Nov2019_00-15-00.csv 
 # argv[2] = ISBT_DB_Classification_Scan_Report 
 # argv[3] = isbt-db-classification
+# ./run_export_report_to_s3.sh /WEB-INF/reptemp/ISBT_DB_Classification_Scan_Report_admin_01Nov2019_00-15-00.csv ISBT_DB_Classification_Scan_Report isbt-db-classification
 
 def isfloat(x):
     try:
@@ -100,26 +102,29 @@ def run():
 	f_csv.write(json.dumps(recordsCsv))
 	f_csv.close()
 	pipe = Popen(['aws','s3','cp',FILE_CSV,'s3://'+BUCKET_NAME+BUCKET_KEY+FILE_CSV], stdout=PIPE)
-	output = pipe.communicate()
-    
+	pipe.communicate()
+	os.remove(FILE_CSV) 
+
 	# Write file formatted with string indexes per row/column
 	f_index.write(json.dumps(recordsIndex))
 	f_index.close()
 	pipe = Popen(['aws','s3','cp',FILE_KEYS,'s3://'+BUCKET_NAME+BUCKET_KEY+FILE_KEYS], stdout=PIPE)
-	output = pipe.communicate()
+	pipe.communicate()
+	os.remove(FILE_KEYS) 
 
 	# Write file formatted with string indexes per table group and table groupings
 	f_tbl.write(json.dumps(recordsTgTbl))
 	f_tbl.close()
 	pipe = Popen(['aws','s3','cp',FILE_TGTBL_KEYS,'s3://'+BUCKET_NAME+BUCKET_KEY+FILE_TGTBL_KEYS], stdout=PIPE)
-	output = pipe.communicate()
+	pipe.communicate()
+	os.remove(FILE_TGTBL_KEYS) 
 
 	# Write file formatted with string indexes per table group, table, and colulumn groupings
 	f_col.write(json.dumps(recordsTblCol))
 	f_col.close()
 	pipe = Popen(['aws','s3','cp',FILE_TBLCOL_KEYS,'s3://'+BUCKET_NAME+BUCKET_KEY+FILE_TBLCOL_KEYS], stdout=PIPE)
-	output = pipe.communicate()
-
+	pipe.communicate()
+	os.remove(FILE_TBLCOL_KEYS)
 
 if __name__ == '__main__':
         run()
