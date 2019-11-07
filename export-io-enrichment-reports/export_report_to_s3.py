@@ -43,7 +43,24 @@ PATH2REPORT = '/opt/SecureSphere/server/SecureSphere/jakarta-tomcat-secsph/webap
 # Example argv[1] = /WEB-INF/reptemp/ISBT_DB_Classification_Scan_Report_admin_17Sep2019_13-19-28.csv 
 # argv[2] = ISBT_DB_Classification_Scan_Report 
 # argv[3] = isbt-db-classification
- 
+
+def isfloat(x):
+    try:
+        a = float(x)
+    except ValueError:
+        return False
+    else:
+        return True
+
+def isint(x):
+    try:
+        a = float(x)
+        b = int(a)
+    except ValueError:
+        return False
+    else:
+        return a == b
+
 def run():
 	with open(PATH2REPORT, 'r') as f:
 		i=0
@@ -57,7 +74,12 @@ def run():
 				# Create entry for string header value - keys
 				curRowWithIndexes = {}
 				for j in range(len(row)):
-					curRowWithIndexes[reportHeaders[j].replace(" ", "_")] = row[j]
+					val = row[j]
+					if isint(val):
+						val = int(val)
+					elif isfloat(val):
+						val = float(val)
+					curRowWithIndexes[reportHeaders[j].replace(" ", "_")] = val
 				recordsIndex["records"].append(curRowWithIndexes)
 				
 				# Create entry for table group name as key index
