@@ -1,0 +1,5 @@
+Site,Server Group,Service,Application,Learned Host
+"Prod Data Center","EXTERNAL SuperVeda JSP","HTTP","Default Web Application","www.test.com"
+"Prod Data Center","EXTERNAL SuperVeda JSP","HTTP","Default Web Application","www.test2.com"
+"Prod Data Center","SuperVeda PHP CentOS","Apache 2.0","Default Web Application","test.local"
+"Prod Data Center","SuperVeda PHP CentOS","Apache 2.0","Default Web Application","www.superveda.com"
