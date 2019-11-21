@@ -21,12 +21,7 @@ open(CSV_FILE_NAME, 'w+').close()
 csv_file=open(CSV_FILE_NAME,"w+")
 
 # Limit table group export to the following list.  If array is empty [], script will recursively export all table groups from the MX
-TBL_GROUPS = [
-    "AWS prod us-east-1 Kinesis - ISBT-MySQL - MySQL - Account Number",
-    "PeopleSoft - User Administration Tables",
-    "PCI - Cardholder Information",
-    "kitchen_sink"
-]
+TBL_GROUPS = []
 CSV_DATA = ["Table Group Name,Data Type,Name,Type,Column"]
 
 try:
@@ -54,28 +49,32 @@ def run():
     
     # Iterate through list of table group names and append to .csv
     for tbl_grp_name in TBL_GROUPS:
-        tbl_grp_name_ary = tbl_grp_name.split(' - ')
-        print(tbl_grp_name_ary)
-        data_type = tbl_grp_name_ary[len(tbl_grp_name_ary)-1]
-        tbl_grp_response = ss.makeCall(mx_host, session_id, "/conf/tableGroups/"+tbl_grp_name+"/data")
-        tbl_grp = tbl_grp_response.json()
-        # CSV_DATA.append(tbl_grp_name)
-        for record in tbl_grp["records"]:
-            if "Columns" in record:
-                for column_name in record["Columns"]:
+        if "/" not in tbl_grp_name:
+            tbl_grp_name_ary = tbl_grp_name.split(' - ')        
+            print("retrieving table group: "+tbl_grp_name)
+            data_type = tbl_grp_name_ary[len(tbl_grp_name_ary)-1]
+            tbl_grp_response = ss.makeCall(mx_host, session_id, "/conf/tableGroups/"+tbl_grp_name+"/data")
+            tbl_grp = tbl_grp_response.json()
+            # CSV_DATA.append(tbl_grp_name)
+            for record in tbl_grp["records"]:
+                if "Columns" in record:
+                    for column_name in record["Columns"]:
+                        row = [tbl_grp_name]
+                        row.append(data_type)
+                        row.append((record["Name"] or 'n/a'))
+                        row.append((record["Type"] or 'n/a'))
+                        row.append(column_name)
+                        CSV_DATA.append('"'+'","'.join(row)+'"')
+                else: 
                     row = [tbl_grp_name]
                     row.append(data_type)
-                    row.append((record["Name"] or 'n/a'))
                     row.append((record["Type"] or 'n/a'))
-                    row.append(column_name)
+                    row.append((record["Name"] or 'n/a'))
+                    row.append("n/a")
                     CSV_DATA.append('"'+'","'.join(row)+'"')
-            else: 
-                row = [tbl_grp_name]
-                row.append(data_type)
-                row.append((record["Type"] or 'n/a'))
-                row.append((record["Name"] or 'n/a'))
-                row.append("n/a")
-                CSV_DATA.append('"'+'","'.join(row)+'"')
+        else:
+            print("ignoring table group: "+tbl_grp_name)
+            
     csv_file.write("\n".join(CSV_DATA))
     csv_file.close()
 
