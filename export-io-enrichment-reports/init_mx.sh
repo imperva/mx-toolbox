@@ -13,4 +13,10 @@ chown mxserver:mxserver $SCRIPT_PATH
 chown mxserver:mxserver $SCRIPT_PATH/*
 chmod +x $SCRIPT_PATH/*
 
+mkdir /opt/SecureSphere/server/.aws
+cp ~/.aws/config /opt/SecureSphere/server/.aws
+chown mxserver:mxserver /opt/SecureSphere/server/.aws
+cp ~/.aws/config /opt/SecureSphere/server/.aws/config
+chown mxserver:mxserver /opt/SecureSphere/server/.aws/config
+
 exit
