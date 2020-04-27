@@ -12,7 +12,6 @@ import logging
 import re
 import math
 import codecs
-from decimal import Decimal
 
 ############### Configs ###############
 CONFIGFILE = '/var/user-data/config.json'
@@ -108,7 +107,10 @@ influxDbStats = {
     "imperva_gw_net":{},
     "imperva_gw_disk":{},
     "imperva_gw_sys":{},
-    "imperva_gw_cpu":{},
+    "imperva_gw_hades_cpu":{},
+    "imperva_gw_top_cpu":{},
+    "imperva_gw_sar_cpu":{},
+    "imperva_gw_cpuload":{},
     "imperva_sg":{}
 }
 
@@ -170,6 +172,9 @@ def run():
             curStat = influxDbStats[measurement]
             for tags in curStat:
                 makeInfluxDBCall(measurement, influxDefaultTags+tags, ','.join(curStat[tags]))
+    if CONFIG["failopen"]["enabled"]:
+        pipe = Popen(['top'], stdout=PIPE)
+        output = pipe.communicate()
 
 #########################################################
 ############### General Porpuse Functions ###############
@@ -336,15 +341,54 @@ def getSysStats():
                 GWStats["swap_cached"] = int(statAry[7][:-1])
             elif stat[:3].lower()=="cpu":
                 cpuStatsAry = ' '.join(stat.replace(":"," ").replace(",",", ").replace(",","").split()).split(" ")
-                influxDbStats["imperva_gw_cpu"]["cpu="+cpuStatsAry[0].lower()] = []
-                GWCpuStatAry = influxDbStats["imperva_gw_cpu"]["cpu="+cpuStatsAry[0].lower()]
+                influxDbStats["imperva_gw_top_cpu"]["cpu="+cpuStatsAry[0].lower()] = []
+                GWCpuStatAry = influxDbStats["imperva_gw_top_cpu"]["cpu="+cpuStatsAry[0].lower()]
                 for cpuStat in cpuStatsAry[1:]:
                     cpuStatAry = cpuStat.split("%")
                     GWCpuStatAry.append(topCpuAttrMap[cpuStatAry[1]]+"="+cpuStatAry[0])
-                    GWStats["top_"+cpuStatsAry[0].lower()+"_"+topCpuAttrMap[cpuStatAry[1]]] = cpuStatAry[0]
+                    GWStats["top_"+cpuStatsAry[0].lower()+"_"+topCpuAttrMap[cpuStatAry[1]]] = float(cpuStatAry[0])
                 # statAry = ' '.join(stat.split()).split(' ')
                 # sysStat.append("top_cpu1_="+gwSizingStats[model]["gw_supported_kbps"])
 
+        pipe = Popen(['sar','-P','ALL','0'], stdout=PIPE)
+        output = pipe.communicate()
+        sarOutputAry = str(output[0]).split("\n")
+        sarOutputAry.pop(0)
+        sarOutputAry.pop(0)
+        # print(sarOutputAry)
+        sarStatIndexes = sarOutputAry.pop(0)
+        sarStatIndexAry = ' '.join(sarStatIndexes.split()).replace("%","").split(" ")
+        for i, stat in enumerate(sarOutputAry, start=1):
+            statAry = ' '.join(stat.split()).split(' ')
+            if len(statAry) > 1:
+                if statAry[2][:3].upper()!="CPU":
+                    influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[2].lower()] = []
+                    GWCpuStatAry = influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[2].lower()]
+                    offset = 3 # remove first few from list
+                    for j in range(len(statAry)-offset):
+                        cpuStat = statAry[j+offset]
+                        GWCpuStatAry.append(sarStatIndexAry[j+offset]+"="+cpuStat)
+                        GWStats["sar_cpu"+statAry[2].lower()+"_"+sarStatIndexAry[j+offset]] = round(float(cpuStat),2)
+
+        pipe = Popen(['cat','/proc/hades/cpuload'], stdout=PIPE)
+        output = pipe.communicate()
+        cpuloadOutputAry = str(output[0]).strip().split("\n\n")
+
+        influxDbStats["imperva_gw_cpuload"]["last_30_sec"] = []
+        last30SecAry = influxDbStats["imperva_gw_cpuload"]["last_30_sec"]
+        for stat in cpuloadOutputAry[0].split("\n"):
+            if stat[:4]!="last":
+                statAry = ' '.join(stat.split()).split(":")
+                last30SecAry.append(statAry[0].replace(" ","_")+"="+str(int(statAry[1].strip())))
+                GWStats["cpuload_last_30_sec_"+statAry[0].replace(" ","_")] = int(statAry[1].strip())
+
+        influxDbStats["imperva_gw_cpuload"]["last_sec"] = []
+        lastSecAry = influxDbStats["imperva_gw_cpuload"]["last_sec"]
+        for stat in cpuloadOutputAry[1].split("\n"):
+            if stat[:4]!="last":
+                statAry = ' '.join(stat.split()).split(":")
+                lastSecAry.append(statAry[0].replace(" ","_")+"="+str(int(statAry[1].strip())))
+                GWStats["cpuload_last_sec_"+statAry[0].replace(" ","_")] = int(statAry[1].strip())
 
 # Parse stats and maximums
 # example: 0 connection/sec (max 4 2019-03-20 05:39:56)
@@ -373,8 +417,8 @@ def parseGWCPUStat(stat):
             CPUStatKey = ["kbps","packets_sec","queue_length"]
             for index, CPUStat in enumerate(CPUStatsAry, start=0):
                 CPUStatAry = CPUStat.strip().split(' ')
-                GWStats["CPU_"+CPUNum+"_"+CPUStatKey[index]] = int(CPUStatAry[0])
-                GWStats["CPU_"+CPUNum+"_"+CPUStatKey[index]+"_max"] = int(CPUStatAry[2])
+                GWStats["cpu_"+CPUNum+"_"+CPUStatKey[index]] = int(CPUStatAry[0])
+                GWStats["cpu_"+CPUNum+"_"+CPUStatKey[index]+"_max"] = int(CPUStatAry[2])
                 influxDbStats["imperva_gw_workers"]["worker="+CPUNum].append("worker_"+CPUStatKey[index]+"="+CPUStatAry[0])
                 influxDbStats["imperva_gw_workers"]["worker="+CPUNum].append("worker_"+CPUStatKey[index]+"_max="+CPUStatAry[2])
 
@@ -425,7 +469,10 @@ def makeInfluxDBCall(measurement, tags, params):
         proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
         response = requests.post(influxdb_url, data=data, proxies=proxies, headers=headers, verify=False)
     else:
-        response = requests.post(influxdb_url, data=data, headers=headers, verify=False)
+        if "username" in CONFIG["influxdb"]:
+            response = requests.post(influxdb_url, auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=False)
+        else:
+            response = requests.post(influxdb_url, data=data, headers=headers, verify=False)
         if (response.status_code!=204):
             logging.warning("[ERROR] Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
 
