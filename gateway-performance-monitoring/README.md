@@ -103,6 +103,10 @@ Example:
 
 `influxdb.host` - _(required)_ the influxdb protocol, host, port, and database name. Ex. `[protocol]://[host]:[port]/write?db=[influx_db_name]` or `http://1.2.3.4:8086/write?db=imperva_performance_stats`
 
+`influxdb.username` - _(optional)_ if auth is required for influxdb, specify the username.
+
+`influxdb.password` - _(optional)_ if auth is required for influxdb, specify the password.
+
 `syslog` - _(optional) section is not required, if not using syslog, either set syslog.enabled to false or section can be removed from config
 
 `syslog.enabled` - _(required)_ set to true if using syslog
