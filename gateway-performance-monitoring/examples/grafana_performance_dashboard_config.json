@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 4,
-  "iteration": 1569422633972,
+  "id": 1,
+  "iteration": 1588015184418,
   "links": [
     {
       "asDropdown": true,
@@ -48,142 +48,12 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "Imperva Performance Stats",
-      "fill": 1,
-      "gridPos": {
-        "h": 6,
-        "w": 6,
-        "x": 3,
-        "y": 0
-      },
-      "id": 107,
-      "interval": "",
-      "legend": {
-        "avg": false,
-        "current": false,
-        "hideEmpty": true,
-        "hideZero": true,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {},
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "alias": "$tag_cpu",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "cpu"
-              ],
-              "type": "tag"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "imperva_gw_cpu",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "user"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "gatewayname",
-              "operator": "=~",
-              "value": "/^$gateway$/"
-            }
-          ]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "CPU Utilization Avg %",
-      "tooltip": {
-        "shared": true,
-        "sort": 2,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "percent",
-          "label": "% CPU Utilization Avg.",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Imperva Performance Stats",
       "fill": 3,
+      "fillGradient": 0,
       "gridPos": {
         "h": 6,
-        "w": 6,
-        "x": 9,
+        "w": 9,
+        "x": 3,
         "y": 0
       },
       "id": 51,
@@ -201,7 +71,9 @@
       "linewidth": 2,
       "links": [],
       "nullPointMode": "null",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -405,8 +277,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 3,
-        "x": 15,
+        "w": 4,
+        "x": 12,
         "y": 0
       },
       "id": 100,
@@ -534,8 +406,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 3,
-        "x": 18,
+        "w": 4,
+        "x": 16,
         "y": 0
       },
       "id": 101,
@@ -663,8 +535,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 3,
-        "x": 21,
+        "w": 4,
+        "x": 20,
         "y": 0
       },
       "id": 102,
@@ -1607,6 +1479,7 @@
       "datasource": "Imperva Performance Stats",
       "decimals": null,
       "fill": 3,
+      "fillGradient": 0,
       "gridPos": {
         "h": 6,
         "w": 12,
@@ -1632,7 +1505,9 @@
       "linewidth": 2,
       "links": [],
       "nullPointMode": "connected",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -1827,6 +1702,7 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "fill": 3,
+      "fillGradient": 0,
       "gridPos": {
         "h": 6,
         "w": 12,
@@ -1849,7 +1725,9 @@
       "linewidth": 2,
       "links": [],
       "nullPointMode": "connected",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 2,
       "points": false,
@@ -2000,6 +1878,7 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "fill": 3,
+      "fillGradient": 0,
       "gridPos": {
         "h": 6,
         "w": 8,
@@ -2007,6 +1886,7 @@
         "y": 15
       },
       "id": 2,
+      "interval": "",
       "legend": {
         "avg": false,
         "current": false,
@@ -2023,7 +1903,9 @@
       "linewidth": 2,
       "links": [],
       "nullPointMode": "null",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2034,7 +1916,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "Core #$tag_worker",
+          "alias": "Worker #$tag_worker",
           "groupBy": [
             {
               "params": [
@@ -2059,7 +1941,7 @@
           "orderByTime": "ASC",
           "policy": "default",
           "query": "SELECT last(\"worker_kbps\") FROM \"imperva_gw_workers\" WHERE (\"gatewayname\" =~ /^$gateway$/) AND $timeFilter GROUP BY time($__interval), \"worker\" fill(none)",
-          "rawQuery": true,
+          "rawQuery": false,
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -2133,6 +2015,7 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "fill": 3,
+      "fillGradient": 0,
       "gridPos": {
         "h": 6,
         "w": 8,
@@ -2140,6 +2023,7 @@
         "y": 15
       },
       "id": 61,
+      "interval": "",
       "legend": {
         "avg": false,
         "current": false,
@@ -2153,7 +2037,9 @@
       "linewidth": 2,
       "links": [],
       "nullPointMode": "null",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2164,7 +2050,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "Core #$tag_worker",
+          "alias": "Worker #$tag_worker",
           "groupBy": [
             {
               "params": [
@@ -2262,6 +2148,7 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "fill": 3,
+      "fillGradient": 0,
       "gridPos": {
         "h": 6,
         "w": 8,
@@ -2269,6 +2156,7 @@
         "y": 15
       },
       "id": 63,
+      "interval": "",
       "legend": {
         "avg": false,
         "current": false,
@@ -2282,7 +2170,9 @@
       "linewidth": 2,
       "links": [],
       "nullPointMode": "null",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -2293,7 +2183,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "Core #$tag_worker",
+          "alias": "Worker #$tag_worker",
           "groupBy": [
             {
               "params": [
@@ -2396,7 +2286,7 @@
       "repeat": "int",
       "scopedVars": {
         "int": {
-          "selected": false,
+          "selected": true,
           "text": "eth0",
           "value": "eth0"
         }
@@ -2411,6 +2301,7 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "fill": 3,
+      "fillGradient": 0,
       "gridPos": {
         "h": 7,
         "w": 24,
@@ -2435,667 +2326,18 @@
       "linewidth": 2,
       "links": [],
       "nullPointMode": "connected",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
       "scopedVars": {
         "int": {
-          "selected": false,
+          "selected": true,
           "text": "eth0",
           "value": "eth0"
-        }
-      },
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "alias": "$tag_interface in",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "imperva_gw_net",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT non_negative_derivative(mean(\"rx_bytes\"),1m) /8 FROM \"imperva_gw_net\" WHERE (\"gatewayname\" =~ /^$gateway$/ AND \"interface\" =~ /^$int$/) AND $timeFilter GROUP BY time($__interval), interface fill(none)",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "rx_bytes"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "gatewayname",
-              "operator": "=~",
-              "value": "/^$gateway$/"
-            },
-            {
-              "condition": "AND",
-              "key": "interface",
-              "operator": "=~",
-              "value": "/^$int$/"
-            }
-          ]
-        },
-        {
-          "alias": "$tag_interface out",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "imperva_gw_net",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT non_negative_derivative(mean(\"tx_bytes\"),1m) /-8 FROM \"imperva_gw_net\" WHERE (\"gatewayname\" =~ /^$gateway$/ AND \"interface\" =~ /^$int$/) AND $timeFilter GROUP BY time($__interval), interface fill(none)",
-          "rawQuery": true,
-          "refId": "B",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "tx_bytes"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "gatewayname",
-              "operator": "=~",
-              "value": "/^$gateway$/"
-            },
-            {
-              "condition": "AND",
-              "key": "interface",
-              "operator": "=~",
-              "value": "/^$int$/"
-            }
-          ]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Network Traffic",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "bps",
-          "label": "bits out - / bits in +",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 29
-      },
-      "id": 112,
-      "panels": [],
-      "repeat": null,
-      "repeatIteration": 1569422633972,
-      "repeatPanelId": 111,
-      "scopedVars": {
-        "int": {
-          "selected": false,
-          "text": "eth1",
-          "value": "eth1"
-        }
-      },
-      "title": "Network Interfaces",
-      "type": "row"
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Imperva Performance Stats",
-      "fill": 3,
-      "gridPos": {
-        "h": 7,
-        "w": 24,
-        "x": 0,
-        "y": 30
-      },
-      "id": 113,
-      "interval": "",
-      "legend": {
-        "avg": false,
-        "current": true,
-        "hideEmpty": false,
-        "hideZero": false,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 2,
-      "links": [],
-      "nullPointMode": "connected",
-      "options": {},
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "repeatIteration": 1569422633972,
-      "repeatPanelId": 109,
-      "repeatedByRow": true,
-      "scopedVars": {
-        "int": {
-          "selected": false,
-          "text": "eth1",
-          "value": "eth1"
-        }
-      },
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "alias": "$tag_interface in",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "imperva_gw_net",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT non_negative_derivative(mean(\"rx_bytes\"),1m) /8 FROM \"imperva_gw_net\" WHERE (\"gatewayname\" =~ /^$gateway$/ AND \"interface\" =~ /^$int$/) AND $timeFilter GROUP BY time($__interval), interface fill(none)",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "rx_bytes"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "gatewayname",
-              "operator": "=~",
-              "value": "/^$gateway$/"
-            },
-            {
-              "condition": "AND",
-              "key": "interface",
-              "operator": "=~",
-              "value": "/^$int$/"
-            }
-          ]
-        },
-        {
-          "alias": "$tag_interface out",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "imperva_gw_net",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT non_negative_derivative(mean(\"tx_bytes\"),1m) /-8 FROM \"imperva_gw_net\" WHERE (\"gatewayname\" =~ /^$gateway$/ AND \"interface\" =~ /^$int$/) AND $timeFilter GROUP BY time($__interval), interface fill(none)",
-          "rawQuery": true,
-          "refId": "B",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "tx_bytes"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "gatewayname",
-              "operator": "=~",
-              "value": "/^$gateway$/"
-            },
-            {
-              "condition": "AND",
-              "key": "interface",
-              "operator": "=~",
-              "value": "/^$int$/"
-            }
-          ]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Network Traffic",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "bps",
-          "label": "bits out - / bits in +",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 37
-      },
-      "id": 114,
-      "panels": [],
-      "repeat": null,
-      "repeatIteration": 1569422633972,
-      "repeatPanelId": 111,
-      "scopedVars": {
-        "int": {
-          "selected": false,
-          "text": "eth2",
-          "value": "eth2"
-        }
-      },
-      "title": "Network Interfaces",
-      "type": "row"
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Imperva Performance Stats",
-      "fill": 3,
-      "gridPos": {
-        "h": 7,
-        "w": 24,
-        "x": 0,
-        "y": 38
-      },
-      "id": 115,
-      "interval": "",
-      "legend": {
-        "avg": false,
-        "current": true,
-        "hideEmpty": false,
-        "hideZero": false,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 2,
-      "links": [],
-      "nullPointMode": "connected",
-      "options": {},
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "repeatIteration": 1569422633972,
-      "repeatPanelId": 109,
-      "repeatedByRow": true,
-      "scopedVars": {
-        "int": {
-          "selected": false,
-          "text": "eth2",
-          "value": "eth2"
-        }
-      },
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "alias": "$tag_interface in",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "imperva_gw_net",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT non_negative_derivative(mean(\"rx_bytes\"),1m) /8 FROM \"imperva_gw_net\" WHERE (\"gatewayname\" =~ /^$gateway$/ AND \"interface\" =~ /^$int$/) AND $timeFilter GROUP BY time($__interval), interface fill(none)",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "rx_bytes"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "gatewayname",
-              "operator": "=~",
-              "value": "/^$gateway$/"
-            },
-            {
-              "condition": "AND",
-              "key": "interface",
-              "operator": "=~",
-              "value": "/^$int$/"
-            }
-          ]
-        },
-        {
-          "alias": "$tag_interface out",
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "none"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "imperva_gw_net",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT non_negative_derivative(mean(\"tx_bytes\"),1m) /-8 FROM \"imperva_gw_net\" WHERE (\"gatewayname\" =~ /^$gateway$/ AND \"interface\" =~ /^$int$/) AND $timeFilter GROUP BY time($__interval), interface fill(none)",
-          "rawQuery": true,
-          "refId": "B",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "tx_bytes"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "mean"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "gatewayname",
-              "operator": "=~",
-              "value": "/^$gateway$/"
-            },
-            {
-              "condition": "AND",
-              "key": "interface",
-              "operator": "=~",
-              "value": "/^$int$/"
-            }
-          ]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Network Traffic",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "bps",
-          "label": "bits out - / bits in +",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": false
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 45
-      },
-      "id": 116,
-      "panels": [],
-      "repeat": null,
-      "repeatIteration": 1569422633972,
-      "repeatPanelId": 111,
-      "scopedVars": {
-        "int": {
-          "selected": false,
-          "text": "eth3",
-          "value": "eth3"
-        }
-      },
-      "title": "Network Interfaces",
-      "type": "row"
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Imperva Performance Stats",
-      "fill": 3,
-      "gridPos": {
-        "h": 7,
-        "w": 24,
-        "x": 0,
-        "y": 46
-      },
-      "id": 117,
-      "interval": "",
-      "legend": {
-        "avg": false,
-        "current": true,
-        "hideEmpty": false,
-        "hideZero": false,
-        "max": false,
-        "min": false,
-        "rightSide": true,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 2,
-      "links": [],
-      "nullPointMode": "connected",
-      "options": {},
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "repeatIteration": 1569422633972,
-      "repeatPanelId": 109,
-      "repeatedByRow": true,
-      "scopedVars": {
-        "int": {
-          "selected": false,
-          "text": "eth3",
-          "value": "eth3"
         }
       },
       "seriesOverrides": [],
@@ -3249,7 +2491,7 @@
     }
   ],
   "refresh": "1m",
-  "schemaVersion": 18,
+  "schemaVersion": 19,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -3257,8 +2499,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "ssv13gw1",
-          "value": "ssv13gw1"
+          "tags": [],
+          "text": "i-02e995cb4c8c3e55c",
+          "value": "i-02e995cb4c8c3e55c"
         },
         "datasource": "Imperva Performance Stats",
         "definition": "SHOW TAG VALUES FROM imperva_gw_hades WITH KEY=gatewayname",
@@ -3282,11 +2525,8 @@
       {
         "allValue": null,
         "current": {
-          "tags": [],
-          "text": "All",
-          "value": [
-            "$__all"
-          ]
+          "text": "eth0",
+          "value": "eth0"
         },
         "datasource": "Imperva Performance Stats",
         "definition": "SHOW TAG VALUES FROM imperva_gw_net WITH KEY=interface",
@@ -3297,29 +2537,14 @@
         "name": "int",
         "options": [
           {
-            "selected": true,
+            "selected": false,
             "text": "All",
             "value": "$__all"
           },
           {
-            "selected": false,
+            "selected": true,
             "text": "eth0",
             "value": "eth0"
-          },
-          {
-            "selected": false,
-            "text": "eth1",
-            "value": "eth1"
-          },
-          {
-            "selected": false,
-            "text": "eth2",
-            "value": "eth2"
-          },
-          {
-            "selected": false,
-            "text": "eth3",
-            "value": "eth3"
           }
         ],
         "query": "SHOW TAG VALUES FROM imperva_gw_net WITH KEY=interface",
@@ -3367,5 +2592,5 @@
   "timezone": "",
   "title": "Imperva Performance Gateway",
   "uid": "1001",
-  "version": 75
+  "version": 7
 }
