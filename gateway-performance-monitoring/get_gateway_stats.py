@@ -172,9 +172,9 @@ def run():
             curStat = influxDbStats[measurement]
             for tags in curStat:
                 makeInfluxDBCall(measurement, influxDefaultTags+tags, ','.join(curStat[tags]))
-    if CONFIG["failopen"]["enabled"]:
-        pipe = Popen(['top'], stdout=PIPE)
-        output = pipe.communicate()
+    # if CONFIG["failopen"]["enabled"]:
+    #     pipe = Popen(['top'], stdout=PIPE)
+    #     output = pipe.communicate()
 
 #########################################################
 ############### General Porpuse Functions ###############
@@ -341,8 +341,8 @@ def getSysStats():
                 GWStats["swap_cached"] = int(statAry[7][:-1])
             elif stat[:3].lower()=="cpu":
                 cpuStatsAry = ' '.join(stat.replace(":"," ").replace(",",", ").replace(",","").split()).split(" ")
-                influxDbStats["imperva_gw_top_cpu"]["cpu="+cpuStatsAry[0].lower()] = []
-                GWCpuStatAry = influxDbStats["imperva_gw_top_cpu"]["cpu="+cpuStatsAry[0].lower()]
+                influxDbStats["imperva_gw_top_cpu"]["cpu="+cpuStatsAry[0].lower().replace("cpu","")] = []
+                GWCpuStatAry = influxDbStats["imperva_gw_top_cpu"]["cpu="+cpuStatsAry[0].lower().replace("cpu","")]
                 for cpuStat in cpuStatsAry[1:]:
                     cpuStatAry = cpuStat.split("%")
                     GWCpuStatAry.append(topCpuAttrMap[cpuStatAry[1]]+"="+cpuStatAry[0])
@@ -352,43 +352,48 @@ def getSysStats():
 
         pipe = Popen(['sar','-P','ALL','0'], stdout=PIPE)
         output = pipe.communicate()
-        sarOutputAry = str(output[0]).split("\n")
+        sarOutputAry = str(output[0]).strip().split("\n")
         sarOutputAry.pop(0)
         sarOutputAry.pop(0)
-        # print(sarOutputAry)
         sarStatIndexes = sarOutputAry.pop(0)
         sarStatIndexAry = ' '.join(sarStatIndexes.split()).replace("%","").split(" ")
         for i, stat in enumerate(sarOutputAry, start=1):
-            statAry = ' '.join(stat.split()).split(' ')
+            statAry = ' '.join(stat.replace(" AM","").replace(" PM","").split()).split(' ')
             if len(statAry) > 1:
-                if statAry[2][:3].upper()!="CPU":
-                    influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[2].lower()] = []
-                    GWCpuStatAry = influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[2].lower()]
-                    offset = 3 # remove first few from list
-                    for j in range(len(statAry)-offset):
-                        cpuStat = statAry[j+offset]
-                        GWCpuStatAry.append(sarStatIndexAry[j+offset]+"="+cpuStat)
-                        GWStats["sar_cpu"+statAry[2].lower()+"_"+sarStatIndexAry[j+offset]] = round(float(cpuStat),2)
+                if statAry[1][:3].upper()!="CPU":
+                    influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[1].lower()] = []
+                    GWCpuStatAry = influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[1].lower()]
+                    for j in range(len(statAry)):
+                        if j>1:
+                            cpuStat = statAry[j]
+                            GWCpuStatAry.append(sarStatIndexAry[j]+"="+cpuStat)
+                            GWStats["sar_cpu"+statAry[2].lower()+"_"+sarStatIndexAry[j]] = round(float(cpuStat),2)
 
         pipe = Popen(['cat','/proc/hades/cpuload'], stdout=PIPE)
         output = pipe.communicate()
         cpuloadOutputAry = str(output[0]).strip().split("\n\n")
 
-        influxDbStats["imperva_gw_cpuload"]["last_30_sec"] = []
-        last30SecAry = influxDbStats["imperva_gw_cpuload"]["last_30_sec"]
-        for stat in cpuloadOutputAry[0].split("\n"):
-            if stat[:4]!="last":
-                statAry = ' '.join(stat.split()).split(":")
-                last30SecAry.append(statAry[0].replace(" ","_")+"="+str(int(statAry[1].strip())))
-                GWStats["cpuload_last_30_sec_"+statAry[0].replace(" ","_")] = int(statAry[1].strip())
+        # influxDbStats["imperva_gw_cpuload"]["last_30_sec"] = []
+        # last30SecAry = influxDbStats["imperva_gw_cpuload"]["last_30_sec"]
+        # for stat in cpuloadOutputAry[0].split("\n"):
+        #     if stat[:4]!="last":
+        #         statAry = ' '.join(stat.split()).split(":")
+        #         last30SecAry.append(statAry[0].replace(" ","_")+"="+str(int(statAry[1].strip())))
+        #         GWStats["cpuload_last_30_sec_"+statAry[0].replace(" ","_")] = int(statAry[1].strip())
 
-        influxDbStats["imperva_gw_cpuload"]["last_sec"] = []
-        lastSecAry = influxDbStats["imperva_gw_cpuload"]["last_sec"]
         for stat in cpuloadOutputAry[1].split("\n"):
             if stat[:4]!="last":
                 statAry = ' '.join(stat.split()).split(":")
-                lastSecAry.append(statAry[0].replace(" ","_")+"="+str(int(statAry[1].strip())))
                 GWStats["cpuload_last_sec_"+statAry[0].replace(" ","_")] = int(statAry[1].strip())
+                if stat[:7]=="average":                    
+                    influxDbStats["imperva_gw_cpuload"]["cpu=all"] = []
+                    lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu=all"]
+                    lastSecAry.append("load="+str(int(statAry[1].strip())))
+                else:
+                    cpuNum = statAry[0].replace("cpu","").split().pop(0)
+                    influxDbStats["imperva_gw_cpuload"]["cpu="+cpuNum] = []
+                    lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu="+cpuNum]
+                    lastSecAry.append("load="+str(int(statAry[1].strip())))
 
 # Parse stats and maximums
 # example: 0 connection/sec (max 4 2019-03-20 05:39:56)
