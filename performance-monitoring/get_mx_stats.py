@@ -84,7 +84,6 @@ def run():
     if CONFIG["syslog"]["enabled"]:
         sendSyslog(MXStats)
     if CONFIG["influxdb"]["enabled"]:
-        print(json.dumps(influxDbStats))
         for measurement in influxDbStats:
             curStat = influxDbStats[measurement]
             for tags in curStat:
@@ -146,8 +145,8 @@ def getMXServerStats():
                     agent_name = statAry[1]
                     agent_status = statAry[8]
                     agent_id = statAry[3]
-                    influxDbStats["imperva_agents"]["mx_name="+MXNAME+",gw_name="+gw_name+",agent_name="+agent_name+",agent_status="+agent_status+",agent_id="+agent_id] = []
-                    influxAgentStatAry = influxDbStats["imperva_agents"]["mx_name="+MXNAME+",gw_name="+gw_name+",agent_name="+agent_name+",agent_status="+agent_status+",agent_id="+agent_id]
+                    influxDbStats["imperva_agents"]["mx_name="+MXNAME+",gw_name="+gw_name+",agent_name="+agent_name+",agent_status="+agent_status] = []
+                    influxAgentStatAry = influxDbStats["imperva_agents"]["mx_name="+MXNAME+",gw_name="+gw_name+",agent_name="+agent_name+",agent_status="+agent_status]
                     influxAgentStatAry.append("agent_channels="+statAry[5])
                     influxAgentStatAry.append("agent_cores="+statAry[7])
                     influxAgentStatAry.append("agent_load_kpbs="+statAry[10])
@@ -157,6 +156,7 @@ def getMXServerStats():
                     influxAgentStatAry.append("agent_load_hps="+statAry[16])
                     influxAgentStatAry.append("agent_load_hps_max="+statAry[17].replace("(","").replace(")",""))
                     influxAgentStatAry.append("agent_load_percent="+("0" if statAry[18].strip()=="%" else statAry[18].replace("%","").strip()))
+                    influxAgentStatAry.append("agent_id="+str(agent_id))
                 elif (statAry[0]=="(!)"):
                     if (statAry[1]=="ApplicativePacketLoss"):
                         influxGWStatAry.append("gateway_daily_packet_loss="+statAry[3].split("/").pop(0))
