@@ -15,6 +15,11 @@ import re
 import sys
 from requests.auth import HTTPBasicAuth
 
+############### Examples ###############
+# Add the following to contab -e to get OS stats every minute, and MX system level stats every 6 hours
+# * * * * * /usr/bin/python /var/user-data/get_mx_stats.py
+# 0 */6 * * * /usr/bin/python /var/user-data/get_mx_stats.py get_server_stats
+
 ############### Configs ###############
 CONFIGFILE = '/var/user-data/config.json'
 MXNAME = os.uname()[1].split('.')[0]
@@ -61,7 +66,9 @@ influxDbStats = {
 }
 
 def run():
-    getMXServerStats()
+    if (len(sys.argv)>1):
+        if (sys.argv[1]=="get_server_stats"):
+            getMXServerStats()
     getDiskStats()
     getSysStats()
     getNetworkStats()
@@ -77,6 +84,7 @@ def run():
     if CONFIG["syslog"]["enabled"]:
         sendSyslog(MXStats)
     if CONFIG["influxdb"]["enabled"]:
+        print(json.dumps(influxDbStats))
         for measurement in influxDbStats:
             curStat = influxDbStats[measurement]
             for tags in curStat:
@@ -148,7 +156,7 @@ def getMXServerStats():
                     influxAgentStatAry.append("agent_load_ipu_max="+statAry[14].replace("(","").replace(")",""))
                     influxAgentStatAry.append("agent_load_hps="+statAry[16])
                     influxAgentStatAry.append("agent_load_hps_max="+statAry[17].replace("(","").replace(")",""))
-                    influxAgentStatAry.append("agent_load_percent="+statAry[18].replace("%",""))
+                    influxAgentStatAry.append("agent_load_percent="+("0" if statAry[18].strip()=="%" else statAry[18].replace("%","").strip()))
                 elif (statAry[0]=="(!)"):
                     if (statAry[1]=="ApplicativePacketLoss"):
                         influxGWStatAry.append("gateway_daily_packet_loss="+statAry[3].split("/").pop(0))
@@ -166,7 +174,6 @@ def getMXServerStats():
                     influxAuditPolicyStatAry.append("audit_policy_events="+re.findall(r"([0-9]+)/[0-9]+", stat).pop().strip())
                     influxAuditPolicyStatAry.append("audit_policy_percent="+re.findall(r"\s(\w*\.[0-9]+)\%", stat).pop().strip())
                     influxAuditPolicyStatAry.append("audit_total="+re.findall(r"[0-9]+/([0-9]+)", stat).pop().strip())
-
 
 def getNetworkStats():
     pipe = Popen(['ls','/sys/class/net'], stdout=PIPE)
@@ -336,7 +343,7 @@ def getSysStats():
         sarOutputAry.pop(0)
         sarOutputAry.pop(0)
         sarStatIndexes = sarOutputAry.pop(0)
-        sarStatIndexAry = ' '.join(sarStatIndexes.split()).replace("%","").split(" ")
+        sarStatIndexAry = ' '.join(sarStatIndexes.split()).replace(" AM","").replace(" PM","").replace("%","").split(" ")
         for i, stat in enumerate(sarOutputAry, start=1):
             statAry = ' '.join(stat.replace(" AM","").replace(" PM","").split()).split(' ')
             if len(statAry) > 1:
@@ -359,9 +366,9 @@ def makeCallNewRelicCall(stat):
     logging.warning("NEW RELIC REQUEST (" + new_relic_url + ")" + json.dumps(stat))
     if "proxies" in CONFIG:
         proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
-        response = requests.post(new_relic_url, json.dumps(stat), proxies=proxies, headers=headers, verify=False)
+        requests.post(new_relic_url, json.dumps(stat), proxies=proxies, headers=headers, verify=False)
     else:
-        response = requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False)
+        requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False)
 
 def makeInfluxDBCall(measurement, tags, params):
     headers = {
