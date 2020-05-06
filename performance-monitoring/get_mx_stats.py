@@ -166,7 +166,7 @@ def getMXServerStats():
                         influxGWStatAry.append("gateway_weekly_packet_loss_percent="+statAry[7].replace("%",""))
                         influxGWStatAry.append("gateway_weekly_total_packets="+statAry[6].split("/").pop())
                 elif (statAry[0]=="(A)"):
-                    audit_policy_name = re.findall(r"\(A\) (.*)\s[0-9]+/[0-9]+", stat).pop().strip()
+                    audit_policy_name = re.findall(r"\(A\) (.*)\s[0-9]+/[0-9]+", stat).pop().strip().replace(" ","_")
                     # [0-9].*\/.*[0-9]\s
                     # .[0-9]*\.[0-9].*\%
                     influxDbStats["imperva_audit_policies"]["mx_name="+MXNAME+",gw_name="+gw_name+",audit_policy_name="+audit_policy_name] = []
