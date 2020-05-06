@@ -99,7 +99,7 @@ def strim(str):
     return re.sub('\s\s+', ' ', str).strip()
 
 def getMXServerStats():
-    pipe = Popen(['impctl','support','server','show','--scale-info'], stdout=PIPE)
+    pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/support/server/show','--scale-info'], stdout=PIPE)
     # pipe = Popen(['cat',sys.argv[1]], stdout=PIPE)
     output = pipe.communicate()
     serverStatsStr = re.sub(r"-----.*-----", '----------', str(output[0].strip()))
@@ -172,7 +172,7 @@ def getMXServerStats():
                     influxDbStats["imperva_audit_policies"]["mx_name="+MXNAME+",gw_name="+gw_name+",audit_policy_name="+audit_policy_name] = []
                     influxAuditPolicyStatAry = influxDbStats["imperva_audit_policies"]["mx_name="+MXNAME+",gw_name="+gw_name+",audit_policy_name="+audit_policy_name]
                     influxAuditPolicyStatAry.append("audit_policy_events="+re.findall(r"([0-9]+)/[0-9]+", stat).pop().strip())
-                    influxAuditPolicyStatAry.append("audit_policy_percent="+re.findall(r"\s(\w*\.[0-9]+)\%", stat).pop().strip())
+                    influxAuditPolicyStatAry.append("audit_policy_percent="+re.findall(r"([-+]?[0-9]*\.?[0-9]*)\%", stat).pop().strip())
                     influxAuditPolicyStatAry.append("audit_total="+re.findall(r"[0-9]+/([0-9]+)", stat).pop().strip())
 
 def getNetworkStats():
