@@ -28,7 +28,7 @@
     "host": "http://1.2.3.4:8086/write?db=imperva_performance_stats"
   },
   "syslog": {
-    "enabled": true,
+    "enabled": false,
     "host": "1.2.3.4",
     "port": 514
   }
