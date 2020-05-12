@@ -338,7 +338,7 @@ def getSysStats():
                     MXStats["top_"+cpuStatsAry[0].lower()+"_"+topCpuAttrMap[cpuStatAry[1]]] = float(cpuStatAry[0])
 
         try:
-            pipe = Popen(['sar','-P','ALL','1','1'], stdout=PIPE)
+            pipe = Popen(['/usr/bin/sar','-P','ALL','1','1'], stdout=PIPE)
             output = pipe.communicate()
             sarOutputAry = str(output[0]).strip().split("Average:").pop(0).split("\n")
             sarOutputAry.pop(0)
