@@ -304,9 +304,9 @@ def getSysStats():
         uptime = str(uptimeAry[0]).split(" ")
         sysStat.append("uptime="+uptime[0][:-3])
         MXStats["uptime"] = uptime[0][:-3]
-        pipe = Popen(['top','-bn','1'], stdout=PIPE)
+        pipe = Popen(['top','-bn','2'], stdout=PIPE)
         output = pipe.communicate()
-        topOutputAry = str(output[0]).split("\n")
+        topOutputAry = str(output[0]).split("top - ").pop().split("\n")
         for stat in topOutputAry:
             if stat[:4]=="Mem:":
                 statAry = ' '.join(stat.split()).split(' ')
@@ -337,24 +337,27 @@ def getSysStats():
                     MXCpuStatAry.append(topCpuAttrMap[cpuStatAry[1]]+"="+cpuStatAry[0])
                     MXStats["top_"+cpuStatsAry[0].lower()+"_"+topCpuAttrMap[cpuStatAry[1]]] = float(cpuStatAry[0])
 
-        pipe = Popen(['sar','-P','ALL','0'], stdout=PIPE)
-        output = pipe.communicate()
-        sarOutputAry = str(output[0]).strip().split("\n")
-        sarOutputAry.pop(0)
-        sarOutputAry.pop(0)
-        sarStatIndexes = sarOutputAry.pop(0)
-        sarStatIndexAry = ' '.join(sarStatIndexes.split()).replace(" AM","").replace(" PM","").replace("%","").split(" ")
-        for i, stat in enumerate(sarOutputAry, start=1):
-            statAry = ' '.join(stat.replace(" AM","").replace(" PM","").split()).split(' ')
-            if len(statAry) > 1:
-                if statAry[1][:3].upper()!="CPU":
-                    influxDbStats["imperva_mx_sar_cpu"]["cpu="+statAry[1].lower()] = []
-                    MXCpuStatAry = influxDbStats["imperva_mx_sar_cpu"]["cpu="+statAry[1].lower()]
-                    for j in range(len(statAry)):
-                        if j>1:
-                            cpuStat = statAry[j]
-                            MXCpuStatAry.append(sarStatIndexAry[j].lower()+"="+cpuStat)
-                            MXStats["sar_cpu"+statAry[2].lower()+"_"+sarStatIndexAry[j]] = round(float(cpuStat),2)
+        try:
+            pipe = Popen(['sar','-P','ALL','1','1'], stdout=PIPE)
+            output = pipe.communicate()
+            sarOutputAry = str(output[0]).strip().split("Average:").pop(0).split("\n")
+            sarOutputAry.pop(0)
+            sarOutputAry.pop(0)
+            sarStatIndexes = sarOutputAry.pop(0)
+            sarStatIndexAry = ' '.join(sarStatIndexes.split()).replace(" AM","").replace(" PM","").replace("%","").split(" ")
+            for i, stat in enumerate(sarOutputAry, start=1):
+                statAry = ' '.join(stat.replace(" AM","").replace(" PM","").split()).split(' ')
+                if len(statAry) > 1:
+                    if statAry[1][:3].upper()!="CPU":
+                        influxDbStats["imperva_mx_sar_cpu"]["cpu="+statAry[1].lower()] = []
+                        MXCpuStatAry = influxDbStats["imperva_mx_sar_cpu"]["cpu="+statAry[1].lower()]
+                        for j in range(len(statAry)):
+                            if j>1:
+                                cpuStat = statAry[j]
+                                MXCpuStatAry.append(sarStatIndexAry[j].lower()+"="+cpuStat)
+                                MXStats["sar_cpu"+statAry[2].lower()+"_"+sarStatIndexAry[j]] = round(float(cpuStat),2)
+        except:
+            print("sar command not found")
 
 def makeCallNewRelicCall(stat):
     stat["eventType"] = CONFIG["newrelic"]["event_type"]
