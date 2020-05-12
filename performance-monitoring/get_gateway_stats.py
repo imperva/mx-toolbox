@@ -12,6 +12,9 @@ import logging
 import re
 import math
 import codecs
+from requests.auth import HTTPBasicAuth
+
+# REQUESTS_CA_BUNDLE=FILENAME
 
 ############### Configs ###############
 CONFIGFILE = '/var/user-data/config.json'
@@ -29,7 +32,7 @@ try:
     with open(CONFIGFILE, 'r') as data:
         CONFIG = json.load(data)
 except:
-    print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"debug\",\n\t\"environment\": \"dev\",\n\t\"gw_log_search\": {\n\t\t\"enabled\": true,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"GWStats\"\n\t},\n\t\"servicenow\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"1.2.3.4\",\n\t\t\"port\": 514\n\t}\n}")
+    print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"debug\",\n\t\"environment\": \"dev\",\n\t\"log_search\": {\n\t\t\"enabled\": true,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"GWStats\"\n\t},\n\t\"servicenow\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"1.2.3.4\",\n\t\t\"port\": 514\n\t}\n}")
     exit()
 if CONFIG["is_userspace"]:
     BASEDIR = "/opt/SecureSphere/etc/proc/hades/"
@@ -133,8 +136,8 @@ def run():
     getSysStats()
     getNetworkStats()
 
-    if CONFIG["gw_log_search"]["enabled"]:
-        for fileconfig in CONFIG["gw_log_search"]["files"]:
+    if CONFIG["log_search"]["enabled"]:
+        for fileconfig in CONFIG["log_search"]["files"]:
             for patternconfig in fileconfig["search_patterns"]:
                 matches = searchLogFile(fileconfig["path"], patternconfig["pattern"])
                 GWStats[patternconfig["name"]] = "\n".join(matches).replace('"',"'")
@@ -315,9 +318,9 @@ def getSysStats():
         uptime = str(uptimeAry[0]).split(" ")
         sysStat.append("uptime="+uptime[0][:-3])
         GWStats["uptime"] = uptime[0][:-3]
-        pipe = Popen(['top','-bn','1'], stdout=PIPE)
+        pipe = Popen(['top','-bn','2'], stdout=PIPE)
         output = pipe.communicate()
-        topOutputAry = str(output[0]).split("\n")
+        topOutputAry = str(output[0]).split("top - ").pop().split("\n")
         for stat in topOutputAry:
             if stat[:4]=="Mem:":
                 statAry = ' '.join(stat.split()).split(' ')
@@ -350,24 +353,29 @@ def getSysStats():
                 # statAry = ' '.join(stat.split()).split(' ')
                 # sysStat.append("top_cpu1_="+gwSizingStats[model]["gw_supported_kbps"])
 
-        pipe = Popen(['sar','-P','ALL','0'], stdout=PIPE)
-        output = pipe.communicate()
-        sarOutputAry = str(output[0]).strip().split("\n")
-        sarOutputAry.pop(0)
-        sarOutputAry.pop(0)
-        sarStatIndexes = sarOutputAry.pop(0)
-        sarStatIndexAry = ' '.join(sarStatIndexes.split()).replace("%","").split(" ")
-        for i, stat in enumerate(sarOutputAry, start=1):
-            statAry = ' '.join(stat.replace(" AM","").replace(" PM","").split()).split(' ')
-            if len(statAry) > 1:
-                if statAry[1][:3].upper()!="CPU":
-                    influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[1].lower()] = []
-                    GWCpuStatAry = influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[1].lower()]
-                    for j in range(len(statAry)):
-                        if j>1:
-                            cpuStat = statAry[j]
-                            GWCpuStatAry.append(sarStatIndexAry[j]+"="+cpuStat)
-                            GWStats["sar_cpu"+statAry[2].lower()+"_"+sarStatIndexAry[j]] = round(float(cpuStat),2)
+        try:
+            pipe = Popen(['sar','-P','ALL','1','1'], stdout=PIPE)
+            output = pipe.communicate()
+            sarOutputAry = str(output[0]).strip().split("Average:").pop(0).split("\n")
+            sarOutputAry.pop(0)
+            sarOutputAry.pop(0)
+            sarStatIndexes = sarOutputAry.pop(0)
+            sarStatIndexAry = ' '.join(sarStatIndexes.split()).replace("%","").split(" ")
+            for i, stat in enumerate(sarOutputAry, start=1):
+                statAry = ' '.join(stat.replace(" AM","").replace(" PM","").split()).split(' ')
+                if len(statAry) > 1:
+                    if statAry[1][:3].upper()!="CPU":
+                        influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[1].lower()] = []
+                        GWCpuStatAry = influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[1].lower()]
+                        for j in range(len(statAry)):
+                            curIndexName = sarStatIndexAry[j+1]
+                            if j>1:
+                                cpuStat = statAry[j]
+                                GWCpuStatAry.append(curIndexName+"="+cpuStat)                            
+                                GWStats["sar_cpu"+statAry[2].lower()+"_"+curIndexName] = float("{0:.2f}".format(float(cpuStat)))
+                                # GWStats["sar_cpu"+statAry[2].lower()+"_"+sarStatIndexAry[j]] = float("{:.2f}".format(float(cpuStat)))
+        except:
+            print("sar command not found")
 
         pipe = Popen(['cat','/proc/hades/cpuload'], stdout=PIPE)
         output = pipe.communicate()
@@ -475,7 +483,12 @@ def makeInfluxDBCall(measurement, tags, params):
         response = requests.post(influxdb_url, data=data, proxies=proxies, headers=headers, verify=False)
     else:
         if "username" in CONFIG["influxdb"]:
-            response = requests.post(influxdb_url, auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=False)
+            if "path_to_cert" in CONFIG["influxdb"]:
+                response = requests.post(influxdb_url,cert=CONFIG["influxdb"]["path_to_cert"],auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=True)
+            else:
+                response = requests.post(influxdb_url,auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=False)
+        elif "path_to_cert" in CONFIG["influxdb"]:
+            response = requests.post(influxdb_url,cert=CONFIG["influxdb"]["path_to_cert"], data=data, headers=headers, verify=True)
         else:
             response = requests.post(influxdb_url, data=data, headers=headers, verify=False)
         if (response.status_code!=204):
