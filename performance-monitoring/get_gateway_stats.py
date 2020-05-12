@@ -354,13 +354,13 @@ def getSysStats():
                 # sysStat.append("top_cpu1_="+gwSizingStats[model]["gw_supported_kbps"])
 
         try:
-            pipe = Popen(['sar','-P','ALL','1','1'], stdout=PIPE)
+            pipe = Popen(['/usr/bin/sar','-P','ALL','1','1'], stdout=PIPE)
             output = pipe.communicate()
             sarOutputAry = str(output[0]).strip().split("Average:").pop(0).split("\n")
             sarOutputAry.pop(0)
             sarOutputAry.pop(0)
             sarStatIndexes = sarOutputAry.pop(0)
-            sarStatIndexAry = ' '.join(sarStatIndexes.split()).replace("%","").split(" ")
+            sarStatIndexAry = ' '.join(sarStatIndexes.replace(" AM","").replace(" PM","").split()).replace("%","").split(" ")
             for i, stat in enumerate(sarOutputAry, start=1):
                 statAry = ' '.join(stat.replace(" AM","").replace(" PM","").split()).split(' ')
                 if len(statAry) > 1:
@@ -368,10 +368,11 @@ def getSysStats():
                         influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[1].lower()] = []
                         GWCpuStatAry = influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[1].lower()]
                         for j in range(len(statAry)):
-                            curIndexName = sarStatIndexAry[j+1]
+                            curIndexName = sarStatIndexAry[j]
+                            print(sarStatIndexAry)
                             if j>1:
                                 cpuStat = statAry[j]
-                                GWCpuStatAry.append(curIndexName+"="+cpuStat)                            
+                                GWCpuStatAry.append(curIndexName+"="+cpuStat)
                                 GWStats["sar_cpu"+statAry[2].lower()+"_"+curIndexName] = float("{0:.2f}".format(float(cpuStat)))
                                 # GWStats["sar_cpu"+statAry[2].lower()+"_"+sarStatIndexAry[j]] = float("{:.2f}".format(float(cpuStat)))
         except:
