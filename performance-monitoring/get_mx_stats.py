@@ -91,7 +91,7 @@ def run():
     if CONFIG["servicenow"]["enabled"]:
         print("make servicenow call")
         # todo finish integration with ServiceNow
-
+    
 #########################################################
 ############### General Porpuse Functions ###############
 #########################################################
@@ -308,34 +308,24 @@ def getSysStats():
         output = pipe.communicate()
         topOutputAry = str(output[0]).split("top - ").pop().split("\n")
         for stat in topOutputAry:
-            if stat[:4]=="Mem:":
-                statAry = ' '.join(stat.split()).split(' ')
-                sysStat.append("mem_total="+statAry[1][:-1])
-                sysStat.append("mem_used="+statAry[3][:-1])
-                sysStat.append("mem_free="+statAry[5][:-1])
-                sysStat.append("mem_buffers="+statAry[7][:-1])
-                MXStats["mem_total"] = int(statAry[1][:-1])
-                MXStats["mem_used"] = int(statAry[3][:-1])
-                MXStats["mem_free"] = int(statAry[5][:-1])
-                MXStats["mem_buffers"] = int(statAry[7][:-1])
-            elif stat[:5]=="Swap:":
-                statAry = ' '.join(stat.split()).split(' ')
-                sysStat.append("swap_total="+statAry[1][:-1])
-                sysStat.append("swap_used="+statAry[3][:-1])
-                sysStat.append("swap_free="+statAry[5][:-1])
-                sysStat.append("swap_cached="+statAry[7][:-1])
-                MXStats["swap_total"] = int(statAry[1][:-1])
-                MXStats["swap_used"] = int(statAry[3][:-1])
-                MXStats["swap_free"] = int(statAry[5][:-1])
-                MXStats["swap_cached"] = int(statAry[7][:-1])
-            elif stat[:3].lower()=="cpu":
-                cpuStatsAry = ' '.join(stat.replace(":"," ").replace(",",", ").replace(",","").split()).split(" ")
-                influxDbStats["imperva_mx_top_cpu"]["cpu="+cpuStatsAry[0].lower().replace("cpu","")] = []
-                MXCpuStatAry = influxDbStats["imperva_mx_top_cpu"]["cpu="+cpuStatsAry[0].lower().replace("cpu","")]
-                for cpuStat in cpuStatsAry[1:]:
-                    cpuStatAry = cpuStat.split("%")
-                    MXCpuStatAry.append(topCpuAttrMap[cpuStatAry[1]]+"="+cpuStatAry[0])
-                    MXStats["top_"+cpuStatsAry[0].lower()+"_"+topCpuAttrMap[cpuStatAry[1]]] = float(cpuStatAry[0])
+            stat = stat.lower().replace("%"," ").replace("kib ","").replace("k","")
+            statType = stat.split(":").pop(0).lower().strip()
+            statsAry = ' '.join(stat.split(":").pop().lower().strip().split()).split(",")
+            if statType[:3]=="mem" or statType[:4]=="swap":
+                for curStat in statsAry:
+                    statAry = curStat.strip().split()
+                    statMeasurement = statAry[1][:5].replace(".","").strip()
+                    if statMeasurement=="total" or statMeasurement=="used" or statMeasurement=="free":
+                        sysStat.append(statType+"_"+statMeasurement+"="+statAry[0])
+                        MXStats["top_"+statType+"_"+statMeasurement] = float(statAry[0])
+            elif statType[:3]=="cpu":
+                cpu = statType.replace("cpu","")
+                influxDbStats["imperva_mx_top_cpu"]["cpu="+cpu] = []
+                MXCpuStatAry = influxDbStats["imperva_mx_top_cpu"]["cpu="+cpu]
+                for cpuStat in statsAry:
+                    statAry = cpuStat.strip().split()
+                    MXCpuStatAry.append(topCpuAttrMap[statAry[1]]+"="+statAry[0])
+                    MXStats["top_"+statType[0].lower()+"_"+topCpuAttrMap[statAry[1]]] = float(statAry[0])
 
         try:
             pipe = Popen(['/usr/bin/sar','-P','ALL','1','1'], stdout=PIPE)
@@ -344,7 +334,7 @@ def getSysStats():
             sarOutputAry.pop(0)
             sarOutputAry.pop(0)
             sarStatIndexes = sarOutputAry.pop(0)
-            sarStatIndexAry = ' '.join(sarStatIndexes.split()).replace(" AM","").replace(" PM","").replace("%","").split(" ")
+            sarStatIndexAry = ' '.join(sarStatIndexes.replace(" AM","").replace(" PM","").split()).replace("%","").split(" ")
             for i, stat in enumerate(sarOutputAry, start=1):
                 statAry = ' '.join(stat.replace(" AM","").replace(" PM","").split()).split(' ')
                 if len(statAry) > 1:
@@ -352,10 +342,11 @@ def getSysStats():
                         influxDbStats["imperva_mx_sar_cpu"]["cpu="+statAry[1].lower()] = []
                         MXCpuStatAry = influxDbStats["imperva_mx_sar_cpu"]["cpu="+statAry[1].lower()]
                         for j in range(len(statAry)):
+                            curIndexName = sarStatIndexAry[j]
                             if j>1:
                                 cpuStat = statAry[j]
-                                MXCpuStatAry.append(sarStatIndexAry[j].lower()+"="+cpuStat)
-                                MXStats["sar_cpu"+statAry[2].lower()+"_"+sarStatIndexAry[j]] = round(float(cpuStat),2)
+                                MXCpuStatAry.append(curIndexName+"="+cpuStat)
+                                MXStats["sar_cpu"+statAry[2].lower()+"_"+curIndexName] = float("{0:.2f}".format(float(cpuStat)))
         except:
             print("sar command not found")
 
