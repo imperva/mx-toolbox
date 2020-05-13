@@ -1,4 +1,4 @@
-﻿#!/usr/bin/python
+#!/usr/bin/python
 import os
 import socket
 import subprocess
@@ -110,7 +110,6 @@ influxDbStats = {
     "imperva_gw_net":{},
     "imperva_gw_disk":{},
     "imperva_gw_sys":{},
-    "imperva_gw_hades_cpu":{},
     "imperva_gw_top_cpu":{},
     "imperva_gw_sar_cpu":{},
     "imperva_gw_cpuload":{},
@@ -175,9 +174,6 @@ def run():
             curStat = influxDbStats[measurement]
             for tags in curStat:
                 makeInfluxDBCall(measurement, influxDefaultTags+tags, ','.join(curStat[tags]))
-    # if CONFIG["failopen"]["enabled"]:
-    #     pipe = Popen(['top'], stdout=PIPE)
-    #     output = pipe.communicate()
 
 #########################################################
 ############### General Porpuse Functions ###############
@@ -322,36 +318,24 @@ def getSysStats():
         output = pipe.communicate()
         topOutputAry = str(output[0]).split("top - ").pop().split("\n")
         for stat in topOutputAry:
-            if stat[:4]=="Mem:":
-                statAry = ' '.join(stat.split()).split(' ')
-                sysStat.append("mem_total="+statAry[1][:-1])
-                sysStat.append("mem_used="+statAry[3][:-1])
-                sysStat.append("mem_free="+statAry[5][:-1])
-                sysStat.append("mem_buffers="+statAry[7][:-1])
-                GWStats["mem_total"] = int(statAry[1][:-1])
-                GWStats["mem_used"] = int(statAry[3][:-1])
-                GWStats["mem_free"] = int(statAry[5][:-1])
-                GWStats["mem_buffers"] = int(statAry[7][:-1])
-            elif stat[:5]=="Swap:":
-                statAry = ' '.join(stat.split()).split(' ')
-                sysStat.append("swap_total="+statAry[1][:-1])
-                sysStat.append("swap_used="+statAry[3][:-1])
-                sysStat.append("swap_free="+statAry[5][:-1])
-                sysStat.append("swap_cached="+statAry[7][:-1])
-                GWStats["swap_total"] = int(statAry[1][:-1])
-                GWStats["swap_used"] = int(statAry[3][:-1])
-                GWStats["swap_free"] = int(statAry[5][:-1])
-                GWStats["swap_cached"] = int(statAry[7][:-1])
-            elif stat[:3].lower()=="cpu":
-                cpuStatsAry = ' '.join(stat.replace(":"," ").replace(",",", ").replace(",","").split()).split(" ")
-                influxDbStats["imperva_gw_top_cpu"]["cpu="+cpuStatsAry[0].lower().replace("cpu","")] = []
-                GWCpuStatAry = influxDbStats["imperva_gw_top_cpu"]["cpu="+cpuStatsAry[0].lower().replace("cpu","")]
-                for cpuStat in cpuStatsAry[1:]:
-                    cpuStatAry = cpuStat.split("%")
-                    GWCpuStatAry.append(topCpuAttrMap[cpuStatAry[1]]+"="+cpuStatAry[0])
-                    GWStats["top_"+cpuStatsAry[0].lower()+"_"+topCpuAttrMap[cpuStatAry[1]]] = float(cpuStatAry[0])
-                # statAry = ' '.join(stat.split()).split(' ')
-                # sysStat.append("top_cpu1_="+gwSizingStats[model]["gw_supported_kbps"])
+            stat = stat.lower().replace("%"," ").replace("kib ","").replace("k","")
+            statType = stat.split(":").pop(0).lower().strip()
+            statsAry = ' '.join(stat.split(":").pop().lower().strip().split()).split(",")
+            if statType[:3]=="mem" or statType[:4]=="swap":
+                for curStat in statsAry:
+                    statAry = curStat.strip().split()
+                    statMeasurement = statAry[1][:5].replace(".","").strip()
+                    if statMeasurement=="total" or statMeasurement=="used" or statMeasurement=="free":
+                        sysStat.append(statType+"_"+statMeasurement+"="+statAry[0])
+                        GWStats["top_"+statType+"_"+statMeasurement] = float(statAry[0])
+            elif statType[:3]=="cpu":
+                cpu = statType.replace("cpu","")
+                influxDbStats["imperva_gw_top_cpu"]["cpu="+cpu] = []
+                GWCpuStatAry = influxDbStats["imperva_gw_top_cpu"]["cpu="+cpu]
+                for cpuStat in statsAry:
+                    statAry = cpuStat.strip().split()
+                    GWCpuStatAry.append(topCpuAttrMap[statAry[1]]+"="+statAry[0])
+                    GWStats["top_"+statType[0].lower()+"_"+topCpuAttrMap[statAry[1]]] = float(statAry[0])
 
         try:
             pipe = Popen(['/usr/bin/sar','-P','ALL','1','1'], stdout=PIPE)
@@ -369,12 +353,10 @@ def getSysStats():
                         GWCpuStatAry = influxDbStats["imperva_gw_sar_cpu"]["cpu="+statAry[1].lower()]
                         for j in range(len(statAry)):
                             curIndexName = sarStatIndexAry[j]
-                            print(sarStatIndexAry)
                             if j>1:
                                 cpuStat = statAry[j]
                                 GWCpuStatAry.append(curIndexName+"="+cpuStat)
                                 GWStats["sar_cpu"+statAry[2].lower()+"_"+curIndexName] = float("{0:.2f}".format(float(cpuStat)))
-                                # GWStats["sar_cpu"+statAry[2].lower()+"_"+sarStatIndexAry[j]] = float("{:.2f}".format(float(cpuStat)))
         except:
             print("sar command not found")
 
@@ -555,3 +537,4 @@ def sendSyslog(jsonObj):
 
 if __name__ == '__main__':
     run()
+
