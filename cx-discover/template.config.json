@@ -1,0 +1,68 @@
+{
+  "log_level": "debug",
+  "environment": "dev",
+  "mx": {
+    "endpoint": "https://1.2.3.4:8083",
+    "username": "YOURUSERNAMEHERE",
+    "password": "YOURPASSWORDHERE"
+  },
+  "s3_bucket":"your-s3-bucket-name",
+  "s3_prefix":"mx-reports/your.mx.com",
+  "s3_report_name":"DB_Classification_CX",
+  "cxTableGroupSettings":{
+    "columnMapping":{
+      "Datasource_Type":"Column_DB_Type",
+      "Rule_Name":"Column_Discovery_Rule_Source",
+      "Column":"Column_Name",
+      "Category":"Data_Type",
+      "Table":"Table_Name",
+      "Table_Type":"Table_Type",
+      "Table_Group":"Table_Group"
+    },  
+    "cxToSesDBServiceTypeMapping":{
+      "Cassandra":"Cassandra",
+      "DB2":"Db2",
+      "Hadoop HiveServer2":"Hive",
+      "MariaDB":"MariaDB",
+      "SQLServer":"MsSql",
+      "MySQL":"MySql",
+      "Netezza":"Netezza",
+      "Oracle":"Oracle",
+      "PostgreSQL":"PostgreSql",
+      "SAPHANA":"SapHana",
+      "SybaseASE":"Sybase",
+      "Teradata":"Teradata"
+    },
+    "cxToSesObjectMapping":{
+      "T":"Table",
+      "V":"View",
+      "S":"Synonym"
+    }
+  },
+  "cxClassificationSettings":{
+    "columnMapping":{
+      "Datasource_Type":"Service_Type",
+      "Datasource_Name":"DB_Name",
+      "Datatype":"Column_DB_Type",
+      "Rule_Name":"Column_Discovery_Rule_Source",
+      "Column":"Column_Name",
+      "Category":"Data_Type",
+      "Subcategory":"Data_Type_Subcategory",
+      "Table":"Table_Name",
+      "Table_Type":"Table_Type",
+      "Table_Group":"Table_Group",
+      "Search_Type":"Column_Discovery_Method",
+      "Row_Count": "Row_Count",
+      "Sensitive_Count": "Sensitive_Count",
+      "Sampled_Count": "Sampled_Count"
+    },
+    "appendedValues":{
+      "IP":"1.2.3.4",
+      "Scan":"CX-Discover",
+      "Decision":"AddedAutomatically",
+      "Protected":"true",
+      "Sensitive":"true",
+      "Column_Discovery_Method":"CX-Discover"
+    }
+  }
+}
