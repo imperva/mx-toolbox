@@ -377,12 +377,7 @@ def makeInfluxDBCall(measurement, tags, params):
         response = requests.post(influxdb_url, data=data, proxies=proxies, headers=headers, verify=False)
     else:
         if "username" in CONFIG["influxdb"]:
-            if "path_to_cert" in CONFIG["influxdb"]:
-                response = requests.post(influxdb_url,cert=CONFIG["influxdb"]["path_to_cert"],auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=True)
-            else:
-                response = requests.post(influxdb_url,auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=False)
-        elif "path_to_cert" in CONFIG["influxdb"]:
-            response = requests.post(influxdb_url,cert=CONFIG["influxdb"]["path_to_cert"], data=data, headers=headers, verify=True)
+            response = requests.post(influxdb_url,auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=False)
         else:
             response = requests.post(influxdb_url, data=data, headers=headers, verify=False)
         if (response.status_code!=204):
