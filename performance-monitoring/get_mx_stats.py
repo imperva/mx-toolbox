@@ -36,7 +36,7 @@ try:
     with open(CONFIGFILE, 'r') as data:
         CONFIG = json.load(data)
 except:
-    print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"debug\",\n\t\"environment\": \"dev\",\n\t\"log_search\": {\n\t\t\"enabled\": true,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"MXStats\"\n\t},\n\t\"servicenow\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"1.2.3.4\",\n\t\t\"port\": 514\n\t}\n}")
+    print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"debug\",\n\t\"environment\": \"dev\",\n\t\"log_search\": {\n\t\t\"enabled\": true,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"MXStats\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"1.2.3.4\",\n\t\t\"port\": 514\n\t}\n}")
     exit()
 if CONFIG["is_userspace"]:
     BASEDIR = "/opt/SecureSphere/etc/proc/hades/"
@@ -88,9 +88,9 @@ def run():
             curStat = influxDbStats[measurement]
             for tags in curStat:
                 makeInfluxDBCall(measurement, influxDefaultTags+tags, ','.join(curStat[tags]))
-    if CONFIG["servicenow"]["enabled"]:
-        print("make servicenow call")
-        # todo finish integration with ServiceNow
+    # if CONFIG["servicenow"]["enabled"]:
+    #     print("make servicenow call")
+    #     # todo finish integration with ServiceNow
     
 #########################################################
 ############### General Porpuse Functions ###############
@@ -406,6 +406,7 @@ topCpuAttrMap = {
 
 def sendSyslog(jsonObj):
     try:
+        logging.warning("sending syslog: "+json.dumps(jsonObj))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
         s.sendall(b'{0}'.format(json.dumps(jsonObj)))
