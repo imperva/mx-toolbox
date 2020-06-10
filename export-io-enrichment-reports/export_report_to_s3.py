@@ -16,7 +16,10 @@ sourcePolicies = {}
 AWSREGION = "us-east-1"
 REPORT_NAME = sys.argv[2]
 BUCKET_NAME = sys.argv[3]
- 
+APPEND_COLS = []
+if len(sys.argv)>4:
+	APPEND_COLS = sys.argv[4].split(",")
+
 TIMESTAMP = format(datetime.datetime.now()).replace(" ","_").split(".")[0]
 FILE_KEYS = REPORT_NAME+"_key_index_"+TIMESTAMP+".json"
 
@@ -31,10 +34,10 @@ recordsIndex = {"records":[]}
 logging.warning("\n\n===========  Start MX policy sync ===========\n")
 logging.warning('PATH2REPORT='+sys.argv[1])
 PATH2REPORT = '/opt/SecureSphere/server/SecureSphere/jakarta-tomcat-secsph/webapps/SecureSphere/'+sys.argv[1]
-# Example argv[1] = /WEB-INF/reptemp/ISBT_DB_Classification_Scan_Report_admin_01Nov2019_00-15-00.csv 
+# Example argv[1] = /WEB-INF/reptemp/DB_Classification_Scan_Report_admin_13Feb2020_15-53-07.csv
 # argv[2] = ISBT_DB_Classification_Scan_Report 
 # argv[3] = isbt-db-classification
-# ./run_export_report_to_s3.sh /WEB-INF/reptemp/ISBT_DB_Classification_Scan_Report_admin_21Jan2020_00-15-00.csv ISBT_DB_Classification_Scan_Report isbt-db-classification/mx.prod.impervademo.com/
+# ./run_export_report_to_s3.sh /WEB-INF/reptemp/ISBT_DB_Classification_Scan_Report_admin_21Jan2020_00-15-00.csv ISBT_DB_Classification_Scan_Report impervademo-com-state-store/mx-reports/dev.impervademo.com/
 
 def isfloat(x):
     try:
@@ -61,6 +64,8 @@ def run():
 			if i==0:
 				recordsCsv["headers"] = row
 				reportHeaders = row
+				for col_name in APPEND_COLS:
+					reportHeaders.append(col_name)
 			else:
 				recordsCsv["rows"].append(row)
 				# Create entry for string header value - keys
@@ -72,6 +77,8 @@ def run():
 					elif isfloat(val):
 						val = float(val)
 					curRowWithIndexes[reportHeaders[j].replace(" ", "_")] = val
+				for col_name in APPEND_COLS:
+					curRowWithIndexes[col_name] = 0
 				recordsIndex["records"].append(curRowWithIndexes)				
 			i+=1    
 
