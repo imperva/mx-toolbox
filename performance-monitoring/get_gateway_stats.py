@@ -131,6 +131,20 @@ def run():
             statType = 'stat'
         elif strim(stat)[0:6] == "Worker":
             statType = 'cpu'
+    pipe = Popen(['cat',BASEDIR+'counters'], stdout=PIPE)
+    output = pipe.communicate()
+    m = re.findall('(total number of requests.*)',output[0].lower())
+    for counterStat in m:
+        counterStatAry = counterStat.lower().split("(gw)")
+        statKey = counterStatAry[0].strip().replace(" ","_")
+        counterStatValAry = counterStatAry[1].strip().replace(":","").replace("(","").replace(")","").split()
+        statVal = counterStatValAry[0]
+        statTotal = counterStatValAry[1].split("=").pop()
+        GWStats["imperva_gw_"+statKey] = int(statVal)
+        GWStats["imperva_gw_"+statKey+"_total"] = int(statTotal)
+        influxDbStats["imperva_gw_hades"]["file=/proc/hades/status"].append(statKey+"="+str(statVal))
+        influxDbStats["imperva_gw_hades"]["file=/proc/hades/status"].append(statKey+"_total="+str(statTotal))
+        
     getDiskStats()
     getSysStats()
     getNetworkStats()
@@ -148,6 +162,7 @@ def run():
     #     # todo finish integration with ServiceNow
     if CONFIG["syslog"]["enabled"]:
         sendSyslog(GWStats)
+        # print(json.dumps(GWStats))
 
     sg_dirs = os.listdir(BASEDIR)
     for dir in sg_dirs:
@@ -156,7 +171,8 @@ def run():
             f = open(os.path.join(BASEDIR+dir,'status'), 'r')
             sg_status_stats = f.read().split("\n")
             servergroupname = sg_status_stats[0][:sg_status_stats[0].rfind('_')].lower().replace(" ","_")
-            influxDbStats["imperva_sg"]["servergroupname="+servergroupname] = []
+            influxDbStats["imperva_sg"]["servergroupname="+servergroupname+",mx_host="+MXHOST] = []
+            SGStats["mx_host"] = MXHOST
             SGStats["server_group"] = servergroupname
             SGStats["server_group_id"] = sg_status_stats[0][sg_status_stats[0].rfind('_')+1:len(sg_status_stats[0])-1]
             for sg_stat in sg_status_stats[1:]:
@@ -170,6 +186,7 @@ def run():
             if CONFIG["syslog"]["enabled"]:
                 sendSyslog(SGStats)
     if CONFIG["influxdb"]["enabled"]:
+        # print(json.dumps(influxDbStats))
         for measurement in influxDbStats:
             curStat = influxDbStats[measurement]
             for tags in curStat:
@@ -188,88 +205,145 @@ def getNetworkStats():
     for ifacename in interfaces:
         if(ifacename!=""):
             if(ifacename[:3]=="eth"):
-                influxDbStats["imperva_gw_net"]["interface="+ifacename] = []
-                influxIfaceStatAry = influxDbStats["imperva_gw_net"]["interface="+ifacename]
+                # influxDbStats["imperva_gw_net"]["interface="+ifacename] = []
+                # influxIfaceStatAry = influxDbStats["imperva_gw_net"]["interface="+ifacename]
                 pipe = Popen(['/sbin/ifconfig',ifacename], stdout=PIPE)
                 ifconfigoutput = pipe.communicate()
-                for iface in ifconfigoutput[0].strip().split("\n"):
-                    iface = ' '.join(iface.replace(":"," ").split())
-                    if GWMODEL[:2].lower()=="av":
-                        if (iface[:10].lower()=="rx packets"):
-                            rxAry = iface[11:].split(" ")
-                            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-                            influxIfaceStatAry.append("rx_bytes="+rxAry[2])
-                            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-                            GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxAry[2])
-                        elif (iface[:9].lower()=="rx errors"):
-                            rxAry = iface[10:].split(" ")
-                            influxIfaceStatAry.append("rx_errors="+rxAry[0])
-                            influxIfaceStatAry.append("rx_dropped="+rxAry[2])
-                            influxIfaceStatAry.append("rx_overruns="+rxAry[4])
-                            influxIfaceStatAry.append("rx_frame="+rxAry[6])
-                            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[0])
-                            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[2])
-                            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[4])
-                            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[6])
-                        elif (iface[:10].lower()=="tx packets"):
-                            txAry = iface[11:].split(" ")
-                            influxIfaceStatAry.append("tx_packets="+txAry[0])
-                            influxIfaceStatAry.append("tx_bytes="+txAry[2])
-                            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-                            GWStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[2])
-                        elif (iface[:9].lower()=="tx errors"):
-                            txAry = iface[10:].split(" ")
-                            influxIfaceStatAry.append("tx_errors="+txAry[0])
-                            influxIfaceStatAry.append("tx_dropped="+txAry[2])
-                            influxIfaceStatAry.append("tx_overruns="+txAry[4])
-                            influxIfaceStatAry.append("tx_carrier="+txAry[6])
-                            influxIfaceStatAry.append("collisions="+txAry[8])
-                            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[0])
-                            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[2])
-                            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
-                            GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
-                            GWStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
-                        elif (iface[:8].lower()=="rx bytes"):
-                            recordAry = iface[9:].split(" ")
-                            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
-                            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
-                            GWStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
-                            GWStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
-                    else:
-                        if (iface[:10].lower()=="rx packets"):
-                            rxAry = iface[11:].split(" ")
-                            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-                            influxIfaceStatAry.append("rx_errors="+rxAry[2])
-                            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
-                            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
-                            influxIfaceStatAry.append("rx_frame="+rxAry[8])
-                            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-                            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
-                            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
-                            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
-                            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
-                        elif (iface[:10].lower()=="tx packets"):
-                            txAry = iface[11:].split(" ")
-                            influxIfaceStatAry.append("tx_packets="+txAry[0])
-                            influxIfaceStatAry.append("tx_errors="+txAry[2])
-                            influxIfaceStatAry.append("tx_dropped="+txAry[4])
-                            influxIfaceStatAry.append("tx_overruns="+txAry[6])
-                            influxIfaceStatAry.append("tx_carrier="+txAry[8])
-                            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-                            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
-                            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
-                            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
-                            GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[8])
-                        elif (iface[:10].lower()=="collisions"):
-                            colAry = iface[11:].split(" ")
-                            influxIfaceStatAry.append("collisions="+colAry[0])
-                            GWStats["interface_"+ifacename+"_collisions"] = int(colAry[0])
-                        elif (iface[:8].lower()=="rx bytes"):
-                            recordAry = iface[9:].split(" ")
-                            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
-                            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
-                            GWStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
-                            GWStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
+                # Check if interface is legacey format wih packet and error on same line
+                if (re.search('(RX packets)\s.*(errors)',ifconfigoutput[0].replace(":"," "))!=None):
+                    influxDbStats["imperva_gw_net"]["interface="+ifacename] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
+                elif GWMODEL[:2].lower()=="av":
+                    influxDbStats["imperva_gw_net"]["interface="+ifacename] = getInterfaceStats_aws(ifconfigoutput,ifacename)
+                else:
+                    influxDbStats["imperva_gw_net"]["interface="+ifacename] = getInterfaceStats(ifconfigoutput,ifacename)
+
+# Applies to older models of CentOS and gateways prior to 12.5
+def getInterfaceStats_legacy(ifconfigoutput,ifacename):
+    influxIfaceStatAry = []
+    for iface in ifconfigoutput[0].strip().split("\n"):
+        iface = ' '.join(iface.replace(":"," ").split())
+        if (iface[:10].lower()=="rx packets"):
+            rxAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("rx_packets="+rxAry[0])
+            influxIfaceStatAry.append("rx_errors="+rxAry[2])
+            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
+            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
+            influxIfaceStatAry.append("rx_frame="+rxAry[8])
+            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
+            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
+            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
+            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
+            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])            
+        if (iface[:10].lower()=="tx packets"):
+            txAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("tx_packets="+txAry[0])
+            influxIfaceStatAry.append("tx_errors="+txAry[2])
+            influxIfaceStatAry.append("tx_dropped="+txAry[4])
+            influxIfaceStatAry.append("tx_overruns="+txAry[6])
+            influxIfaceStatAry.append("tx_frame="+txAry[8])
+            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
+            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
+            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
+            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
+            GWStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])            
+        if (iface[:8].lower()=="rx bytes"):
+            rxBytes = iface[9:].split(" ").pop(0)
+            txBytes = iface.lower().split("tx bytes").pop(1).split().pop(0)
+            influxIfaceStatAry.append("rx_bytes="+rxBytes)
+            influxIfaceStatAry.append("tx_bytes="+txBytes)
+            GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxBytes)
+            GWStats["interface_"+ifacename+"_tx_bytes"] = int(txBytes)
+        if (iface[:10].lower()=="collisions"):
+            collisions = iface[11:].split(" ").pop()
+            influxIfaceStatAry.append("collisions="+collisions)
+            GWStats["interface_"+ifacename+"_collisions"] = int(collisions)    
+    return influxIfaceStatAry
+
+def getInterfaceStats_aws(ifconfigoutput,ifacename):
+    influxIfaceStatAry = []
+    for iface in ifconfigoutput[0].strip().split("\n"):
+        iface = ' '.join(iface.replace(":"," ").split())
+        if (iface[:10].lower()=="rx packets"):
+            rxAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("rx_packets="+rxAry[0])
+            influxIfaceStatAry.append("rx_bytes="+rxAry[2])
+            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
+            GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxAry[2])
+        elif (iface[:9].lower()=="rx errors"):
+            rxAry = iface[10:].split(" ")
+            influxIfaceStatAry.append("rx_errors="+rxAry[0])
+            influxIfaceStatAry.append("rx_dropped="+rxAry[2])
+            influxIfaceStatAry.append("rx_overruns="+rxAry[4])
+            influxIfaceStatAry.append("rx_frame="+rxAry[6])
+            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[0])
+            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[2])
+            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[4])
+            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[6])
+        elif (iface[:10].lower()=="tx packets"):
+            txAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("tx_packets="+txAry[0])
+            influxIfaceStatAry.append("tx_bytes="+txAry[2])
+            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
+            GWStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[2])
+        elif (iface[:9].lower()=="tx errors"):
+            txAry = iface[10:].split(" ")
+            influxIfaceStatAry.append("tx_errors="+txAry[0])
+            influxIfaceStatAry.append("tx_dropped="+txAry[2])
+            influxIfaceStatAry.append("tx_overruns="+txAry[4])
+            influxIfaceStatAry.append("tx_carrier="+txAry[6])
+            influxIfaceStatAry.append("collisions="+txAry[8])
+            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[0])
+            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[2])
+            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
+            GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
+            GWStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
+        elif (iface[:8].lower()=="rx bytes"):
+            recordAry = iface[9:].split(" ")
+            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
+            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
+            GWStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
+            GWStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
+    return influxIfaceStatAry
+
+def getInterfaceStats(ifconfigoutput,ifacename):
+    influxIfaceStatAry = []
+    for iface in ifconfigoutput[0].strip().split("\n"):
+        iface = ' '.join(iface.replace(":"," ").split())
+        if (iface[:10].lower()=="rx packets"):
+            rxAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("rx_packets="+rxAry[0])
+            influxIfaceStatAry.append("rx_errors="+rxAry[2])
+            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
+            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
+            influxIfaceStatAry.append("rx_frame="+rxAry[8])
+            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
+            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
+            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
+            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
+            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
+        elif (iface[:10].lower()=="tx packets"):
+            txAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("tx_packets="+txAry[0])
+            influxIfaceStatAry.append("tx_errors="+txAry[2])
+            influxIfaceStatAry.append("tx_dropped="+txAry[4])
+            influxIfaceStatAry.append("tx_overruns="+txAry[6])
+            influxIfaceStatAry.append("tx_carrier="+txAry[8])
+            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
+            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
+            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
+            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
+            GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[8])
+        elif (iface[:10].lower()=="collisions"):
+            colAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("collisions="+colAry[0])
+            GWStats["interface_"+ifacename+"_collisions"] = int(colAry[0])
+        elif (iface[:8].lower()=="rx bytes"):
+            recordAry = iface[9:].split(" ")
+            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
+            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
+            GWStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
+            GWStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
+    return influxIfaceStatAry
 
 def getDiskStats():
     pipe = Popen(['cat','/proc/mounts'], stdout=PIPE)
@@ -296,14 +370,25 @@ def getDiskStats():
 def getSysStats():
     with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
         content = content_file.read()
+        m = re.search('server.*\shost=\"(.*)\"\sreal-host',content)
+        global MXHOST
+        MXHOST = m.group(1)
+        influxDbStats["imperva_gw_sys"]["mx_hostname="+MXHOST] = []
+        sysStat = influxDbStats["imperva_gw_sys"]["mx_hostname="+MXHOST]
+        
         m = re.search('(appliance)\s(tag=).*',content)
         modelStr = m.group(0)
         model = modelStr[modelStr.index('appliance tag=')+15:modelStr.index('" name=')]
         global GWMODEL
         GWMODEL = model 
-        # TODO: Go back and find a way to get version numver, impctl does not work in cron
         influxDbStats["imperva_gw_sys"]["model="+model] = []        
         sysStat = influxDbStats["imperva_gw_sys"]["model="+model]
+        
+        pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/impctl','--version'], stdout=PIPE)
+        output = pipe.communicate()
+        influxDbStats["imperva_gw_sys"]["version="+output[0].strip()] = []        
+        sysStat = influxDbStats["imperva_gw_sys"]["version="+output[0].strip()]
+
         sysStat.append("gw_supported_kbps="+gwSizingStats[model]["gw_supported_kbps"])
         sysStat.append("gw_supported_hps="+gwSizingStats[model]["gw_supported_hps"])
         GWStats["gw_supported_kbps"] = int(gwSizingStats[model]["gw_supported_kbps"])
@@ -429,14 +514,14 @@ def parseSGStat(servergroupname,sg_stat,SGStats):
                 sg_statAry = sg_statstr.split(" ")
                 SGStats[sg_statKey] = sg_statAry[0]
                 SGStats[sg_statKey+"_max"] = sg_statAry[3]
-                influxDbStats["imperva_sg"]["servergroupname="+servergroupname].append(sg_statKey+"="+sg_statAry[0])
-                influxDbStats["imperva_sg"]["servergroupname="+servergroupname].append(sg_statKey+"_max="+sg_statAry[3])
+                influxDbStats["imperva_sg"]["servergroupname="+servergroupname+",mx_host="+MXHOST].append(sg_statKey+"="+sg_statAry[0])
+                influxDbStats["imperva_sg"]["servergroupname="+servergroupname+",mx_host="+MXHOST].append(sg_statKey+"_max="+sg_statAry[3])
         else:
             sg_statstr = sg_statstr.replace(sg_statstr[sg_statstr.index(' ')+1:len(sg_statstr)-sg_statstr.index(' ')+1],sg_statstr[sg_statstr.index(' ')+1:len(sg_statstr)-sg_statstr.index(' ')+1].replace('/','_').replace(' ','_'))
             sg_statAry = sg_statstr.split(" ")
             if sg_statAry[1] in SGStats:
                 SGStats[sg_statAry[1]] = sg_statAry[0]
-                influxDbStats["imperva_sg"]["servergroupname="+servergroupname].append(sg_statAry[1]+"="+sg_statAry[0])
+                influxDbStats["imperva_sg"]["servergroupname="+servergroupname+",mx_host="+MXHOST].append(sg_statAry[1]+"="+sg_statAry[0])
     return SGStats
 
 def makeCallNewRelicCall(stat):

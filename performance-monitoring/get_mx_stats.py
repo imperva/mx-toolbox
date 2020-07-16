@@ -182,89 +182,146 @@ def getNetworkStats():
     for ifacename in interfaces:
         if(ifacename!=""):
             if(ifacename[:3]=="eth"):
-                influxDbStats["imperva_mx_net"]["interface="+ifacename] = []
-                influxIfaceStatAry = influxDbStats["imperva_mx_net"]["interface="+ifacename]
+                # influxDbStats["imperva_gw_net"]["interface="+ifacename] = []
+                # influxIfaceStatAry = influxDbStats["imperva_gw_net"]["interface="+ifacename]
                 pipe = Popen(['/sbin/ifconfig',ifacename], stdout=PIPE)
                 ifconfigoutput = pipe.communicate()
-                for iface in ifconfigoutput[0].strip().split("\n"):
-                    iface = ' '.join(iface.replace(":"," ").split())
-                    if MXMODEL[:2].lower()=="av":
-                        if (iface[:10].lower()=="rx packets"):
-                            rxAry = iface[11:].split(" ")
-                            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-                            influxIfaceStatAry.append("rx_bytes="+rxAry[2])
-                            MXStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-                            MXStats["interface_"+ifacename+"_rx_bytes"] = int(rxAry[2])
-                        elif (iface[:9].lower()=="rx errors"):
-                            rxAry = iface[10:].split(" ")
-                            influxIfaceStatAry.append("rx_errors="+rxAry[0])
-                            influxIfaceStatAry.append("rx_dropped="+rxAry[2])
-                            influxIfaceStatAry.append("rx_overruns="+rxAry[4])
-                            influxIfaceStatAry.append("rx_frame="+rxAry[6])
-                            MXStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[0])
-                            MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[2])
-                            MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[4])
-                            MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[6])
-                        elif (iface[:10].lower()=="tx packets"):
-                            txAry = iface[11:].split(" ")
-                            influxIfaceStatAry.append("tx_packets="+txAry[0])
-                            influxIfaceStatAry.append("tx_bytes="+txAry[2])
-                            MXStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-                            MXStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[2])
-                        elif (iface[:9].lower()=="tx errors"):
-                            txAry = iface[10:].split(" ")
-                            influxIfaceStatAry.append("tx_errors="+txAry[0])
-                            influxIfaceStatAry.append("tx_dropped="+txAry[2])
-                            influxIfaceStatAry.append("tx_overruns="+txAry[4])
-                            influxIfaceStatAry.append("tx_carrier="+txAry[6])
-                            influxIfaceStatAry.append("collisions="+txAry[8])
-                            MXStats["interface_"+ifacename+"_tx_errors"] = int(txAry[0])
-                            MXStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[2])
-                            MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
-                            MXStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
-                            MXStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
-                        elif (iface[:8].lower()=="rx bytes"):
-                            recordAry = iface[9:].split(" ")
-                            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
-                            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
-                            MXStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
-                            MXStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
-                    else:
-                        if (iface[:10].lower()=="rx packets"):
-                            rxAry = iface[11:].split(" ")
-                            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-                            influxIfaceStatAry.append("rx_errors="+rxAry[2])
-                            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
-                            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
-                            influxIfaceStatAry.append("rx_frame="+rxAry[8])
-                            MXStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-                            MXStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
-                            MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
-                            MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
-                            MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
-                        elif (iface[:10].lower()=="tx packets"):
-                            txAry = iface[11:].split(" ")
-                            influxIfaceStatAry.append("tx_packets="+txAry[0])
-                            influxIfaceStatAry.append("tx_errors="+txAry[2])
-                            influxIfaceStatAry.append("tx_dropped="+txAry[4])
-                            influxIfaceStatAry.append("tx_overruns="+txAry[6])
-                            influxIfaceStatAry.append("tx_carrier="+txAry[8])
-                            MXStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-                            MXStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
-                            MXStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
-                            MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
-                            MXStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[8])
-                        elif (iface[:10].lower()=="collisions"):
-                            colAry = iface[11:].split(" ")
-                            influxIfaceStatAry.append("collisions="+colAry[0])
-                            MXStats["interface_"+ifacename+"_collisions"] = int(colAry[0])
-                        elif (iface[:8].lower()=="rx bytes"):
-                            recordAry = iface[9:].split(" ")
-                            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
-                            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
-                            MXStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
-                            MXStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
+                # Check if interface is legacey format wih packet and error on same line
+                if (re.search('(RX packets)\s.*(errors)',ifconfigoutput[0].replace(":"," "))!=None):
+                    influxDbStats["imperva_mx_net"]["interface="+ifacename] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
+                elif MXMODEL[:2].lower()=="av":
+                    influxDbStats["imperva_mx_net"]["interface="+ifacename] = getInterfaceStats_aws(ifconfigoutput,ifacename)
+                else:
+                    influxDbStats["imperva_mx_net"]["interface="+ifacename] = getInterfaceStats(ifconfigoutput,ifacename)
 
+# Applies to older models of CentOS and gateways prior to 12.5
+def getInterfaceStats_legacy(ifconfigoutput,ifacename):
+    influxIfaceStatAry = []
+    for iface in ifconfigoutput[0].strip().split("\n"):
+        iface = ' '.join(iface.replace(":"," ").split())
+        if (iface[:10].lower()=="rx packets"):
+            rxAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("rx_packets="+rxAry[0])
+            influxIfaceStatAry.append("rx_errors="+rxAry[2])
+            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
+            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
+            influxIfaceStatAry.append("rx_frame="+rxAry[8])
+            MXStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
+            MXStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
+            MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
+            MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
+            MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])            
+        if (iface[:10].lower()=="tx packets"):
+            txAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("tx_packets="+txAry[0])
+            influxIfaceStatAry.append("tx_errors="+txAry[2])
+            influxIfaceStatAry.append("tx_dropped="+txAry[4])
+            influxIfaceStatAry.append("tx_overruns="+txAry[6])
+            influxIfaceStatAry.append("tx_frame="+txAry[8])
+            MXStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
+            MXStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
+            MXStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
+            MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
+            MXStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])            
+        if (iface[:8].lower()=="rx bytes"):
+            rxBytes = iface[9:].split(" ").pop(0)
+            txBytes = iface.lower().split("tx bytes").pop(1).split().pop(0)
+            influxIfaceStatAry.append("rx_bytes="+rxBytes)
+            influxIfaceStatAry.append("tx_bytes="+txBytes)
+            MXStats["interface_"+ifacename+"_rx_bytes"] = int(rxBytes)
+            MXStats["interface_"+ifacename+"_tx_bytes"] = int(txBytes)
+        if (iface[:10].lower()=="collisions"):
+            collisions = iface[11:].split(" ").pop()
+            influxIfaceStatAry.append("collisions="+collisions)
+            MXStats["interface_"+ifacename+"_collisions"] = int(collisions)    
+    return influxIfaceStatAry
+
+def getInterfaceStats_aws(ifconfigoutput,ifacename):
+    influxIfaceStatAry = []
+    for iface in ifconfigoutput[0].strip().split("\n"):
+        iface = ' '.join(iface.replace(":"," ").split())
+        if (iface[:10].lower()=="rx packets"):
+            rxAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("rx_packets="+rxAry[0])
+            influxIfaceStatAry.append("rx_bytes="+rxAry[2])
+            MXStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
+            MXStats["interface_"+ifacename+"_rx_bytes"] = int(rxAry[2])
+        elif (iface[:9].lower()=="rx errors"):
+            rxAry = iface[10:].split(" ")
+            influxIfaceStatAry.append("rx_errors="+rxAry[0])
+            influxIfaceStatAry.append("rx_dropped="+rxAry[2])
+            influxIfaceStatAry.append("rx_overruns="+rxAry[4])
+            influxIfaceStatAry.append("rx_frame="+rxAry[6])
+            MXStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[0])
+            MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[2])
+            MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[4])
+            MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[6])
+        elif (iface[:10].lower()=="tx packets"):
+            txAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("tx_packets="+txAry[0])
+            influxIfaceStatAry.append("tx_bytes="+txAry[2])
+            MXStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
+            MXStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[2])
+        elif (iface[:9].lower()=="tx errors"):
+            txAry = iface[10:].split(" ")
+            influxIfaceStatAry.append("tx_errors="+txAry[0])
+            influxIfaceStatAry.append("tx_dropped="+txAry[2])
+            influxIfaceStatAry.append("tx_overruns="+txAry[4])
+            influxIfaceStatAry.append("tx_carrier="+txAry[6])
+            influxIfaceStatAry.append("collisions="+txAry[8])
+            MXStats["interface_"+ifacename+"_tx_errors"] = int(txAry[0])
+            MXStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[2])
+            MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
+            MXStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
+            MXStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
+        elif (iface[:8].lower()=="rx bytes"):
+            recordAry = iface[9:].split(" ")
+            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
+            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
+            MXStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
+            MXStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
+    return influxIfaceStatAry
+
+def getInterfaceStats(ifconfigoutput,ifacename):
+    influxIfaceStatAry = []
+    for iface in ifconfigoutput[0].strip().split("\n"):
+        iface = ' '.join(iface.replace(":"," ").split())
+        if (iface[:10].lower()=="rx packets"):
+            rxAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("rx_packets="+rxAry[0])
+            influxIfaceStatAry.append("rx_errors="+rxAry[2])
+            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
+            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
+            influxIfaceStatAry.append("rx_frame="+rxAry[8])
+            MXStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
+            MXStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
+            MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
+            MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
+            MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
+        elif (iface[:10].lower()=="tx packets"):
+            txAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("tx_packets="+txAry[0])
+            influxIfaceStatAry.append("tx_errors="+txAry[2])
+            influxIfaceStatAry.append("tx_dropped="+txAry[4])
+            influxIfaceStatAry.append("tx_overruns="+txAry[6])
+            influxIfaceStatAry.append("tx_carrier="+txAry[8])
+            MXStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
+            MXStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
+            MXStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
+            MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
+            MXStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[8])
+        elif (iface[:10].lower()=="collisions"):
+            colAry = iface[11:].split(" ")
+            influxIfaceStatAry.append("collisions="+colAry[0])
+            MXStats["interface_"+ifacename+"_collisions"] = int(colAry[0])
+        elif (iface[:8].lower()=="rx bytes"):
+            recordAry = iface[9:].split(" ")
+            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
+            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
+            MXStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
+            MXStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
+    return influxIfaceStatAry
+    
 def getDiskStats():
     pipe = Popen(['cat','/proc/mounts'], stdout=PIPE)
     output = pipe.communicate()
