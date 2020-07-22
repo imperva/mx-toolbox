@@ -186,7 +186,6 @@ def run():
             if CONFIG["syslog"]["enabled"]:
                 sendSyslog(SGStats)
     if CONFIG["influxdb"]["enabled"]:
-        # print(json.dumps(influxDbStats))
         for measurement in influxDbStats:
             curStat = influxDbStats[measurement]
             for tags in curStat:
@@ -209,13 +208,18 @@ def getNetworkStats():
                 # influxIfaceStatAry = influxDbStats["imperva_gw_net"]["interface="+ifacename]
                 pipe = Popen(['/sbin/ifconfig',ifacename], stdout=PIPE)
                 ifconfigoutput = pipe.communicate()
-                # Check if interface is legacey format wih packet and error on same line
+                ipaddress = "n/a"
+                for iface in ifconfigoutput[0].strip().split("\n"):
+                    iface = ' '.join(iface.replace(":"," ").split())
+                    if (iface[:5].lower()=="inet "):
+                        ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
+                        break
                 if (re.search('(RX packets)\s.*(errors)',ifconfigoutput[0].replace(":"," "))!=None):
-                    influxDbStats["imperva_gw_net"]["interface="+ifacename] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
+                    influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
                 elif GWMODEL[:2].lower()=="av":
-                    influxDbStats["imperva_gw_net"]["interface="+ifacename] = getInterfaceStats_aws(ifconfigoutput,ifacename)
+                    influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats_aws(ifconfigoutput,ifacename)
                 else:
-                    influxDbStats["imperva_gw_net"]["interface="+ifacename] = getInterfaceStats(ifconfigoutput,ifacename)
+                    influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats(ifconfigoutput,ifacename)
 
 # Applies to older models of CentOS and gateways prior to 12.5
 def getInterfaceStats_legacy(ifconfigoutput,ifacename):
@@ -224,8 +228,6 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
             ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            influxIfaceStatAry.append("ipaddress="+ipaddress)
-            GWStats["interface_"+ifacename+"_ipaddress"] = ipaddress
             sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
             influxIfaceStatAry.append("sockets="+sockets)
             GWStats["interface_"+ifacename+"_sockets"] = sockets
@@ -272,8 +274,6 @@ def getInterfaceStats_aws(ifconfigoutput,ifacename):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
             ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            influxIfaceStatAry.append("ipaddress="+ipaddress)
-            GWStats["interface_"+ifacename+"_ipaddress"] = ipaddress
             sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
             influxIfaceStatAry.append("sockets="+sockets)
             GWStats["interface_"+ifacename+"_sockets"] = sockets
@@ -325,8 +325,6 @@ def getInterfaceStats(ifconfigoutput,ifacename):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
             ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            influxIfaceStatAry.append("ipaddress="+ipaddress)
-            GWStats["interface_"+ifacename+"_ipaddress"] = ipaddress
             sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
             influxIfaceStatAry.append("sockets="+sockets)
             GWStats["interface_"+ifacename+"_sockets"] = sockets
@@ -409,11 +407,6 @@ def getSysStats():
         output = pipe.communicate()
         influxDbStats["imperva_gw_sys"]["version="+output[0].strip()] = []
         sysStat = influxDbStats["imperva_gw_sys"]["version="+output[0].strip()]
-
-        sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
-        influxIfaceStatAry.append("sockets="+sockets)
-        GWStats["interface_"+ifacename+"_sockets"] = sockets
-
 
         sysStat.append("gw_supported_kbps="+gwSizingStats[model]["gw_supported_kbps"])
         sysStat.append("gw_supported_hps="+gwSizingStats[model]["gw_supported_hps"])
