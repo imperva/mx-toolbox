@@ -222,7 +222,14 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
     influxIfaceStatAry = []
     for iface in ifconfigoutput[0].strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:10].lower()=="rx packets"):
+        if (iface[:5].lower()=="inet "):
+            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
+            influxIfaceStatAry.append("ipaddress="+ipaddress)
+            GWStats["interface_"+ifacename+"_ipaddress"] = ipaddress
+            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
+            influxIfaceStatAry.append("sockets="+sockets)
+            GWStats["interface_"+ifacename+"_sockets"] = sockets
+        elif (iface[:10].lower()=="rx packets"):
             rxAry = iface[11:].split(" ")
             influxIfaceStatAry.append("rx_packets="+rxAry[0])
             influxIfaceStatAry.append("rx_errors="+rxAry[2])
@@ -234,7 +241,7 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
             GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
             GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])            
-        if (iface[:10].lower()=="tx packets"):
+        elif (iface[:10].lower()=="tx packets"):
             txAry = iface[11:].split(" ")
             influxIfaceStatAry.append("tx_packets="+txAry[0])
             influxIfaceStatAry.append("tx_errors="+txAry[2])
@@ -246,14 +253,14 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
             GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
             GWStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])            
-        if (iface[:8].lower()=="rx bytes"):
+        elif (iface[:8].lower()=="rx bytes"):
             rxBytes = iface[9:].split(" ").pop(0)
             txBytes = iface.lower().split("tx bytes").pop(1).split().pop(0)
             influxIfaceStatAry.append("rx_bytes="+rxBytes)
             influxIfaceStatAry.append("tx_bytes="+txBytes)
             GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxBytes)
             GWStats["interface_"+ifacename+"_tx_bytes"] = int(txBytes)
-        if (iface[:10].lower()=="collisions"):
+        elif (iface[:10].lower()=="collisions"):
             collisions = iface[11:].split(" ").pop()
             influxIfaceStatAry.append("collisions="+collisions)
             GWStats["interface_"+ifacename+"_collisions"] = int(collisions)    
@@ -263,7 +270,14 @@ def getInterfaceStats_aws(ifconfigoutput,ifacename):
     influxIfaceStatAry = []
     for iface in ifconfigoutput[0].strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:10].lower()=="rx packets"):
+        if (iface[:5].lower()=="inet "):
+            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
+            influxIfaceStatAry.append("ipaddress="+ipaddress)
+            GWStats["interface_"+ifacename+"_ipaddress"] = ipaddress
+            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
+            influxIfaceStatAry.append("sockets="+sockets)
+            GWStats["interface_"+ifacename+"_sockets"] = sockets
+        elif (iface[:10].lower()=="rx packets"):
             rxAry = iface[11:].split(" ")
             influxIfaceStatAry.append("rx_packets="+rxAry[0])
             influxIfaceStatAry.append("rx_bytes="+rxAry[2])
@@ -309,7 +323,14 @@ def getInterfaceStats(ifconfigoutput,ifacename):
     influxIfaceStatAry = []
     for iface in ifconfigoutput[0].strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:10].lower()=="rx packets"):
+        if (iface[:5].lower()=="inet "):
+            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
+            influxIfaceStatAry.append("ipaddress="+ipaddress)
+            GWStats["interface_"+ifacename+"_ipaddress"] = ipaddress
+            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
+            influxIfaceStatAry.append("sockets="+sockets)
+            GWStats["interface_"+ifacename+"_sockets"] = sockets
+        elif (iface[:10].lower()=="rx packets"):
             rxAry = iface[11:].split(" ")
             influxIfaceStatAry.append("rx_packets="+rxAry[0])
             influxIfaceStatAry.append("rx_errors="+rxAry[2])
@@ -386,8 +407,13 @@ def getSysStats():
         
         pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/impctl','--version'], stdout=PIPE)
         output = pipe.communicate()
-        influxDbStats["imperva_gw_sys"]["version="+output[0].strip()] = []        
+        influxDbStats["imperva_gw_sys"]["version="+output[0].strip()] = []
         sysStat = influxDbStats["imperva_gw_sys"]["version="+output[0].strip()]
+
+        sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
+        influxIfaceStatAry.append("sockets="+sockets)
+        GWStats["interface_"+ifacename+"_sockets"] = sockets
+
 
         sysStat.append("gw_supported_kbps="+gwSizingStats[model]["gw_supported_kbps"])
         sysStat.append("gw_supported_hps="+gwSizingStats[model]["gw_supported_hps"])
@@ -445,7 +471,7 @@ def getSysStats():
         except:
             print("sar command not found")
 
-        pipe = Popen(['cat','/proc/hades/cpuload'], stdout=PIPE)
+        pipe = Popen(['cat',BASEDIR+'cpuload'], stdout=PIPE)
         output = pipe.communicate()
         cpuloadOutputAry = str(output[0]).strip().split("\n\n")
 

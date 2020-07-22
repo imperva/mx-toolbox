@@ -199,7 +199,14 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
     influxIfaceStatAry = []
     for iface in ifconfigoutput[0].strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:10].lower()=="rx packets"):
+        if (iface[:5].lower()=="inet "):
+            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
+            influxIfaceStatAry.append("ipaddress="+ipaddress)
+            MXStats["interface_"+ifacename+"_ipaddress"] = ipaddress
+            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
+            influxIfaceStatAry.append("sockets="+sockets)
+            MXStats["interface_"+ifacename+"_sockets"] = sockets
+        elif (iface[:10].lower()=="rx packets"):
             rxAry = iface[11:].split(" ")
             influxIfaceStatAry.append("rx_packets="+rxAry[0])
             influxIfaceStatAry.append("rx_errors="+rxAry[2])
@@ -211,7 +218,7 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
             MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
             MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])            
-        if (iface[:10].lower()=="tx packets"):
+        elif (iface[:10].lower()=="tx packets"):
             txAry = iface[11:].split(" ")
             influxIfaceStatAry.append("tx_packets="+txAry[0])
             influxIfaceStatAry.append("tx_errors="+txAry[2])
@@ -223,14 +230,14 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             MXStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
             MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
             MXStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])            
-        if (iface[:8].lower()=="rx bytes"):
+        elif (iface[:8].lower()=="rx bytes"):
             rxBytes = iface[9:].split(" ").pop(0)
             txBytes = iface.lower().split("tx bytes").pop(1).split().pop(0)
             influxIfaceStatAry.append("rx_bytes="+rxBytes)
             influxIfaceStatAry.append("tx_bytes="+txBytes)
             MXStats["interface_"+ifacename+"_rx_bytes"] = int(rxBytes)
             MXStats["interface_"+ifacename+"_tx_bytes"] = int(txBytes)
-        if (iface[:10].lower()=="collisions"):
+        elif (iface[:10].lower()=="collisions"):
             collisions = iface[11:].split(" ").pop()
             influxIfaceStatAry.append("collisions="+collisions)
             MXStats["interface_"+ifacename+"_collisions"] = int(collisions)    
@@ -240,7 +247,14 @@ def getInterfaceStats_aws(ifconfigoutput,ifacename):
     influxIfaceStatAry = []
     for iface in ifconfigoutput[0].strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:10].lower()=="rx packets"):
+        if (iface[:5].lower()=="inet "):
+            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
+            influxIfaceStatAry.append("ipaddress="+ipaddress)
+            MXStats["interface_"+ifacename+"_ipaddress"] = ipaddress
+            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
+            influxIfaceStatAry.append("sockets="+sockets)
+            MXStats["interface_"+ifacename+"_sockets"] = sockets
+        elif (iface[:10].lower()=="rx packets"):
             rxAry = iface[11:].split(" ")
             influxIfaceStatAry.append("rx_packets="+rxAry[0])
             influxIfaceStatAry.append("rx_bytes="+rxAry[2])
@@ -286,7 +300,14 @@ def getInterfaceStats(ifconfigoutput,ifacename):
     influxIfaceStatAry = []
     for iface in ifconfigoutput[0].strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:10].lower()=="rx packets"):
+        if (iface[:5].lower()=="inet "):
+            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
+            influxIfaceStatAry.append("ipaddress="+ipaddress)
+            MXStats["interface_"+ifacename+"_ipaddress"] = ipaddress
+            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
+            influxIfaceStatAry.append("sockets="+sockets)
+            MXStats["interface_"+ifacename+"_sockets"] = sockets
+        elif (iface[:10].lower()=="rx packets"):
             rxAry = iface[11:].split(" ")
             influxIfaceStatAry.append("rx_packets="+rxAry[0])
             influxIfaceStatAry.append("rx_errors="+rxAry[2])
@@ -352,9 +373,14 @@ def getSysStats():
         model = modelStr[modelStr.index('appliance tag=')+15:modelStr.index('" name=')]
         global MXMODEL
         MXMODEL = model
-        # TODO: Go back and find a way to get version numver, impctl does not work in cron
         influxDbStats["imperva_mx_sys"]["model="+model] = []        
         sysStat = influxDbStats["imperva_mx_sys"]["model="+model]
+
+        pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/impctl','--version'], stdout=PIPE)
+        output = pipe.communicate()
+        influxDbStats["imperva_mx_sys"]["version="+output[0].strip()] = []
+        sysStat = influxDbStats["imperva_mx_sys"]["version="+output[0].strip()]
+
         pipe = Popen(['cat','/proc/uptime'], stdout=PIPE)
         output = pipe.communicate()
         uptimeAry = str(output[0]).split("\n")
