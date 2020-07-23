@@ -4,14 +4,15 @@ The Gateway performance monitoring for Imperva SecureSphere gateways provides th
 
 ## Getting Started
 
-Download the latest files from the gateway-performance-monitoring folder.  Within this folder are 2 required files:
+Download the latest files from the performance-monitoring folder.  Within this folder are 3 required files:
 
 ```
+get_mx_stats.py
 get_gateway_stats.py
 template.config.json
 ```
 
-The files should be copied to the /var/user-data/ folder on the Gateway appliance(s).  The .json config file should live in the same directory, as referenced in the script. 
+The files should be copied to the /var/user-data/ folder on either the Gateway or MX appliance(s) respectively.  The .json config file should live in the same directory, as referenced in the script. 
 
 The template.config.json file must be re-named config.json.  
 
@@ -122,6 +123,18 @@ Example:
 `proxy_username` - _(optional)_ the proxy username
 
 `proxy_password` - _(optional)_ the proxy password
+
+## Setting up the scripts to as a cron job:
+**MX:** The MX script has 2 modes, one that will capture local OS stats intended to be run every minute, and a second that pulls data from the MX DB about the environment, policies, agents, etc, intended to run at a lessser frequency, like every 5 minutes. Run ```crontab -e``` and add the following entries:
+```
+* * * * * /usr/bin/python /var/user-data/get_mx_stats.py
+*/5 * * * * /usr/bin/python /var/user-data/get_mx_stats.py get_server_stats
+```
+
+**Gateway:** The Gateway script is intended to run every minute.  Run ```crontab -e``` and add the following entry:
+```
+* * * * * /usr/bin/python /var/user-data/get_gateway_stats.py
+```
 
 ## Installing and dynamic initial configuration in AWS Environments
 
