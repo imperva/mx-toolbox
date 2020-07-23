@@ -19,7 +19,14 @@
   "links": [],
   "panels": [
     {
-      "content": "![imperva-logo](https://www.imperva.com/wp-content/uploads/2018/12/logo.svg)\n#### Performance Metrics \n-----------\n###### [Enterprise Summary](/d/OK-WTZ6Wz/enterprise-summary?orgId=1)\n-----------\n###### [MX Summary](/d/_eEaFY6Wk/mx-summary?orgId=1)\n* [CPU](/d/vqWfBYeZk/mx-cpu-statistics?orgId=1)\n* [Network](/d/1-yxmUeWz/mx-network-statistics?orgId=1  )\n-----------\n###### [Gateway Summary](/d/uQkMDV6Wk/gateway-summary?orgId=1)\n* [CPU](/d/pkJsdV6Wk/gateway-cpu-statistics?orgId=1)\n* [Network](/d/T7e3cV6Wz/gateway-network-statistics?orgId=1)\n-----------\n###### [Agent Summary](/d/kn0syVeWz/agent-summary?orgId=1)\n-----------\n###### [Server Groups](/d/3lfMdYeWk/server-groups?orgId=1)\n-----------\n###### [Audit Policies Summary](/d/bM-4JleZz/audit-policies-summary?orgId=1)  \n\n",
+      "content": "![imperva-logo](https://www.imperva.com/wp-content/uploads/2018/12/logo.svg)\n#### Performance Metrics \n-----------\n###### [Enterprise Summary](/d/OK-WTZ6Wz/enterprise-summary?orgId=1)\n-----------\n###### [MX Summary](/d/_eEaFY6Wk/mx-summary?orgId=1)\n* [CPU](/d/vqWfBYeZk/mx-cpu-statistics?orgId=1)\n* [Network](/d/1-yxmUeWz/mx-network-statistics?orgId=1  )\n-----------\n###### [Gateway Summary](/d/uQkMDV6Wk/gateway-summary?orgId=1)\n* [CPU](/d/pkJsdV6Wk/gateway-cpu-statistics?orgId=1)\n* [Network](/d/T7e3cV6Wz/gateway-network-statistics?orgId=1)\n* [Statistics](/d/YBW_BwnMk/gateway-statistics?orgId=1)\n-----------\n###### [Agent Summary](/d/kn0syVeWz/agent-summary?orgId=1)\n-----------\n###### [Server Groups](/d/3lfMdYeWk/server-groups?orgId=1)\n-----------\n###### [Audit Policies Summary](/d/bM-4JleZz/audit-policies-summary?orgId=1)  \n\n",
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 20,
         "w": 4,
@@ -28,7 +35,6 @@
       },
       "id": 2,
       "mode": "markdown",
-      "options": {},
       "repeat": null,
       "timeFrom": null,
       "timeShift": null,
@@ -47,6 +53,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "description": "The total number of SecureSphere MXs.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -78,7 +90,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "80%",
       "prefix": "",
@@ -98,7 +109,7 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "count",
+      "tableColumn": "",
       "targets": [
         {
           "groupBy": [
@@ -164,6 +175,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "description": "The total number of SecureSphere gateways.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -195,7 +212,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "80%",
       "prefix": "",
@@ -215,7 +231,7 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "count",
+      "tableColumn": "",
       "targets": [
         {
           "groupBy": [
@@ -281,6 +297,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "description": "The total number of agents.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -312,7 +334,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "80%",
       "prefix": "",
@@ -332,7 +353,7 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "count",
+      "tableColumn": "",
       "targets": [
         {
           "groupBy": [
@@ -400,6 +421,12 @@
       "datasource": "Imperva Performance Stats",
       "decimals": 0,
       "description": "The total number of server groups defined.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -431,7 +458,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "80%",
       "prefix": "",
@@ -451,7 +477,7 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "count",
+      "tableColumn": "",
       "targets": [
         {
           "groupBy": [
@@ -519,6 +545,12 @@
       "datasource": "Imperva Performance Stats",
       "decimals": 0,
       "description": "The total number of audit policies configured.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "short",
       "gauge": {
         "maxValue": 100,
@@ -550,7 +582,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "80%",
       "prefix": "",
@@ -570,7 +601,7 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "count",
+      "tableColumn": "",
       "targets": [
         {
           "groupBy": [
@@ -627,7 +658,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 19,
+  "schemaVersion": 25,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -639,7 +670,6 @@
   },
   "timepicker": {
     "refresh_intervals": [
-      "5s",
       "10s",
       "30s",
       "1m",
@@ -654,5 +684,5 @@
   "timezone": "",
   "title": "Enterprise Summary",
   "uid": "OK-WTZ6Wz",
-  "version": 49
+  "version": 2
 }

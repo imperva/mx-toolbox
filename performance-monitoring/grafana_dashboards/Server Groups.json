@@ -16,11 +16,18 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 12,
-  "iteration": 1589315774881,
+  "iteration": 1595448582174,
   "links": [],
   "panels": [
     {
-      "content": "![imperva-logo](https://www.imperva.com/wp-content/uploads/2018/12/logo.svg)\n#### Performance Metrics \n-----------\n###### [Enterprise Summary](/d/OK-WTZ6Wz/enterprise-summary?orgId=1)\n-----------\n###### [MX Summary](/d/_eEaFY6Wk/mx-summary?orgId=1)\n* [CPU](/d/vqWfBYeZk/mx-cpu-statistics?orgId=1)\n* [Network](/d/1-yxmUeWz/mx-network-statistics?orgId=1  )\n-----------\n###### [Gateway Summary](/d/uQkMDV6Wk/gateway-summary?orgId=1)\n* [CPU](/d/pkJsdV6Wk/gateway-cpu-statistics?orgId=1)\n* [Network](/d/T7e3cV6Wz/gateway-network-statistics?orgId=1)\n-----------\n###### [Agent Summary](/d/kn0syVeWz/agent-summary?orgId=1)\n-----------\n###### [Server Groups](/d/3lfMdYeWk/server-groups?orgId=1)\n-----------\n###### [Audit Policies Summary](/d/bM-4JleZz/audit-policies-summary?orgId=1)  \n\n",
+      "content": "![imperva-logo](https://www.imperva.com/wp-content/uploads/2018/12/logo.svg)\n#### Performance Metrics \n-----------\n###### [Enterprise Summary](/d/OK-WTZ6Wz/enterprise-summary?orgId=1)\n-----------\n###### [MX Summary](/d/_eEaFY6Wk/mx-summary?orgId=1)\n* [CPU](/d/vqWfBYeZk/mx-cpu-statistics?orgId=1)\n* [Network](/d/1-yxmUeWz/mx-network-statistics?orgId=1  )\n-----------\n###### [Gateway Summary](/d/uQkMDV6Wk/gateway-summary?orgId=1)\n* [CPU](/d/pkJsdV6Wk/gateway-cpu-statistics?orgId=1)\n* [Network](/d/T7e3cV6Wz/gateway-network-statistics?orgId=1)\n* [Statistics](/d/YBW_BwnMk/gateway-statistics?orgId=1)\n-----------\n###### [Agent Summary](/d/kn0syVeWz/agent-summary?orgId=1)\n-----------\n###### [Server Groups](/d/3lfMdYeWk/server-groups?orgId=1)\n-----------\n###### [Audit Policies Summary](/d/bM-4JleZz/audit-policies-summary?orgId=1)  \n\n",
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 20,
         "w": 4,
@@ -29,7 +36,6 @@
       },
       "id": 2,
       "mode": "markdown",
-      "options": {},
       "repeat": null,
       "timeFrom": null,
       "timeShift": null,
@@ -44,6 +50,12 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "decimals": 0,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -52,6 +64,7 @@
         "x": 4,
         "y": 0
       },
+      "hiddenSeries": false,
       "id": 6,
       "interval": "",
       "legend": {
@@ -202,6 +215,12 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "decimals": 0,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -210,6 +229,7 @@
         "x": 14,
         "y": 0
       },
+      "hiddenSeries": false,
       "id": 8,
       "interval": "",
       "legend": {
@@ -360,6 +380,12 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "decimals": 0,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -368,6 +394,7 @@
         "x": 4,
         "y": 6
       },
+      "hiddenSeries": false,
       "id": 7,
       "interval": "",
       "legend": {
@@ -518,6 +545,12 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "decimals": 0,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -526,6 +559,7 @@
         "x": 4,
         "y": 12
       },
+      "hiddenSeries": false,
       "id": 9,
       "interval": "",
       "legend": {
@@ -676,6 +710,12 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "decimals": 0,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -684,6 +724,7 @@
         "x": 14,
         "y": 12
       },
+      "hiddenSeries": false,
       "id": 10,
       "interval": "",
       "legend": {
@@ -829,7 +870,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 19,
+  "schemaVersion": 25,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -837,8 +878,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "i-02e995cb4c8c3e55c",
-          "value": "i-02e995cb4c8c3e55c"
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": "Imperva Performance Stats",
         "definition": "show tag values from \"imperva_sg\" with key = \"gatewayname\"",
@@ -862,8 +904,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "isbt-mysql",
-          "value": "isbt-mysql"
+          "selected": false,
+          "text": "isbt_sg",
+          "value": "isbt_sg"
         },
         "datasource": "Imperva Performance Stats",
         "definition": "show tag values from \"imperva_sg\" with key = \"servergroupname\"",
@@ -907,5 +950,5 @@
   "timezone": "",
   "title": "Server Groups",
   "uid": "3lfMdYeWk",
-  "version": 18
+  "version": 2
 }
