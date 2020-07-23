@@ -15,12 +15,19 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 8,
-  "iteration": 1589315741901,
+  "id": 6,
+  "iteration": 1595448530822,
   "links": [],
   "panels": [
     {
-      "content": "![imperva-logo](https://www.imperva.com/wp-content/uploads/2018/12/logo.svg)\n#### Performance Metrics \n-----------\n###### [Enterprise Summary](/d/OK-WTZ6Wz/enterprise-summary?orgId=1)\n-----------\n###### [MX Summary](/d/_eEaFY6Wk/mx-summary?orgId=1)\n* [CPU](/d/vqWfBYeZk/mx-cpu-statistics?orgId=1)\n* [Network](/d/1-yxmUeWz/mx-network-statistics?orgId=1  )\n-----------\n###### [Gateway Summary](/d/uQkMDV6Wk/gateway-summary?orgId=1)\n* [CPU](/d/pkJsdV6Wk/gateway-cpu-statistics?orgId=1)\n* [Network](/d/T7e3cV6Wz/gateway-network-statistics?orgId=1)\n-----------\n###### [Agent Summary](/d/kn0syVeWz/agent-summary?orgId=1)\n-----------\n###### [Server Groups](/d/3lfMdYeWk/server-groups?orgId=1)\n-----------\n###### [Audit Policies Summary](/d/bM-4JleZz/audit-policies-summary?orgId=1)  \n\n",
+      "content": "![imperva-logo](https://www.imperva.com/wp-content/uploads/2018/12/logo.svg)\n#### Performance Metrics \n-----------\n###### [Enterprise Summary](/d/OK-WTZ6Wz/enterprise-summary?orgId=1)\n-----------\n###### [MX Summary](/d/_eEaFY6Wk/mx-summary?orgId=1)\n* [CPU](/d/vqWfBYeZk/mx-cpu-statistics?orgId=1)\n* [Network](/d/1-yxmUeWz/mx-network-statistics?orgId=1  )\n-----------\n###### [Gateway Summary](/d/uQkMDV6Wk/gateway-summary?orgId=1)\n* [CPU](/d/pkJsdV6Wk/gateway-cpu-statistics?orgId=1)\n* [Network](/d/T7e3cV6Wz/gateway-network-statistics?orgId=1)\n* [Statistics](/d/YBW_BwnMk/gateway-statistics?orgId=1)\n-----------\n###### [Agent Summary](/d/kn0syVeWz/agent-summary?orgId=1)\n-----------\n###### [Server Groups](/d/3lfMdYeWk/server-groups?orgId=1)\n-----------\n###### [Audit Policies Summary](/d/bM-4JleZz/audit-policies-summary?orgId=1)  \n\n",
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 20,
         "w": 4,
@@ -29,7 +36,6 @@
       },
       "id": 21,
       "mode": "markdown",
-      "options": {},
       "repeat": null,
       "timeFrom": null,
       "timeShift": null,
@@ -43,6 +49,12 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "Imperva Performance Stats",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -51,6 +63,7 @@
         "x": 4,
         "y": 0
       },
+      "hiddenSeries": false,
       "id": 42,
       "interval": "",
       "legend": {
@@ -182,6 +195,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "decimals": 1,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "s",
       "gauge": {
         "maxValue": 100,
@@ -213,7 +232,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "",
@@ -300,6 +318,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "decimals": 2,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -331,7 +355,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "pluginVersion": "6.3.7",
       "postfix": "",
       "postfixFontSize": "50%",
@@ -437,6 +460,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "decimals": 2,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -468,7 +497,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "pluginVersion": "6.3.7",
       "postfix": "",
       "postfixFontSize": "50%",
@@ -574,6 +602,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "decimals": 2,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -605,7 +639,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "pluginVersion": "6.3.7",
       "postfix": "",
       "postfixFontSize": "50%",
@@ -711,6 +744,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "decimals": 2,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -742,7 +781,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "pluginVersion": "6.3.7",
       "postfix": "",
       "postfixFontSize": "50%",
@@ -848,6 +886,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "decimals": 2,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -879,7 +923,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "pluginVersion": "6.3.7",
       "postfix": "",
       "postfixFontSize": "50%",
@@ -985,6 +1028,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "decimals": 2,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -1016,7 +1065,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "pluginVersion": "6.3.7",
       "postfix": "",
       "postfixFontSize": "50%",
@@ -1122,6 +1170,12 @@
       ],
       "datasource": "Imperva Performance Stats",
       "decimals": 2,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "percent",
       "gauge": {
         "maxValue": 100,
@@ -1153,7 +1207,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "pluginVersion": "6.3.7",
       "postfix": "",
       "postfixFontSize": "50%",
@@ -1250,6 +1303,7 @@
     },
     {
       "collapsed": false,
+      "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1276,6 +1330,12 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "description": "Utilization based on the command \"sar -P ALL 0\".",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -1284,6 +1344,7 @@
         "x": 0,
         "y": 21
       },
+      "hiddenSeries": false,
       "id": 4,
       "interval": "",
       "legend": {
@@ -1520,6 +1581,12 @@
       "datasource": "Imperva Performance Stats",
       "decimals": 1,
       "description": "Utilization based on info from /proc/hades/cpuload.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -1528,6 +1595,7 @@
         "x": 8,
         "y": 21
       },
+      "hiddenSeries": false,
       "id": 5,
       "interval": "",
       "legend": {
@@ -1677,6 +1745,12 @@
       "datasource": "Imperva Performance Stats",
       "decimals": 1,
       "description": "Utilization based on the command \"sar -P ALL 0\".",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -1685,6 +1759,7 @@
         "x": 16,
         "y": 21
       },
+      "hiddenSeries": false,
       "id": 19,
       "interval": "",
       "legend": {
@@ -1913,6 +1988,7 @@
     },
     {
       "collapsed": false,
+      "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1922,7 +1998,7 @@
       "id": 43,
       "panels": [],
       "repeat": null,
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 7,
       "scopedVars": {
         "cpu": {
@@ -1941,6 +2017,12 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "description": "Utilization based on the command \"sar -P ALL 0\".",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -1949,6 +2031,7 @@
         "x": 0,
         "y": 31
       },
+      "hiddenSeries": false,
       "id": 44,
       "interval": "",
       "legend": {
@@ -1974,7 +2057,7 @@
       "renderer": "flot",
       "repeat": null,
       "repeatDirection": "h",
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 4,
       "repeatedByRow": true,
       "scopedVars": {
@@ -2188,6 +2271,12 @@
       "datasource": "Imperva Performance Stats",
       "decimals": 1,
       "description": "Utilization based on info from /proc/hades/cpuload.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -2196,6 +2285,7 @@
         "x": 8,
         "y": 31
       },
+      "hiddenSeries": false,
       "id": 45,
       "interval": "",
       "legend": {
@@ -2219,7 +2309,7 @@
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 5,
       "repeatedByRow": true,
       "scopedVars": {
@@ -2348,6 +2438,12 @@
       "datasource": "Imperva Performance Stats",
       "decimals": 1,
       "description": "Utilization based on the command \"sar -P ALL 0\".",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -2356,6 +2452,7 @@
         "x": 16,
         "y": 31
       },
+      "hiddenSeries": false,
       "id": 46,
       "interval": "",
       "legend": {
@@ -2379,7 +2476,7 @@
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 19,
       "repeatedByRow": true,
       "scopedVars": {
@@ -2587,6 +2684,7 @@
     },
     {
       "collapsed": false,
+      "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -2596,7 +2694,7 @@
       "id": 47,
       "panels": [],
       "repeat": null,
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 7,
       "scopedVars": {
         "cpu": {
@@ -2615,6 +2713,12 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "description": "Utilization based on the command \"sar -P ALL 0\".",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -2623,6 +2727,7 @@
         "x": 0,
         "y": 41
       },
+      "hiddenSeries": false,
       "id": 48,
       "interval": "",
       "legend": {
@@ -2648,7 +2753,7 @@
       "renderer": "flot",
       "repeat": null,
       "repeatDirection": "h",
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 4,
       "repeatedByRow": true,
       "scopedVars": {
@@ -2862,6 +2967,12 @@
       "datasource": "Imperva Performance Stats",
       "decimals": 1,
       "description": "Utilization based on info from /proc/hades/cpuload.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -2870,6 +2981,7 @@
         "x": 8,
         "y": 41
       },
+      "hiddenSeries": false,
       "id": 49,
       "interval": "",
       "legend": {
@@ -2893,7 +3005,7 @@
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 5,
       "repeatedByRow": true,
       "scopedVars": {
@@ -3022,6 +3134,12 @@
       "datasource": "Imperva Performance Stats",
       "decimals": 1,
       "description": "Utilization based on the command \"sar -P ALL 0\".",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -3030,6 +3148,7 @@
         "x": 16,
         "y": 41
       },
+      "hiddenSeries": false,
       "id": 50,
       "interval": "",
       "legend": {
@@ -3053,7 +3172,7 @@
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 19,
       "repeatedByRow": true,
       "scopedVars": {
@@ -3261,6 +3380,7 @@
     },
     {
       "collapsed": false,
+      "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -3270,7 +3390,7 @@
       "id": 51,
       "panels": [],
       "repeat": null,
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 7,
       "scopedVars": {
         "cpu": {
@@ -3289,6 +3409,12 @@
       "dashes": false,
       "datasource": "Imperva Performance Stats",
       "description": "Utilization based on the command \"sar -P ALL 0\".",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -3297,6 +3423,7 @@
         "x": 0,
         "y": 51
       },
+      "hiddenSeries": false,
       "id": 52,
       "interval": "",
       "legend": {
@@ -3322,7 +3449,7 @@
       "renderer": "flot",
       "repeat": null,
       "repeatDirection": "h",
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 4,
       "repeatedByRow": true,
       "scopedVars": {
@@ -3536,6 +3663,12 @@
       "datasource": "Imperva Performance Stats",
       "decimals": 1,
       "description": "Utilization based on info from /proc/hades/cpuload.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -3544,6 +3677,7 @@
         "x": 8,
         "y": 51
       },
+      "hiddenSeries": false,
       "id": 53,
       "interval": "",
       "legend": {
@@ -3567,7 +3701,7 @@
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 5,
       "repeatedByRow": true,
       "scopedVars": {
@@ -3696,6 +3830,12 @@
       "datasource": "Imperva Performance Stats",
       "decimals": 1,
       "description": "Utilization based on the command \"sar -P ALL 0\".",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "fill": 3,
       "fillGradient": 3,
       "gridPos": {
@@ -3704,6 +3844,7 @@
         "x": 16,
         "y": 51
       },
+      "hiddenSeries": false,
       "id": 54,
       "interval": "",
       "legend": {
@@ -3727,7 +3868,7 @@
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
-      "repeatIteration": 1589315741901,
+      "repeatIteration": 1595448530822,
       "repeatPanelId": 19,
       "repeatedByRow": true,
       "scopedVars": {
@@ -3935,7 +4076,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 19,
+  "schemaVersion": 25,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -3943,8 +4084,9 @@
       {
         "allValue": null,
         "current": {
-          "text": "i-02e995cb4c8c3e55c",
-          "value": "i-02e995cb4c8c3e55c"
+          "selected": false,
+          "text": "i-00b939447e9dddc4d",
+          "value": "i-00b939447e9dddc4d"
         },
         "datasource": "Imperva Performance Stats",
         "definition": "SHOW TAG VALUES FROM imperva_gw_hades WITH KEY=gatewayname",
@@ -4049,5 +4191,5 @@
   "timezone": "",
   "title": "Gateway CPU Statistics",
   "uid": "pkJsdV6Wk",
-  "version": 30
+  "version": 2
 }
