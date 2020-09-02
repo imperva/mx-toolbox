@@ -1,6 +1,6 @@
-# Gateway performance monitoring for Imperva SecureSphere gateways
+# MX and Gateway performance monitoring for Imperva SecureSphere appliances
 
-The Gateway performance monitoring for Imperva SecureSphere gateways provides the ability to output performance and throughput counters from gateway appliances into new relic or into a SIEM via syslog output in JSON format.
+The performance monitoring package for Imperva SecureSphere appliances provides the ability to output performance and throughput counters into new relic, influxdb/grafana, or into a SIEM via syslog output in JSON format.
 
 ## Getting Started
 
