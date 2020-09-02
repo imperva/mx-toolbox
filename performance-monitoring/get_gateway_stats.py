@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Version 
 import os
 import socket
 import subprocess
@@ -32,7 +33,7 @@ try:
     with open(CONFIGFILE, 'r') as data:
         CONFIG = json.load(data)
 except:
-    print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"debug\",\n\t\"environment\": \"dev\",\n\t\"log_search\": {\n\t\t\"enabled\": true,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"GWStats\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"1.2.3.4\",\n\t\t\"port\": 514\n\t}\n}")
+    print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"debug\",\n\t\"log_file_name\": \"gateway_statistics.log\",\n\t\"environment\": \"dev\",\n\t\"is_userspace\":false,\n\t\"environment\": \"dev\",\n\t\"log_search\": {\n\t\t\"enabled\": true,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"GWStats\"\n\t},\n\t\"influxdb\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"http://1.2.3.4:8086/write?db=imperva_performance_stats\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"1.2.3.4\",\n\t\t\"port\": 514\n\t}\n}")
     exit()
 if CONFIG["is_userspace"]:
     BASEDIR = "/opt/SecureSphere/etc/proc/hades/"
@@ -207,6 +208,7 @@ def getNetworkStats():
                 # influxDbStats["imperva_gw_net"]["interface="+ifacename] = []
                 # influxIfaceStatAry = influxDbStats["imperva_gw_net"]["interface="+ifacename]
                 pipe = Popen(['/sbin/ifconfig',ifacename], stdout=PIPE)
+                # pipe = Popen(['/bin/cat','ifconfig/'+ifacename], stdout=PIPE)
                 ifconfigoutput = pipe.communicate()
                 ipaddress = "n/a"
                 for iface in ifconfigoutput[0].strip().split("\n"):
@@ -216,8 +218,6 @@ def getNetworkStats():
                         break
                 if (re.search('(RX packets)\s.*(errors)',ifconfigoutput[0].replace(":"," "))!=None):
                     influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
-                elif GWMODEL[:2].lower()=="av":
-                    influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats_aws(ifconfigoutput,ifacename)
                 else:
                     influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats(ifconfigoutput,ifacename)
 
@@ -228,9 +228,6 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
             ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
-            influxIfaceStatAry.append("sockets="+sockets)
-            GWStats["interface_"+ifacename+"_sockets"] = sockets
         elif (iface[:10].lower()=="rx packets"):
             rxAry = iface[11:].split(" ")
             influxIfaceStatAry.append("rx_packets="+rxAry[0])
@@ -268,67 +265,16 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             GWStats["interface_"+ifacename+"_collisions"] = int(collisions)    
     return influxIfaceStatAry
 
-def getInterfaceStats_aws(ifconfigoutput,ifacename):
-    influxIfaceStatAry = []
-    for iface in ifconfigoutput[0].strip().split("\n"):
-        iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:5].lower()=="inet "):
-            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
-            influxIfaceStatAry.append("sockets="+sockets)
-            GWStats["interface_"+ifacename+"_sockets"] = sockets
-        elif (iface[:10].lower()=="rx packets"):
-            rxAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-            influxIfaceStatAry.append("rx_bytes="+rxAry[2])
-            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-            GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxAry[2])
-        elif (iface[:9].lower()=="rx errors"):
-            rxAry = iface[10:].split(" ")
-            influxIfaceStatAry.append("rx_errors="+rxAry[0])
-            influxIfaceStatAry.append("rx_dropped="+rxAry[2])
-            influxIfaceStatAry.append("rx_overruns="+rxAry[4])
-            influxIfaceStatAry.append("rx_frame="+rxAry[6])
-            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[0])
-            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[2])
-            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[4])
-            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[6])
-        elif (iface[:10].lower()=="tx packets"):
-            txAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("tx_packets="+txAry[0])
-            influxIfaceStatAry.append("tx_bytes="+txAry[2])
-            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-            GWStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[2])
-        elif (iface[:9].lower()=="tx errors"):
-            txAry = iface[10:].split(" ")
-            influxIfaceStatAry.append("tx_errors="+txAry[0])
-            influxIfaceStatAry.append("tx_dropped="+txAry[2])
-            influxIfaceStatAry.append("tx_overruns="+txAry[4])
-            influxIfaceStatAry.append("tx_carrier="+txAry[6])
-            influxIfaceStatAry.append("collisions="+txAry[8])
-            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[0])
-            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[2])
-            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
-            GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
-            GWStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
-        elif (iface[:8].lower()=="rx bytes"):
-            recordAry = iface[9:].split(" ")
-            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
-            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
-            GWStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
-            GWStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
-    return influxIfaceStatAry
-
 def getInterfaceStats(ifconfigoutput,ifacename):
     influxIfaceStatAry = []
-    for iface in ifconfigoutput[0].strip().split("\n"):
+    for iface in ifconfigoutput[0].replace(":"," ").strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
             ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
             sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
             influxIfaceStatAry.append("sockets="+sockets)
             GWStats["interface_"+ifacename+"_sockets"] = sockets
-        elif (iface[:10].lower()=="rx packets"):
+        elif (iface[:11].lower()=="rx packets"):
             rxAry = iface[11:].split(" ")
             influxIfaceStatAry.append("rx_packets="+rxAry[0])
             influxIfaceStatAry.append("rx_errors="+rxAry[2])
@@ -340,7 +286,7 @@ def getInterfaceStats(ifconfigoutput,ifacename):
             GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
             GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
             GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
-        elif (iface[:10].lower()=="tx packets"):
+        elif (iface[:11].lower()=="tx packets"):
             txAry = iface[11:].split(" ")
             influxIfaceStatAry.append("tx_packets="+txAry[0])
             influxIfaceStatAry.append("tx_errors="+txAry[2])
@@ -389,13 +335,17 @@ def getDiskStats():
 def getSysStats():
     with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
         content = content_file.read()
-        m = re.search('server.*\shost=\"(.*)\"\sreal-host',content)
         global MXHOST
-        MXHOST = m.group(1)
+        if "gateway_mx_host_display_name" in CONFIG:
+            MXHOST = CONFIG["gateway_mx_host_display_name"]
+        else:
+            m = re.search(r'server.*\shost=\"(.*)\"\sreal-host',content)
+            MXHOST = m.group(1)
+
         influxDbStats["imperva_gw_sys"]["mx_hostname="+MXHOST] = []
         sysStat = influxDbStats["imperva_gw_sys"]["mx_hostname="+MXHOST]
         
-        m = re.search('(appliance)\s(tag=).*',content)
+        m = re.search(r'(appliance)\s(tag=).*',content)
         modelStr = m.group(0)
         model = modelStr[modelStr.index('appliance tag=')+15:modelStr.index('" name=')]
         global GWMODEL
@@ -467,14 +417,6 @@ def getSysStats():
         pipe = Popen(['cat',BASEDIR+'cpuload'], stdout=PIPE)
         output = pipe.communicate()
         cpuloadOutputAry = str(output[0]).strip().split("\n\n")
-
-        # influxDbStats["imperva_gw_cpuload"]["last_30_sec"] = []
-        # last30SecAry = influxDbStats["imperva_gw_cpuload"]["last_30_sec"]
-        # for stat in cpuloadOutputAry[0].split("\n"):
-        #     if stat[:4]!="last":
-        #         statAry = ' '.join(stat.split()).split(":")
-        #         last30SecAry.append(statAry[0].replace(" ","_")+"="+str(int(statAry[1].strip())))
-        #         GWStats["cpuload_last_30_sec_"+statAry[0].replace(" ","_")] = int(statAry[1].strip())
 
         for stat in cpuloadOutputAry[1].split("\n"):
             if stat[:4]!="last":
