@@ -15,7 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 5,
+  "id": 3,
   "links": [],
   "panels": [
     {
@@ -35,6 +35,11 @@
       },
       "id": 2,
       "mode": "markdown",
+      "options": {
+        "content": "![imperva-logo](https://www.imperva.com/wp-content/uploads/2018/12/logo.svg)\n#### Performance Metrics \n-----------\n###### [Enterprise Summary](/d/OK-WTZ6Wz/enterprise-summary?orgId=1)\n-----------\n###### [MX Summary](/d/_eEaFY6Wk/mx-summary?orgId=1)\n* [CPU](/d/vqWfBYeZk/mx-cpu-statistics?orgId=1)\n* [Network](/d/1-yxmUeWz/mx-network-statistics?orgId=1  )\n-----------\n###### [Gateway Summary](/d/uQkMDV6Wk/gateway-summary?orgId=1)\n* [CPU](/d/pkJsdV6Wk/gateway-cpu-statistics?orgId=1)\n* [Network](/d/T7e3cV6Wz/gateway-network-statistics?orgId=1)\n* [Statistics](/d/YBW_BwnMk/gateway-statistics?orgId=1)\n-----------\n###### [Agent Summary](/d/kn0syVeWz/agent-summary?orgId=1)\n-----------\n###### [Server Groups](/d/3lfMdYeWk/server-groups?orgId=1)\n-----------\n###### [Audit Policies Summary](/d/bM-4JleZz/audit-policies-summary?orgId=1)  \n\n",
+        "mode": "markdown"
+      },
+      "pluginVersion": "7.1.0",
       "repeat": null,
       "timeFrom": null,
       "timeShift": null,
@@ -250,7 +255,7 @@
           ],
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SHOW TAG VALUES CARDINALITY FROM \"imperva_gw\" WITH KEY = \"gw_name\"",
+          "query": "SHOW TAG VALUES CARDINALITY FROM \"imperva_gw_sys\" WITH KEY = \"gatewayname\"",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "table",
@@ -658,7 +663,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 25,
+  "schemaVersion": 26,
   "style": "dark",
   "tags": [],
   "templating": {
