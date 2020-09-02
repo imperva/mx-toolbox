@@ -194,8 +194,6 @@ def getNetworkStats():
                         break
                 if (re.search('(RX packets)\s.*(errors)',ifconfigoutput[0].replace(":"," "))!=None):
                     influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
-                elif MXMODEL[:2].lower()=="av":
-                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats_aws(ifconfigoutput,ifacename)
                 else:
                     influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats(ifconfigoutput,ifacename)
 
@@ -206,11 +204,11 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
             ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
-            influxIfaceStatAry.append("sockets="+sockets)
-            MXStats["interface_"+ifacename+"_sockets"] = sockets
-        elif (iface[:10].lower()=="rx packets"):
-            rxAry = iface[11:].split(" ")
+            # sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
+            # influxIfaceStatAry.append("sockets="+sockets)
+            # MXStats["interface_"+ifacename+"_sockets"] = sockets
+        elif (iface[:11].lower()=="rx packets"):
+            rxAry = iface[10:].replace(":"," ").split(" ")
             influxIfaceStatAry.append("rx_packets="+rxAry[0])
             influxIfaceStatAry.append("rx_errors="+rxAry[2])
             influxIfaceStatAry.append("rx_dropped="+rxAry[4])
@@ -221,7 +219,7 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
             MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
             MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])            
-        elif (iface[:10].lower()=="tx packets"):
+        elif (iface[:11].lower()=="tx packets"):
             txAry = iface[11:].split(" ")
             influxIfaceStatAry.append("tx_packets="+txAry[0])
             influxIfaceStatAry.append("tx_errors="+txAry[2])
@@ -246,9 +244,9 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             MXStats["interface_"+ifacename+"_collisions"] = int(collisions)    
     return influxIfaceStatAry
 
-def getInterfaceStats_aws(ifconfigoutput,ifacename):
+def getInterfaceStats(ifconfigoutput,ifacename):
     influxIfaceStatAry = []
-    for iface in ifconfigoutput[0].strip().split("\n"):
+    for iface in ifconfigoutput[0].replace(":"," ").strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
             ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
@@ -289,51 +287,6 @@ def getInterfaceStats_aws(ifconfigoutput,ifacename):
             MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
             MXStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
             MXStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
-        elif (iface[:8].lower()=="rx bytes"):
-            recordAry = iface[9:].split(" ")
-            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
-            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
-            MXStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
-            MXStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
-    return influxIfaceStatAry
-
-def getInterfaceStats(ifconfigoutput,ifacename):
-    influxIfaceStatAry = []
-    for iface in ifconfigoutput[0].strip().split("\n"):
-        iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:5].lower()=="inet "):
-            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
-            influxIfaceStatAry.append("sockets="+sockets)
-            MXStats["interface_"+ifacename+"_sockets"] = sockets
-        elif (iface[:10].lower()=="rx packets"):
-            rxAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-            influxIfaceStatAry.append("rx_errors="+rxAry[2])
-            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
-            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
-            influxIfaceStatAry.append("rx_frame="+rxAry[8])
-            MXStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-            MXStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
-            MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
-            MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
-            MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
-        elif (iface[:10].lower()=="tx packets"):
-            txAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("tx_packets="+txAry[0])
-            influxIfaceStatAry.append("tx_errors="+txAry[2])
-            influxIfaceStatAry.append("tx_dropped="+txAry[4])
-            influxIfaceStatAry.append("tx_overruns="+txAry[6])
-            influxIfaceStatAry.append("tx_carrier="+txAry[8])
-            MXStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-            MXStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
-            MXStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
-            MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
-            MXStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[8])
-        elif (iface[:10].lower()=="collisions"):
-            colAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("collisions="+colAry[0])
-            MXStats["interface_"+ifacename+"_collisions"] = int(colAry[0])
         elif (iface[:8].lower()=="rx bytes"):
             recordAry = iface[9:].split(" ")
             influxIfaceStatAry.append("rx_bytes="+recordAry[0])

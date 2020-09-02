@@ -3,8 +3,9 @@
   "log_file_name": "gateway_statistics.log",
   "environment": "dev",
   "is_userspace": false, 
+  "gateway_mx_host_display_name": "your_gateway_mx_hostname_here",
   "log_search": {
-    "enabled": true,
+    "enabled": false,
     "files": [{
       "path": "/var/log/messages",
       "search_patterns": [{
