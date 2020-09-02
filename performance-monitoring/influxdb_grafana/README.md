@@ -42,19 +42,29 @@ exit
 Create influxdb datasource in grafana, and import performance monitoring dashboards.
 
 #### Create InfluxDB Datasource ####
+
 1. Navigate to grafana via a browser referencing the IP of your docker host.  In this example, it is run locally on a work station and access with the following: [http://localhost:3000](http://localhost:3000)
+
 1. Log in with admin/admin, and create a new password.
+
 1. Click `Add datasource`, and add a new InfluxDB datasource with the following:
-`Name` - _(required)_ the name of the data source: `Imperva Performance Stats`
-`URL` - _(required)_ the endpoint of influxdb: `http://localhost:8086`.
-`Database` - _(required)_ name of database `imperva_performance_stats`.
-`HTTP Method` - _(required)_ the HTTP method used to push data into influxdb `POST`
+
+   `Name` - _(required)_ the name of the data source: `Imperva Performance Stats`
+
+   `URL` - _(required)_ the endpoint of influxdb: `http://localhost:8086`.
+
+   `Database` - _(required)_ name of database `imperva_performance_stats`.
+
+   `HTTP Method` - _(required)_ the HTTP method used to push data into influxdb `POST`
+
 1. Click `Save & Test` to validate grafana is able to access the datasource correctly.
 
 #### Import Grafana Dashboards ####
 1. Navigate to Home screen by clicking the Grafana logo in the top left corner.
+
 1. Import each of dashboard files in the `mx-tools/performance-monitoring/influxdb_grafana/grafana_dashboards` directory by repeating the following steps:
   -  Click `+ -> Create -> Import` to import a dashboard
+
 1. Click `Upload JSON file` and one dashboard at a time to import repeating this process for each.
 
 
