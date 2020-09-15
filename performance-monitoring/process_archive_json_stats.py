@@ -55,6 +55,9 @@ def run():
                     if measurement!="timestamp":
                         curStat = influxdb_json[measurement]
                         for tags in curStat:
+                            for tag in tags:
+                                if (tag=="version="):
+                                    delattr(curStat[tags], 'version')
                             makeInfluxDBCall(measurement, influxDefaultTags+tags, ','.join(curStat[tags])+" "+str(int(date_time_obj.strftime('%s'))*1000000000))
 
 def makeInfluxDBCall(measurement, tags, params):
