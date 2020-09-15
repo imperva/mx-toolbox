@@ -198,9 +198,9 @@ def getNetworkStats():
                         ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
                         break
                 if (re.search('(RX packets)\s.*(errors)',ifconfigoutput[0].replace(":"," "))!=None):
-                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+uptime] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
+                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+uptime[0][:-3]] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
                 else:
-                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+uptime] = getInterfaceStats(ifconfigoutput,ifacename)
+                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+uptime[0][:-3]] = getInterfaceStats(ifconfigoutput,ifacename)
 
 # Applies to older models of CentOS and gateways prior to 12.5
 def getInterfaceStats_legacy(ifconfigoutput,ifacename):
