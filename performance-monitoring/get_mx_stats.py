@@ -84,6 +84,7 @@ def run():
     if CONFIG["syslog"]["enabled"]:
         sendSyslog(MXStats)
     if CONFIG["influxdb"]["enabled"]:
+        print(json.dumps(influxDbStats))
         for measurement in influxDbStats:
             curStat = influxDbStats[measurement]
             for tags in curStat:
@@ -115,7 +116,6 @@ def getMXServerStats():
     for stat in mxTotalsAry:
         statAry = stat.split(":")
         influxMXStatAry.append(statAry[0].lower().replace(" ","_")+"="+statAry[1].strip())
-
     while len(serverStatsAry)>0:
         gwSummaryStats = serverStatsAry.pop(0)
         gwSummaryStatsAry = ' '.join(gwSummaryStats.strip().split()).strip().split()
@@ -179,6 +179,11 @@ def getNetworkStats():
     pipe = Popen(['ls','/sys/class/net'], stdout=PIPE)
     output = pipe.communicate()
     interfaces = str(output[0]).split("\n")
+    pipe = Popen(['cat','/proc/uptime'], stdout=PIPE)
+    output = pipe.communicate()
+    uptimeAry = str(output[0]).split("\n")
+    uptime = str(uptimeAry[0]).split(" ")
+
     for ifacename in interfaces:
         if(ifacename!=""):
             if(ifacename[:3]=="eth"):
@@ -193,9 +198,9 @@ def getNetworkStats():
                         ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
                         break
                 if (re.search('(RX packets)\s.*(errors)',ifconfigoutput[0].replace(":"," "))!=None):
-                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
+                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+uptime] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
                 else:
-                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats(ifconfigoutput,ifacename)
+                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+uptime] = getInterfaceStats(ifconfigoutput,ifacename)
 
 # Applies to older models of CentOS and gateways prior to 12.5
 def getInterfaceStats_legacy(ifconfigoutput,ifacename):
