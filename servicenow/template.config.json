@@ -8,8 +8,8 @@
         "password": "webco123"
     },
     "servicenow": {
-        "endpoint": "https://fedsecopsdemo.service-now.com/api",
-        "username": "ba",
-        "password": "8NTsafe."
+        "endpoint": "https://demo.service-now.com/api",
+        "username": "youruser",
+        "password": "yourpassword"
     }
 }
