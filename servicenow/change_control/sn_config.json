@@ -1,0 +1,15 @@
+{
+    "log_level": "debug",
+    "environment": "dev",
+    "ticket_dataset_name":"servicenow_tickets",
+    "mx": {
+        "endpoint": "https://172.16.57.220:8083",
+        "username": "admin",
+        "password": "webco123"
+    },
+    "servicenow": {
+        "endpoint": "https://fedsecopsdemo.service-now.com/api",
+        "username": "ba",
+        "password": "8NTsafe."
+    }
+}
