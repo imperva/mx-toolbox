@@ -1,4 +1,4 @@
-# Imperva SecureSphere ServiceNow Integration - Alert to Incident Workflow
+# Imperva SecureSphere ServiceNow Integration - Alert to Incident
 
 This project provides the scripts and configuration steps needed to integrate SecureSphere with ServiceNow to dynamically create incidents when security alerts are generated.  
 
