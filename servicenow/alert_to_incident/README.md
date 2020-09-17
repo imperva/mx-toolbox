@@ -1,4 +1,4 @@
-# Imperva SecureSphere ServiceNow Integration - Alert to Incident
+# SecureSphere ServiceNow Integration - Alert to Incident
 
 This project provides the scripts and configuration steps needed to integrate SecureSphere with ServiceNow to dynamically create incidents when security alerts are generated.  
 
@@ -9,7 +9,7 @@ This project provides the scripts and configuration steps needed to integrate Se
         >`mkdir /var/user-data`
     - Download the following files and copy them into the the /var/user-data folder:<br />
         >`/servicenow/alert_to_incident/servicenow_create_incident.py`<br/>
-        `/servicenow_create_incident.py`<br/>
+        `/template.config.json`<br/>
         `/ss.py`<br/>
     - Rename template.config.json to config.json<br/>
         >`cd /var/user-data`<br/>
@@ -42,7 +42,7 @@ The script has one configuration file, which lives in the same directory as the 
 
 ### config.json ###
 
-The `config.json` configuration file is where New Relic specific configuration lives. 
+Rename template.config.json to config.json.  The `config.json` configuration file is where the SecureSphere and ServiceNow configurations live. 
 
 Example:
 
