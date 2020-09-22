@@ -35,7 +35,8 @@ This project provides the scripts and configuration steps needed to integrate Se
     ![assign-followed-action.png](images/assign-followed-action.png)
 
 ### Create change control security policies (optional) ###
-    NOTE: If you have already configured a dataset with valid ticket ids (see [import_change_request_ids](https://github.com/imperva/mx-toolbox/tree/master/servicenow/import_change_request_ids)), you can create `Change Control - Missing Ticket ID` and `Change Control - Missing Ticket ID` security policies to alert when the change control process is not being followed.   
+**NOTE:** If you have already configured a dataset with valid ticket ids (see [import_change_request_ids](https://github.com/imperva/mx-toolbox/tree/master/servicenow/import_change_request_ids)), you can create `Change Control - Missing Ticket ID` and `Change Control - Missing Ticket ID` security policies to alert when the change control process is not being followed.   
+
 
 1. Create `Change Control - Missing Ticket ID` change control security policy
     - Navigate to Policies->Security, click the ![plus.png](images/plus.png) icon to add a new `DB Service` security policy.  
