@@ -34,8 +34,8 @@ This project provides the scripts and configuration steps needed to export audit
 1. Import the audit report, or create audit report from scratch. 
    ### Import report instructions ###
     - Navigate to Main->Reports->Manage Reports->Action->Import  
-    Select update_change_request_records/assets/change_control_audit_report_export.imf, enter passphrase `auditreport` and click upload.  
-    Ensure "Action Set" is correctly mapped to "Export report to S3" and click Import.
+    Select update_change_request_records/assets/change_control_audit_report_export.imf, enter passphrase "`auditreport`" and click upload.  
+    Ensure "Action Set" is correctly mapped to "`Push Audit to ServiceNow Change Tickets`" and click Import.
    ### Create audit report from scratch instructions ###
     - Navigate to Main->Reports->Manage Reports, and click the ![plus.png](images/plus.png) icon to add a new `DB Audit` report, enter the report name and click create.  
     Name: `Change Control Audit Report`
