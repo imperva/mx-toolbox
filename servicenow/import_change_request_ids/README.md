@@ -48,7 +48,7 @@ This project provides the scripts and configuration steps needed to configure Ch
     [1] Source Event Field: `Ticket`  
     [1] Lookup Data Set:  `Take Field Value as-is`  
     [1] Attribute:    
-    [2] Target Field Name:  `ticket_sysid`  
+    [2] Target Field Name:  `ticket_numnber`  
     [2] Source Event Field: `Ticket`  
     [2] Lookup Data Set:  `servicenow_tickets`  
     [2] Attribute: `number`  
