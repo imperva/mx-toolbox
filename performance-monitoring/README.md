@@ -8,13 +8,13 @@ Download the latest files from the performance-monitoring folder.  Within this f
 
 1. Download and copy the files into a new directory (/var/user-data) on the Management Server (MX):
     - SSH to the MX, and create the following directory, which is the supported folder for running custom scritps.  
-        >`mkdir /var/user-data`
+        >`mkdir /var/user-data`  
         `cd /var/user-data`  
     - Download the following files and copy them into the the /var/user-data folder on the MX:  
-        >`get_mx_stats.py`
+        >`get_mx_stats.py`  
         `template.config.json`  
     - Download the following files and copy them into the the /var/user-data folder on the Gateway:  
-        >`get_gateway_stats.py`
+        >`get_gateway_stats.py`  
         `template.config.json`  
     - Rename template.config.json to config.json  
         >`mv template.config.json config.json`  
