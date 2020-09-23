@@ -7,7 +7,7 @@ The performance monitoring package for Imperva SecureSphere appliances provides 
 Download the latest files from the performance-monitoring folder.  Within this folder are 3 required files:
 
 1. Download and copy the files into a new directory (/var/user-data) on the Management Server (MX):
-    - SSH to the MX, and create the following directory, which is the supported folder for running custom scritps.  
+    - SSH to the MX and Gateway appliances, and create the following directory, which is the supported folder for running custom scritps.  
         >`mkdir /var/user-data`  
         `cd /var/user-data`  
     - Download the following files and copy them into the the /var/user-data folder on the MX:  
