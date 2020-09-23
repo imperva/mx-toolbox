@@ -32,6 +32,14 @@ with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
     MXSourceIp = sourceIpStr[sourceIpStr.index('address-v4="')+12:sourceIpStr.index('" address-v6=')-3]
 influxDefaultTags = "source="+MXSourceIp+",mxname="+MXNAME+","
 MXMODEL = ""
+CONNECTIONTIMEOUT = 5 # in seconds
+global logHostAvailable
+logHostAvailable = {
+    "newrelic":True,
+    "influxdb":True,
+    "syslog":True
+}
+
 try:
     with open(CONFIGFILE, 'r') as data:
         CONFIG = json.load(data)
@@ -45,7 +53,7 @@ else:
     # urllib3.disable_warnings()
 
 ############ ENV Settings ############
-logging.basicConfig(filename=CONFIG["log_file_name"], filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename=CONFIG["log_file_name"], filemode='w', format='%(name)s - %(levelname)s - %(message)s', level=getattr(logging, CONFIG["log_level"].upper()))
 
 # MX level statistics
 MXStats = {
@@ -80,11 +88,13 @@ def run():
                 MXStats[patternconfig["name"]] = "\n".join(matches).replace('"',"'")
 
     if CONFIG["newrelic"]["enabled"]:
+        logging.debug("processing newrelic request: "+json.dumps(MXStats))
         makeCallNewRelicCall(MXStats)
     if CONFIG["syslog"]["enabled"]:
+        logging.debug("processing syslog request: "+json.dumps(MXStats))
         sendSyslog(MXStats)
     if CONFIG["influxdb"]["enabled"]:
-        print(json.dumps(influxDbStats))
+        logging.debug("processing influxdb requests: "+json.dumps(influxDbStats))
         for measurement in influxDbStats:
             curStat = influxDbStats[measurement]
             for tags in curStat:
@@ -388,40 +398,87 @@ def getSysStats():
                                 MXCpuStatAry.append(curIndexName+"="+cpuStat)
                                 MXStats["sar_cpu"+statAry[2].lower()+"_"+curIndexName] = float("{0:.2f}".format(float(cpuStat)))
         except:
-            print("sar command not found")
+            logging.error("Missing package: sar command not found")
+           
 
 def makeCallNewRelicCall(stat):
-    stat["eventType"] = CONFIG["newrelic"]["event_type"]
-    new_relic_url = "https://insights-collector.newrelic.com/v1/accounts/"+CONFIG["newrelic"]["account_id"]+"/events"
-    headers = {
-        "Content-Type": "application/json",
-        "X-Insert-Key": CONFIG["newrelic"]["api_key"]
-    }
-    logging.warning("NEW RELIC REQUEST (" + new_relic_url + ")" + json.dumps(stat))
-    if "proxies" in CONFIG:
-        proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
-        requests.post(new_relic_url, json.dumps(stat), proxies=proxies, headers=headers, verify=False)
-    else:
-        requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False)
+    if (logHostAvailable["newrelic"]==True):
+        stat["eventType"] = CONFIG["newrelic"]["event_type"]
+        new_relic_url = "https://insights-collector.newrelic.com/v1/accounts/"+CONFIG["newrelic"]["account_id"]+"/events"
+        headers = {
+            "Content-Type": "application/json",
+            "X-Insert-Key": CONFIG["newrelic"]["api_key"]
+        }
+        logging.info("NEW RELIC REQUEST (" + new_relic_url + ")" + json.dumps(stat))
+        if "proxies" in CONFIG:
+            try: 
+                proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
+                requests.post(new_relic_url, json.dumps(stat), proxies=proxies, headers=headers, verify=False, timeout=(CONNECTIONTIMEOUT,15))
+            except requests.exceptions.RequestException as e:
+                logging.error("requests timeout error: {}".format(e))
+                logging.error("newrelic host unreachable, aborting subsequent calls to newrelic")
+                logHostAvailable["newrelic"] = False
+        else:
+            try:
+                requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False, timeout=(3,15))
+            except requests.exceptions.RequestException as e:
+                logging.error("requests timeout error: {}".format(e))
+                logging.error("newrelic host unreachable, aborting subsequent calls to newrelic")
+                logHostAvailable["newrelic"] = False
 
 def makeInfluxDBCall(measurement, tags, params):
-    headers = {
-        "Content-Type": "application/octet-stream",
-    }
-    influxdb_url = CONFIG["influxdb"]["host"]
-    data = measurement+","+tags+" "+params
-    # print("INFLUXDB REQUEST: "+influxdb_url+"?"+params)
-    logging.warning("INFLUXDB REQUEST: "+influxdb_url+"?"+params)
-    if "proxies" in CONFIG:
-        proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
-        response = requests.post(influxdb_url, data=data, proxies=proxies, headers=headers, verify=False)
-    else:
-        if "username" in CONFIG["influxdb"]:
-            response = requests.post(influxdb_url,auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=False)
+    if (logHostAvailable["influxdb"]==True):
+        headers = {
+            "Content-Type": "application/octet-stream",
+        }
+        influxdb_url = CONFIG["influxdb"]["host"]
+        data = measurement+","+tags+" "+params
+        # print("INFLUXDB REQUEST: "+influxdb_url+"?"+params)
+        logging.info("INFLUXDB REQUEST: "+influxdb_url+"?"+params)
+        if "proxies" in CONFIG:
+            proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
+            try: 
+                response = requests.post(influxdb_url, data=data, proxies=proxies, headers=headers, verify=False, timeout=(CONNECTIONTIMEOUT,15))
+                if (response.status_code!=204):
+                    logging.error("Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
+            except requests.exceptions.RequestException as e:
+                logging.error("requests timeout error: {}".format(e))
+                logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
+                logHostAvailable["influxdb"] = False
+        
         else:
-            response = requests.post(influxdb_url, data=data, headers=headers, verify=False)
-        if (response.status_code!=204):
-            logging.warning("[ERROR] Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
+            if "username" in CONFIG["influxdb"]:
+                try: 
+                    response = requests.post(influxdb_url,auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=False, timeout=(CONNECTIONTIMEOUT,15))
+                    if (response.status_code!=204):
+                        logging.error("Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
+                except requests.exceptions.RequestException as e:
+                    logging.error("[ERROR] requests timeout error: {}".format(e))
+                    logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
+                    logHostAvailable["influxdb"] = False
+            else:
+                try: 
+                    response = requests.post(influxdb_url, data=data, headers=headers, verify=False, timeout=(CONNECTIONTIMEOUT,15))
+                    if (response.status_code!=204):
+                        logging.warning("[ERROR] Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
+                except requests.exceptions.RequestException as e:
+                    logging.error("[ERROR] requests timeout error: {}".format(e))
+                    logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
+                    logHostAvailable["influxdb"] = False
+
+def sendSyslog(jsonObj):
+    if (logHostAvailable["syslog"]==True):
+        logging.info("SYSLOG REQUEST: "+json.dumps(jsonObj))
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(CONNECTIONTIMEOUT)
+            s.connect((CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
+            s.sendall(b'{0}'.format(json.dumps(jsonObj)))
+            s.close()
+        except socket.error as e:
+            logging.warning("sendSyslog() exception: {}".format(e))
+            logging.error("syslog host unreachable, aborting subsequent calls to syslog")
+            logHostAvailable["syslog"] = False
 
 def searchLogFile(filename, pattern):
     matches = []
@@ -443,16 +500,6 @@ topCpuAttrMap = {
     "si":"software",
     "st":"steal_time"
 }
-
-def sendSyslog(jsonObj):
-    try:
-        logging.warning("sending syslog: "+json.dumps(jsonObj))
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
-        s.sendall(b'{0}'.format(json.dumps(jsonObj)))
-        s.close()
-    except socket.error as msg:
-        logging.warning("sendSyslog() exception: "+msg)
 
 if __name__ == '__main__':
     run()

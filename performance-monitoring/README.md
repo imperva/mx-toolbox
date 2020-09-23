@@ -6,15 +6,18 @@ The performance monitoring package for Imperva SecureSphere appliances provides 
 
 Download the latest files from the performance-monitoring folder.  Within this folder are 3 required files:
 
-```
-get_mx_stats.py
-get_gateway_stats.py
-template.config.json
-```
-
-The files should be copied to the /var/user-data/ folder on either the Gateway or MX appliance(s) respectively.  The .json config file should live in the same directory, as referenced in the script. 
-
-The template.config.json file must be re-named config.json.  
+1. Download and copy the files into a new directory (/var/user-data) on the Management Server (MX):
+    - SSH to the MX, and create the following directory, which is the supported folder for running custom scritps.  
+        >`mkdir /var/user-data`
+        `cd /var/user-data`  
+    - Download the following files and copy them into the the /var/user-data folder on the MX:  
+        >`get_mx_stats.py`
+        `template.config.json`  
+    - Download the following files and copy them into the the /var/user-data folder on the Gateway:  
+        >`get_gateway_stats.py`
+        `template.config.json`  
+    - Rename template.config.json to config.json  
+        >`mv template.config.json config.json`  
 
 ## Configuration Options ##
 
@@ -66,7 +69,7 @@ Example:
 
 #### Config Options ####
 
-`log_level` - _(optional)_ the log level. Valid values: `debug`, `info`, `warn`, `error`, `fatal`. Defaults to `info`.
+`log_level` - _(optional)_ the log level. Valid values: `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG`, `NOTSET`. Defaults to `INFO`.
 
 `log_file_name` - _(optional)_ the log file name. Defaults to `send_alert_to_new_relic.log`.
 
@@ -177,6 +180,45 @@ Example:
       {
       ...
 ```
+
+
+## Configure InfluxDB database
+1. SSH into the influxDB server, and create the imperva_performance_stats database.
+```
+$ influx
+CREATE DATABASE imperva_performance_stats
+SHOW DATABASES
+exit
+```
+
+## Configure Grafana and import the dashboards
+If you have not yet done so, create influxdb datasource in grafana, and import performance monitoring dashboards.
+
+#### Create InfluxDB Datasource ####
+
+1. Navigate to grafana via a browser referencing the IP of your docker host.  In this example, it is run locally on a work station and access with the following: [http://influxdb-host:3000](http://influxdb-host:3000)
+
+1. Log in with your credentials.  If you are using the docker image in [influxdb_grafana][https://github.com/imperva/mx-toolbox/tree/master/performance-monitoring/influxdb_grafana] folder, the default credentials are admin/admin, and you will need to create a new password.
+
+1. Click `Add datasource`, and add a new InfluxDB datasource with the following:
+
+   `Name` - _(required)_ the name of the data source: `Imperva Performance Stats`
+
+   `URL` - _(required)_ the endpoint of influxdb: `http://influxdb-host:8086`.
+
+   `Database` - _(required)_ name of database `imperva_performance_stats`.
+
+   `HTTP Method` - _(required)_ the HTTP method used to push data into influxdb `POST`
+
+1. Click `Save & Test` to validate grafana is able to access the datasource correctly.
+
+#### Import Grafana Dashboards ####
+1. Navigate to Home screen by clicking the Grafana logo in the top left corner.
+
+1. Import each of dashboard files in the `mx-tools/performance-monitoring/influxdb_grafana/grafana_dashboards` directory by repeating the following steps:
+  -  Click `+ -> Create -> Import` to import a dashboard
+
+1. Click `Upload JSON file` and one dashboard at a time to import repeating this process for each.
  
 
  
