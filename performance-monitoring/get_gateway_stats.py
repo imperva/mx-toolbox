@@ -29,6 +29,13 @@ with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
     gwSourceIp = sourceIpStr[sourceIpStr.index('address-v4="')+12:sourceIpStr.index('" address-v6=')-3]
 influxDefaultTags = "source="+gwSourceIp+",gatewayname="+GATEWAYNAME+","
 GWMODEL = ""
+CONNECTIONTIMEOUT = 5 # in seconds
+global logHostAvailable
+logHostAvailable = {
+    "newrelic":True,
+    "influxdb":True,
+    "syslog":True
+}
 try:
     with open(CONFIGFILE, 'r') as data:
         CONFIG = json.load(data)
@@ -42,7 +49,7 @@ else:
     # urllib3.disable_warnings()
 
 ############ ENV Settings ############
-logging.basicConfig(filename=CONFIG["log_file_name"], filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename=CONFIG["log_file_name"], filemode='w', format='%(name)s - %(levelname)s - %(message)s', level=getattr(logging, CONFIG["log_level"].upper()))
 
 # Gateway level statistic
 GWStats = {
@@ -157,11 +164,13 @@ def run():
                 GWStats[patternconfig["name"]] = "\n".join(matches).replace('"',"'")
 
     if CONFIG["newrelic"]["enabled"]:
+        logging.debug("processing newrelic request: "+json.dumps(GWStats))
         makeCallNewRelicCall(GWStats)
     # if CONFIG["servicenow"]["enabled"]:
     #     print("make servicenow call")
     #     # todo finish integration with ServiceNow
     if CONFIG["syslog"]["enabled"]:
+        logging.debug("processing syslog request: "+json.dumps(GWStats))
         sendSyslog(GWStats)
         # print(json.dumps(GWStats))
 
@@ -180,16 +189,19 @@ def run():
                 SGStats = parseSGStat(servergroupname, sg_stat, SGStats)
 
             if CONFIG["newrelic"]["enabled"]:
+                logging.debug("processing newrelic server group request: "+json.dumps(SGStats))
                 makeCallNewRelicCall(SGStats)
             # if CONFIG["servicenow"]["enabled"]:
             #     print("make servicenow call")
             #     # todo finish integration with ServiceNow
             if CONFIG["syslog"]["enabled"]:
+                logging.debug("processing syslog server group request: "+json.dumps(SGStats))
                 sendSyslog(SGStats)
     if CONFIG["influxdb"]["enabled"]:
         for measurement in influxDbStats:
             curStat = influxDbStats[measurement]
             for tags in curStat:
+                logging.debug("processing influxdb request: tags="+tags+"\n\r curStat="+ ','.join(curStat[tags]))
                 makeInfluxDBCall(measurement, influxDefaultTags+tags, ','.join(curStat[tags]))
 
 #########################################################
@@ -216,99 +228,103 @@ def getNetworkStats():
                     if (iface[:5].lower()=="inet "):
                         ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
                         break
+                influxIfaceStatTotals = {
+                    "rx_packets":0,
+                    "rx_errors":0,
+                    "rx_dropped":0,
+                    "rx_overruns":0,
+                    "rx_frame":0,
+                    "rx_bytes":0,
+                    "tx_packets":0,
+                    "tx_errors":0,
+                    "tx_dropped":0,
+                    "tx_overruns":0,
+                    "tx_frame":0,
+                    "tx_bytes":0,
+                    "collisions":0
+                }
+                influxIfaceStatAry = []
+                # GWStats
                 if (re.search('(RX packets)\s.*(errors)',ifconfigoutput[0].replace(":"," "))!=None):
-                    influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
+                    influxIfaceStat = getInterfaceStats_legacy(ifconfigoutput,ifacename)
                 else:
-                    influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress] = getInterfaceStats(ifconfigoutput,ifacename)
+                    influxIfaceStat = getInterfaceStats(ifconfigoutput,ifacename)
+                # print(json.dumps(influxIfaceStat))
+                for statname in influxIfaceStat:
+                    # print("before total")
+                    # print(influxIfaceStatTotals[statname])
+                    # print(influxIfaceStat[statname])
+                    influxIfaceStatTotals[statname] += int(influxIfaceStat[statname])
+                    # print("after total")
+                    # print(influxIfaceStatTotals[statname])
+                    influxIfaceStatAry.append(statname+"="+influxIfaceStat[statname])
+                    GWStats["interface_"+ifacename+"_"+statname] = int(influxIfaceStat[statname])
+                influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress] = influxIfaceStatAry
+
+                influxIfaceStatTotalsAry = []
+                for statname in influxIfaceStatTotals:
+                    influxIfaceStatTotalsAry.append(statname+"="+str(influxIfaceStatTotals[statname]))
+                influxDbStats["imperva_gw_net"]["interface=totals"] = influxIfaceStatTotalsAry
 
 # Applies to older models of CentOS and gateways prior to 12.5
 def getInterfaceStats_legacy(ifconfigoutput,ifacename):
-    influxIfaceStatAry = []
+    influxIfaceStat = {"rx_packets":0}
     for iface in ifconfigoutput[0].strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
             ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
         elif (iface[:10].lower()=="rx packets"):
             rxAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-            influxIfaceStatAry.append("rx_errors="+rxAry[2])
-            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
-            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
-            influxIfaceStatAry.append("rx_frame="+rxAry[8])
-            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
-            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
-            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
-            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])            
+            influxIfaceStat["rx_packets"] = rxAry[0]
+            influxIfaceStat["rx_errors="] = rxAry[2]
+            influxIfaceStat["rx_dropped="] = rxAry[4]
+            influxIfaceStat["rx_overruns="] = rxAry[6]
+            influxIfaceStat["rx_frame="] = rxAry[8]
         elif (iface[:10].lower()=="tx packets"):
             txAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("tx_packets="+txAry[0])
-            influxIfaceStatAry.append("tx_errors="+txAry[2])
-            influxIfaceStatAry.append("tx_dropped="+txAry[4])
-            influxIfaceStatAry.append("tx_overruns="+txAry[6])
-            influxIfaceStatAry.append("tx_frame="+txAry[8])
-            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
-            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
-            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
-            GWStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])            
+            influxIfaceStat["tx_packets="] = txAry[0]
+            influxIfaceStat["tx_errors="] = txAry[2]
+            influxIfaceStat["tx_dropped="] = txAry[4]
+            influxIfaceStat["tx_overruns="] = txAry[6]
+            influxIfaceStat["tx_frame="] = txAry[8]
         elif (iface[:8].lower()=="rx bytes"):
             rxBytes = iface[9:].split(" ").pop(0)
             txBytes = iface.lower().split("tx bytes").pop(1).split().pop(0)
-            influxIfaceStatAry.append("rx_bytes="+rxBytes)
-            influxIfaceStatAry.append("tx_bytes="+txBytes)
-            GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxBytes)
-            GWStats["interface_"+ifacename+"_tx_bytes"] = int(txBytes)
+            influxIfaceStat["rx_bytes="] = rxBytes
+            influxIfaceStat["tx_bytes="] = txBytes
         elif (iface[:10].lower()=="collisions"):
             collisions = iface[11:].split(" ").pop()
-            influxIfaceStatAry.append("collisions="+collisions)
-            GWStats["interface_"+ifacename+"_collisions"] = int(collisions)    
-    return influxIfaceStatAry
+            influxIfaceStat["collisions="] = collisions
+    return influxIfaceStat
 
 def getInterfaceStats(ifconfigoutput,ifacename):
-    influxIfaceStatAry = []
+    influxIfaceStat = {}
     for iface in ifconfigoutput[0].replace(":"," ").strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
             ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
-            influxIfaceStatAry.append("sockets="+sockets)
-            GWStats["interface_"+ifacename+"_sockets"] = sockets
         elif (iface[:11].lower()=="rx packets"):
             rxAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-            influxIfaceStatAry.append("rx_errors="+rxAry[2])
-            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
-            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
-            influxIfaceStatAry.append("rx_frame="+rxAry[8])
-            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
-            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
-            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
-            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
+            influxIfaceStat["rx_packets="] = rxAry[0]
+            influxIfaceStat["rx_errors="] = rxAry[2]
+            influxIfaceStat["rx_dropped="] = rxAry[4]
+            influxIfaceStat["rx_overruns="] = rxAry[6]
+            influxIfaceStat["rx_frame="] = rxAry[8]
         elif (iface[:11].lower()=="tx packets"):
             txAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("tx_packets="+txAry[0])
-            influxIfaceStatAry.append("tx_errors="+txAry[2])
-            influxIfaceStatAry.append("tx_dropped="+txAry[4])
-            influxIfaceStatAry.append("tx_overruns="+txAry[6])
-            influxIfaceStatAry.append("tx_carrier="+txAry[8])
-            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
-            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
-            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
-            GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[8])
+            influxIfaceStat["tx_packets="] = txAry[0]
+            influxIfaceStat["tx_errors="] = txAry[2]
+            influxIfaceStat["tx_dropped="] = txAry[4]
+            influxIfaceStat["tx_overruns="] = txAry[6]
+            influxIfaceStat["tx_carrier="] = txAry[8]
         elif (iface[:10].lower()=="collisions"):
             colAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("collisions="+colAry[0])
-            GWStats["interface_"+ifacename+"_collisions"] = int(colAry[0])
+            influxIfaceStat["collisions="] = colAry[0]
         elif (iface[:8].lower()=="rx bytes"):
             recordAry = iface[9:].split(" ")
-            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
-            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
-            GWStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
-            GWStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
-    return influxIfaceStatAry
+            influxIfaceStat["rx_bytes="] = recordAry[0]
+            influxIfaceStat["tx_bytes="] = recordAry[5]
+    return influxIfaceStat
 
 def getDiskStats():
     pipe = Popen(['cat','/proc/mounts'], stdout=PIPE)
@@ -486,37 +502,82 @@ def parseSGStat(servergroupname,sg_stat,SGStats):
     return SGStats
 
 def makeCallNewRelicCall(stat):
-    stat["eventType"] = CONFIG["newrelic"]["event_type"]
-    new_relic_url = "https://insights-collector.newrelic.com/v1/accounts/"+CONFIG["newrelic"]["account_id"]+"/events"
-    headers = {
-        "Content-Type": "application/json",
-        "X-Insert-Key": CONFIG["newrelic"]["api_key"]
-    }
-    logging.warning("NEW RELIC REQUEST (" + new_relic_url + ")" + json.dumps(stat))
-    if "proxies" in CONFIG:
-        proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
-        response = requests.post(new_relic_url, json.dumps(stat), proxies=proxies, headers=headers, verify=False)
-    else:
-        response = requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False)
+    if (logHostAvailable["newrelic"]==True):
+        stat["eventType"] = CONFIG["newrelic"]["event_type"]
+        new_relic_url = "https://insights-collector.newrelic.com/v1/accounts/"+CONFIG["newrelic"]["account_id"]+"/events"
+        headers = {
+            "Content-Type": "application/json",
+            "X-Insert-Key": CONFIG["newrelic"]["api_key"]
+        }
+        logging.info("NEW RELIC REQUEST (" + new_relic_url + ")" + json.dumps(stat))
+        if "proxies" in CONFIG:
+            try: 
+                proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
+                requests.post(new_relic_url, json.dumps(stat), proxies=proxies, headers=headers, verify=False, timeout=(CONNECTIONTIMEOUT,15))
+            except requests.exceptions.RequestException as e:
+                logging.error("requests timeout error: {}".format(e))
+                logging.error("newrelic host unreachable, aborting subsequent calls to newrelic")
+                logHostAvailable["newrelic"] = False
+        else:
+            try:
+                requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False, timeout=(3,15))
+            except requests.exceptions.RequestException as e:
+                logging.error("requests timeout error: {}".format(e))
+                logging.error("newrelic host unreachable, aborting subsequent calls to newrelic")
+                logHostAvailable["newrelic"] = False
 
 def makeInfluxDBCall(measurement, tags, params):
-    headers = {
-        "Content-Type": "application/octet-stream",
-    }
-    influxdb_url = CONFIG["influxdb"]["host"]
-    data = measurement+","+tags+" "+params
-    # print("INFLUXDB REQUEST: "+influxdb_url+"?"+params)
-    logging.warning("INFLUXDB REQUEST: "+influxdb_url+"?"+params)
-    if "proxies" in CONFIG:
-        proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
-        response = requests.post(influxdb_url, data=data, proxies=proxies, headers=headers, verify=False)
-    else:
-        if "username" in CONFIG["influxdb"]:
-            response = requests.post(influxdb_url,auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=False)
+    if (logHostAvailable["influxdb"]==True):
+        headers = {
+            "Content-Type": "application/octet-stream",
+        }
+        influxdb_url = CONFIG["influxdb"]["host"]
+        data = measurement+","+tags+" "+params
+        logging.info("INFLUXDB REQUEST: "+influxdb_url+"?"+params)
+        if "proxies" in CONFIG:
+            proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
+            try: 
+                response = requests.post(influxdb_url, data=data, proxies=proxies, headers=headers, verify=False, timeout=(CONNECTIONTIMEOUT,15))
+                if (response.status_code!=204):
+                    logging.error("Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
+            except requests.exceptions.RequestException as e:
+                logging.error("requests timeout error: {}".format(e))
+                logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
+                logHostAvailable["influxdb"] = False
+        
         else:
-            response = requests.post(influxdb_url, data=data, headers=headers, verify=False)
-        if (response.status_code!=204):
-            logging.warning("[ERROR] Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
+            if "username" in CONFIG["influxdb"]:
+                try: 
+                    response = requests.post(influxdb_url,auth=HTTPBasicAuth(CONFIG["influxdb"]["username"], CONFIG["influxdb"]["password"]), data=data, headers=headers, verify=False, timeout=(CONNECTIONTIMEOUT,15))
+                    if (response.status_code!=204):
+                        logging.error("Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
+                except requests.exceptions.RequestException as e:
+                    logging.error("[ERROR] requests timeout error: {}".format(e))
+                    logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
+                    logHostAvailable["influxdb"] = False
+            else:
+                try: 
+                    response = requests.post(influxdb_url, data=data, headers=headers, verify=False, timeout=(CONNECTIONTIMEOUT,15))
+                    if (response.status_code!=204):
+                        logging.warning("[ERROR] Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
+                except requests.exceptions.RequestException as e:
+                    logging.error("[ERROR] requests timeout error: {}".format(e))
+                    logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
+                    logHostAvailable["influxdb"] = False
+
+def sendSyslog(jsonObj):
+    if (logHostAvailable["syslog"]==True):
+        logging.info("SYSLOG REQUEST: "+json.dumps(jsonObj))
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(CONNECTIONTIMEOUT)
+            s.connect((CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
+            s.sendall(b'{0}'.format(json.dumps(jsonObj)))
+            s.close()
+        except socket.error as e:
+            logging.warning("sendSyslog() exception: {}".format(e))
+            logging.error("syslog host unreachable, aborting subsequent calls to syslog")
+            logHostAvailable["syslog"] = False
 
 def searchLogFile(filename, pattern):
     matches = []
@@ -545,11 +606,18 @@ gwSizingStats = {
     "X4500":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
     "X6500":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"},
     "X8500":{"gw_supported_kbps":"5000000","gw_supported_hps":"36000"},
+    # Physical Appliances 10 series
     "X10K":{"gw_supported_kbps":"10000000","gw_supported_hps":"72000"},
     "X2510":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},
     "X4510":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
     "X6510":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"},
     "X8510":{"gw_supported_kbps":"5000000","gw_supported_hps":"36000"},
+    # Physical Appliances 20 series
+    "X10K2":{"gw_supported_kbps":"10000000","gw_supported_hps":"72000"},
+    "X2520":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},
+    "X4520":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
+    "X6520":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"},
+    "X8520":{"gw_supported_kbps":"5000000","gw_supported_hps":"36000"},
     # Virtual Appliances
     "V1000":{"gw_supported_kbps":"100000","gw_supported_hps":"2500"},
     "V2500":{"gw_supported_kbps":"500000","gw_supported_hps":"5000"},
@@ -566,16 +634,6 @@ gwSizingStats = {
     "MV4500":{"gw_supported_kbps":"1000000","gw_supported_hps":"9000"},
     "MV6500":{"gw_supported_kbps":"2000000","gw_supported_hps":"18000"}
 }
-
-def sendSyslog(jsonObj):
-    try:
-        logging.warning("sending syslog: "+json.dumps(jsonObj))
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
-        s.sendall(b'{0}'.format(json.dumps(jsonObj)))
-        s.close()
-    except socket.error as msg:
-        logging.warning("sendSyslog() exception: "+msg)
 
 if __name__ == '__main__':
     run()
