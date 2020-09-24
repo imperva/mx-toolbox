@@ -316,21 +316,21 @@ def getDiskStats():
     mountsAry = str(output[0]).split("\n")
     for mount in mountsAry:
         if mount.strip()!="":
-            mountAry = mount.split(" ")
+            mountAry = mount.replace(","," ").split(" ")
             if mountAry[1][:1]=="/":
                 pipe = Popen(['df',mountAry[1]], stdout=PIPE)
                 output = pipe.communicate()
                 mountStats = str(output[0]).split("\n")
                 mountStats.pop(0)
                 mountStatsAry = ' '.join(mountStats).replace("\n"," ").split()
-                influxDbStats["imperva_mx_disk"]["volume="+mountStatsAry[5]] = []
-                influxIfaceStatAry = influxDbStats["imperva_mx_disk"]["volume="+mountStatsAry[5]]
+                influxDbStats["imperva_mx_disk"]["volume="+mountAry[1]] = []
+                influxIfaceStatAry = influxDbStats["imperva_mx_disk"]["volume="+mountAry[1]]
                 influxIfaceStatAry.append("disk_capacity="+mountStatsAry[1])
                 influxIfaceStatAry.append("disk_used="+mountStatsAry[2])
                 influxIfaceStatAry.append("disk_available="+mountStatsAry[3])
-                MXStats["disk_volume"+mountStatsAry[5]+"_disk_capacity"] = int(mountStatsAry[1])
-                MXStats["disk_volume"+mountStatsAry[5]+"_disk_used"] = int(mountStatsAry[2])
-                MXStats["disk_volume"+mountStatsAry[5]+"_disk_available"] = int(mountStatsAry[3])
+                MXStats["disk_volume"+mountAry[1]+"_disk_capacity"] = int(mountStatsAry[1])
+                MXStats["disk_volume"+mountAry[1]+"_disk_used"] = int(mountStatsAry[2])
+                MXStats["disk_volume"+mountAry[1]+"_disk_available"] = int(mountStatsAry[3])
 
 def getSysStats():
     with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
@@ -399,7 +399,6 @@ def getSysStats():
                                 MXStats["sar_cpu"+statAry[2].lower()+"_"+curIndexName] = float("{0:.2f}".format(float(cpuStat)))
         except:
             logging.error("Missing package: sar command not found")
-           
 
 def makeCallNewRelicCall(stat):
     if (logHostAvailable["newrelic"]==True):
