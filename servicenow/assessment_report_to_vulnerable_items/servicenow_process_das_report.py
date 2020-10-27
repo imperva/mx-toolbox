@@ -33,6 +33,7 @@ cmdbServiceMap = {
     "mariadb":"cmdb_ci_db_mysql_instance",
     "mongo":"cmdb_ci_db_mongodb_instance",
     "mssql":"cmdb_ci_db_mssql_instance",
+    "ms sql":"cmdb_ci_db_mssql_instance",
     "mysql":"cmdb_ci_db_mysql_instance",
     "netezza":"cmdb_ci_database", # default
     "oracle":"cmdb_ci_db_ora_instance",
