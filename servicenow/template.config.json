@@ -10,6 +10,7 @@
     "servicenow": {
         "endpoint": "https://demo.service-now.com/api",
         "username": "youruser",
-        "password": "yourpassword"
+        "password": "yourpassword",
+        "change_request_filter":"assignment_group='YOUR Assignment Group Here'"
     }
 }
