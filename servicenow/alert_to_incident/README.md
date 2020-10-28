@@ -24,9 +24,9 @@ This project provides the scripts and configuration steps needed to integrate Se
     Name: `Create SNOW Incident`  
     ![create-action-set-1.png](images/create-action-set-1.png)  
 1. Click the ![up.png](images/up.png) icon to add `OS Command > Run a Shell Command` to add this action to the `Selected Actions` in the action set.
-1. Click the ![expand.png](images/expand.png) button to expand the action configuration, add the following configuration parameters values, and click save  
+1. Click the ![expand.png](images/expand.png) button to expand the action configuration, add the following configuration parameter values.  Insert your SNOW assignment group name into the assignment_group attribute of the json string in the argument field as shown `Your Assignment Group Name Here` in the screenshot, then click save.
     - Command: `servicenow_create_incident.py`  
-    - Arguments: `{"alert_number":"${Alert.dn}","event_id":"${Event.dn}","alert_desc":"${Alert.description}","user":"${Alert.username}","source-ip":"${Event.sourceInfo.sourceIp}","object-name":"${Event.struct.operations.objects.name}","object-type":"${Event.struct.operations.objectType}","violated-item":"${Event.violations.violatedItem}"}`  
+    - Arguments: `{"assignment_group":"Your Assignment Group Name Here","alert_number":"${Alert.dn}","event_id":"${Event.dn}","alert_desc":"${Alert.description}","user":"${Alert.username}","source-ip":"${Event.sourceInfo.sourceIp}","object-name":"${Event.struct.operations.objects.name}","object-type":"${Event.struct.operations.objectType}","violated-item":"${Event.violations.violatedItem}"}`  
     - Working Dir: `/var/user-data`  
     - Run on Every Event: ![checked.png](images/checked.png)  
     **Note: Alerts be default will aggregate many individual violations. If `Run on Every Event` is unchecked, an incident will be created upon the creation of a new alert. If checked, a new incident will be created in ServiceNow every time the security policy triggers for every violation. **
