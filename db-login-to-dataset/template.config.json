@@ -1,0 +1,10 @@
+{
+  "log_level": "debug",
+  "environment": "dev",
+  "dataset-name": "db-logins",
+  "mx": {
+    "endpoint": "https://127.0.0.1:8083",
+    "username": "youruser",
+    "password": "yourpassword"
+  }
+}
