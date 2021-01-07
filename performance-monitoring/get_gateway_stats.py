@@ -6,6 +6,7 @@ import subprocess
 from subprocess import PIPE,Popen
 from time import localtime, strftime
 # from datetime import timedelta
+import datetime
 import json
 import requests
 import urllib2
@@ -14,13 +15,15 @@ import re
 import math
 import codecs
 from requests.auth import HTTPBasicAuth
+import logging.handlers
 
 # REQUESTS_CA_BUNDLE=FILENAME
 
 ############### Configs ###############
 CONFIGFILE = '/var/user-data/config.json'
 GATEWAYNAME = os.uname()[1].split('.')[0]
-TIMESTAMP = strftime("%Y/%m/%d %H:%M:%S", localtime())
+# TIMESTAMP = strftime("%Y/%m/%d %H:%M:%S", localtime())
+TIMESTAMP = datetime.datetime.now().isoformat()
 gwSourceIp = "n_a"
 with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
     content = content_file.read()
@@ -34,13 +37,14 @@ global logHostAvailable
 logHostAvailable = {
     "newrelic":True,
     "influxdb":True,
-    "syslog":True
+    "syslog":True,
+    "sonar":True
 }
 try:
     with open(CONFIGFILE, 'r') as data:
         CONFIG = json.load(data)
 except:
-    print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"debug\",\n\t\"log_file_name\": \"gateway_statistics.log\",\n\t\"environment\": \"dev\",\n\t\"is_userspace\":false,\n\t\"environment\": \"dev\",\n\t\"log_search\": {\n\t\t\"enabled\": true,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"GWStats\"\n\t},\n\t\"influxdb\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"http://1.2.3.4:8086/write?db=imperva_performance_stats\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"1.2.3.4\",\n\t\t\"port\": 514\n\t}\n}")
+    print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"WARNING\",\n\t\"log_file_name\": \"gateway_statistics.log\",\n\t\"environment\": \"dev\",\n\t\"is_userspace\": false, \n\t\"gateway_mx_host_display_name\": \"your_gateway_mx_hostname_here\",\n\t\"log_search\": {\n\t\t\"enabled\": false,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"GWStats\"\n\t},\n\t\"influxdb\": {\n\t\t\"enabled\": false,\n\t\t\"host\": \"http://1.2.3.4:8086/write?db=imperva_performance_stats\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": false,\n\t\t\"endpoints\":[\n\t\t\t{\n\t\t\t\t\"host\": \"1.2.3.4\",\n\t\t\t\t\"protocol\": \"TCP\",\n\t\t\t\t\"port\": 514,\n\t\t\t\t\"facility\":21\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"host\": \"1.2.3.5\",\n\t\t\t\t\"protocol\": \"UDP\",\n\t\t\t\t\"port\": 515,\n\t\t\t\t\"facility\":21\n\t\t\t}\t\t]\n\t},\n\t\"sonar\": {\n\t\t\"enabled\": false,\n\t\t\"endpoints\":[\n\t\t\t{\n\t\t\t\t\"host\": \"your.sonar.hostname\",\n\t\t\t\t\"port\": 10667,\n\t\t\t\t\"facility\":21\n\t\t\t}\n\t\t]\n\t}\n}")
     exit()
 if CONFIG["is_userspace"]:
     BASEDIR = "/opt/SecureSphere/etc/proc/hades/"
@@ -54,7 +58,7 @@ logging.basicConfig(filename=CONFIG["log_file_name"], filemode='w', format='%(na
 # Gateway level statistic
 GWStats = {
     # start a few enrichment fields to give context
-    "event_type": "gateway",
+    "event_type": "gw",
     "gateway": GATEWAYNAME,
     # "gateway_uptime": GATEWAY_UPTIME,
     "timestamp": TIMESTAMP,
@@ -82,26 +86,46 @@ GWStats = {
 # Server Group level statistic
 SGStatsTmpl = {
     # start a few enrichment fields to give context
-    "event_type": "server_group",
-    "gateway": GATEWAYNAME,
-    # "gateway_uptime": GATEWAY_UPTIME,
+    "event_type": "sg",
+    "gw": GATEWAYNAME,
     "server_group": True,
     "server_group_id": True,
     "timestamp": TIMESTAMP,
     # start list of all lines from status file
-    "kbps": True,
-    "http_hits_sec": True,
-    "connection_sec": True,
-    "wfd_successful_hits_sec": True,
-    "sql_hits_sec": True,
-    "sql_audit_phase2_events_sec": True,
-    "hdfs_hits_sec": True,
-    # "zosfile_hits_sec": True,
-    # "activedirectory_hits_sec": True,
-    # "file_aggregated_hits_sec": True,
-    # "file_hits_sec": True,
-    # "sharepoint_aggregated_hits_sec": True,
-    # "sharepoint_hits_sec": True,
+    "system":{},
+    "hades_counters":{
+        "kbps": True,
+        "http_hits_sec": True,
+        "connection_sec": True,
+        "wfd_successful_hits_sec": True,
+        "sql_hits_sec": True,
+        "sql_audit_phase2_events_sec": True,
+        "hdfs_hits_sec": True
+        # "zosfile_hits_sec": True,
+        # "activedirectory_hits_sec": True,
+        # "file_aggregated_hits_sec": True,
+        # "file_hits_sec": True,
+        # "sharepoint_aggregated_hits_sec": True,
+        # "sharepoint_hits_sec": True,
+    }
+}
+
+GWSonarStats = {
+    "gw": GATEWAYNAME,
+    "event_type": "gw",
+    "timestamp": TIMESTAMP,
+    "cpu":{
+        "top":{},
+        "sar":{},
+        "last_sec_load":{}
+    },
+    "cores":{},
+    "disk":{},
+    "hades_counters":{},
+    "memory":{},
+    "network":{},
+    "system":{},
+    "log_search":{}
 }
 
 # convention is: {"measurement_name": {"tagname=tagvalue":["array=0","of=1","metrics=1"]}, ...  }
@@ -155,6 +179,8 @@ def run():
         GWStats["imperva_gw_"+statKey+"_total"] = int(statTotal)
         influxDbStats["imperva_gw_hades"]["file=/proc/hades/status"].append(statKey+"="+str(statVal))
         influxDbStats["imperva_gw_hades"]["file=/proc/hades/status"].append(statKey+"_total="+str(statTotal))
+        GWSonarStats["hades_counters"][statKey] = statVal
+        GWSonarStats["hades_counters"][statKey+"_total"] = statTotal
         
     getDiskStats()
     getSysStats()
@@ -164,7 +190,10 @@ def run():
         for fileconfig in CONFIG["log_search"]["files"]:
             for patternconfig in fileconfig["search_patterns"]:
                 matches = searchLogFile(fileconfig["path"], patternconfig["pattern"])
-                GWStats[patternconfig["name"]] = "\n".join(matches).replace('"',"'")
+                match = "\n".join(matches).replace('"',"'")
+                if match!="":
+                    GWStats[patternconfig["name"]] = match
+                    GWSonarStats["log_search"][patternconfig["name"]] = match
 
     if CONFIG["newrelic"]["enabled"]:
         logging.debug("processing newrelic request: "+json.dumps(GWStats))
@@ -175,7 +204,9 @@ def run():
     if CONFIG["syslog"]["enabled"]:
         logging.debug("processing syslog request: "+json.dumps(GWStats))
         sendSyslog(GWStats)
-        # print(json.dumps(GWStats))
+    if CONFIG["sonar"]["enabled"]:
+        logging.debug("processing sonar request: "+json.dumps(GWSonarStats))
+        sendSonar(GWSonarStats)    
 
     sg_dirs = os.listdir(BASEDIR)
     for dir in sg_dirs:
@@ -185,7 +216,7 @@ def run():
             sg_status_stats = f.read().split("\n")
             servergroupname = sg_status_stats[0][:sg_status_stats[0].rfind('_')].lower().replace(" ","_")
             influxDbStats["imperva_sg"]["servergroupname="+servergroupname+",mx_host="+MXHOST] = []
-            SGStats["mx_host"] = MXHOST
+            SGStats["mx"] = MXHOST
             SGStats["server_group"] = servergroupname
             SGStats["server_group_id"] = sg_status_stats[0][sg_status_stats[0].rfind('_')+1:len(sg_status_stats[0])-1]
             for sg_stat in sg_status_stats[1:]:
@@ -200,8 +231,11 @@ def run():
             if CONFIG["syslog"]["enabled"]:
                 logging.debug("processing syslog server group request: "+json.dumps(SGStats))
                 sendSyslog(SGStats)
+            if CONFIG["sonar"]["enabled"]:
+                logging.debug("processing sonar server group request: "+json.dumps(SGStats))
+                sendSonar(SGStats)
     if CONFIG["influxdb"]["enabled"]:
-        # print(json.dumps(influxDbStats))
+        logging.debug("processing influxdb requests: "+json.dumps(influxDbStats))
         for measurement in influxDbStats:
             curStat = influxDbStats[measurement]
             for tags in curStat:
@@ -242,6 +276,7 @@ def getNetworkStats():
 
 # Applies to older models of CentOS and gateways prior to 12.5
 def getInterfaceStats_legacy(ifconfigoutput,ifacename):
+    GWSonarStats["network"][ifacename] = {}
     influxIfaceStatAry = []
     for iface in ifconfigoutput[0].strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
@@ -261,7 +296,12 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
             GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
             GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
-            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])            
+            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
+            GWSonarStats["network"][ifacename]["rx_packets"] = int(rxAry[0])
+            GWSonarStats["network"][ifacename]["rx_errors"] = int(rxAry[2])
+            GWSonarStats["network"][ifacename]["rx_dropped"] = int(rxAry[4])
+            GWSonarStats["network"][ifacename]["rx_overruns"] = int(rxAry[6])
+            GWSonarStats["network"][ifacename]["rx_frame"] = int(rxAry[8])
         elif (iface[:11].lower()=="tx packets"):
             txAry = iface[11:].split(" ")
             influxIfaceStatAry.append("tx_packets="+txAry[0])
@@ -273,7 +313,13 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
             GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
             GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
-            GWStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])            
+            GWStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])
+            GWSonarStats["network"][ifacename]["tx_packets"] = int(txAry[0])
+            GWSonarStats["network"][ifacename]["tx_errors"] = int(txAry[2])
+            GWSonarStats["network"][ifacename]["tx_dropped"] = int(txAry[4])
+            GWSonarStats["network"][ifacename]["tx_overruns"] = int(txAry[6])
+            GWSonarStats["network"][ifacename]["tx_frame"] = int(txAry[8])            
+
         elif (iface[:8].lower()=="rx bytes"):
             rxBytes = iface[9:].split(" ").pop(0)
             txBytes = iface.lower().split("tx bytes").pop(1).split().pop(0)
@@ -281,13 +327,17 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             influxIfaceStatAry.append("tx_bytes="+txBytes)
             GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxBytes)
             GWStats["interface_"+ifacename+"_tx_bytes"] = int(txBytes)
+            GWSonarStats["network"][ifacename]["rx_bytes"] = int(rxBytes)
+            GWSonarStats["network"][ifacename]["tx_bytes"] = int(txBytes)
         elif (iface[:10].lower()=="collisions"):
             collisions = iface[11:].split(" ").pop()
             influxIfaceStatAry.append("collisions="+collisions)
             GWStats["interface_"+ifacename+"_collisions"] = int(collisions)    
+            GWSonarStats["network"][ifacename]["collisions"] = int(collisions)    
     return influxIfaceStatAry
 
 def getInterfaceStats(ifconfigoutput,ifacename):
+    GWSonarStats["network"][ifacename] = {}
     influxIfaceStatAry = []
     for iface in ifconfigoutput[0].replace(":"," ").strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
@@ -299,6 +349,8 @@ def getInterfaceStats(ifconfigoutput,ifacename):
             influxIfaceStatAry.append("rx_bytes="+rxAry[2])
             GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
             GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxAry[2])
+            GWSonarStats["network"][ifacename]["rx_packets"] = int(rxAry[0])
+            GWSonarStats["network"][ifacename]["rx_bytes"] = int(rxAry[2])
         elif (iface[:9].lower()=="rx errors"):
             rxAry = iface[10:].split(" ")
             influxIfaceStatAry.append("rx_errors="+rxAry[0])
@@ -309,12 +361,18 @@ def getInterfaceStats(ifconfigoutput,ifacename):
             GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[2])
             GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[4])
             GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[6])
+            GWSonarStats["network"][ifacename]["rx_errors"] = int(rxAry[0])
+            GWSonarStats["network"][ifacename]["rx_dropped"] = int(rxAry[2])
+            GWSonarStats["network"][ifacename]["rx_overruns"] = int(rxAry[4])
+            GWSonarStats["network"][ifacename]["rx_frame"] = int(rxAry[6])
         elif (iface[:10].lower()=="tx packets"):
             txAry = iface[11:].split(" ")
             influxIfaceStatAry.append("tx_packets="+txAry[0])
             influxIfaceStatAry.append("tx_bytes="+txAry[2])
             GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
             GWStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[2])
+            GWSonarStats["network"][ifacename]["tx_packets"] = int(txAry[0])
+            GWSonarStats["network"][ifacename]["tx_bytes"] = int(txAry[2])
         elif (iface[:9].lower()=="tx errors"):
             txAry = iface[10:].split(" ")
             influxIfaceStatAry.append("tx_errors="+txAry[0])
@@ -327,12 +385,19 @@ def getInterfaceStats(ifconfigoutput,ifacename):
             GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
             GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
             GWStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
+            GWSonarStats["network"][ifacename]["tx_errors"] = int(txAry[0])
+            GWSonarStats["network"][ifacename]["tx_dropped"] = int(txAry[2])
+            GWSonarStats["network"][ifacename]["tx_overruns"] = int(txAry[4])
+            GWSonarStats["network"][ifacename]["tx_carrier"] = int(txAry[6])                            
+            GWSonarStats["network"][ifacename]["collisions"] = int(txAry[8])
         elif (iface[:8].lower()=="rx bytes"):
             recordAry = iface[9:].split(" ")
             influxIfaceStatAry.append("rx_bytes="+recordAry[0])
             influxIfaceStatAry.append("tx_bytes="+recordAry[5])
             GWStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
             GWStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
+            GWSonarStats["network"][ifacename]["rx_bytes"] = int(recordAry[0])
+            GWSonarStats["network"][ifacename]["tx_bytes"] = int(recordAry[5])
     return influxIfaceStatAry
 
 def getDiskStats():
@@ -356,6 +421,10 @@ def getDiskStats():
                 GWStats["disk_volume"+mountAry[1]+"_disk_capacity"] = int(mountStatsAry[1])
                 GWStats["disk_volume"+mountAry[1]+"_disk_used"] = int(mountStatsAry[2])
                 GWStats["disk_volume"+mountAry[1]+"_disk_available"] = int(mountStatsAry[3])
+                GWSonarStats["disk"][mountAry[1]] = {}
+                GWSonarStats["disk"][mountAry[1]]["disk_capacity"] = int(mountStatsAry[1])
+                GWSonarStats["disk"][mountAry[1]]["disk_used"] = int(mountStatsAry[2])
+                GWSonarStats["disk"][mountAry[1]]["disk_available"] = int(mountStatsAry[3])
 
 def getSysStats():
     with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
@@ -367,32 +436,48 @@ def getSysStats():
             m = re.search(r'server.*\shost=\"(.*)\"\sreal-host',content)
             MXHOST = m.group(1)
 
+        GWStats["mx_host"] = MXHOST
         influxDbStats["imperva_gw_sys"]["mx_hostname="+MXHOST] = []
+        GWSonarStats["mx"] = MXHOST
         sysStat = influxDbStats["imperva_gw_sys"]["mx_hostname="+MXHOST]
         
         m = re.search(r'(appliance)\s(tag=).*',content)
         modelStr = m.group(0)
         model = modelStr[modelStr.index('appliance tag=')+15:modelStr.index('" name=')]
         global GWMODEL
-        GWMODEL = model 
+        GWMODEL = model
         influxDbStats["imperva_gw_sys"]["model="+model] = []        
         sysStat = influxDbStats["imperva_gw_sys"]["model="+model]
+        GWSonarStats["system"]["model"] = GWMODEL
         
-        pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/impctl','--version'], stdout=PIPE)
+        pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/platform/show'], stdout=PIPE)
         output = pipe.communicate()
-        influxDbStats["imperva_gw_sys"]["version="+output[0].strip()] = []
-        sysStat = influxDbStats["imperva_gw_sys"]["version="+output[0].strip()]
-
+        for stat in output[0].split("\n"):
+            if stat.strip()!="":
+                statAry = stat.split(" ")
+                key = statAry.pop(0)
+                val = statAry.pop()
+                influxDbStats["imperva_gw_sys"][key+"="+val] = []
+                sysStat = influxDbStats["imperva_gw_sys"][key+"="+val]
+                GWSonarStats["system"][key] = val
+        
         sysStat.append("gw_supported_kbps="+gwSizingStats[model]["gw_supported_kbps"])
         sysStat.append("gw_supported_hps="+gwSizingStats[model]["gw_supported_hps"])
         GWStats["gw_supported_kbps"] = int(gwSizingStats[model]["gw_supported_kbps"])
         GWStats["gw_supported_hps"] = int(gwSizingStats[model]["gw_supported_hps"])
+        GWSonarStats["system"]["supported_kbps"] = int(gwSizingStats[model]["gw_supported_kbps"])
+        GWSonarStats["system"]["supported_hps"] = int(gwSizingStats[model]["gw_supported_hps"])        
+        
         pipe = Popen(['cat','/proc/uptime'], stdout=PIPE)
         output = pipe.communicate()
         uptimeAry = str(output[0]).split("\n")
         uptime = str(uptimeAry[0]).split(" ")
-        sysStat.append("uptime="+uptime[0][:-3])
-        GWStats["uptime"] = uptime[0][:-3]
+        global UPTIME
+        UPTIME = uptime[0][:-3]
+        sysStat.append("uptime="+UPTIME)
+        GWStats["uptime"] = UPTIME
+        GWSonarStats["system"]["uptime"] = UPTIME
+
         pipe = Popen(['top','-bn','2'], stdout=PIPE)
         output = pipe.communicate()
         topOutputAry = str(output[0]).split("top - ").pop().split("\n")
@@ -407,16 +492,20 @@ def getSysStats():
                     if statMeasurement=="total" or statMeasurement=="used" or statMeasurement=="free":
                         sysStat.append(statType+"_"+statMeasurement+"="+statAry[0])
                         GWStats["top_"+statType+"_"+statMeasurement] = float(statAry[0])
+                        GWSonarStats["memory"]["top_"+statType+"_"+statMeasurement] = float(statAry[0])
             elif statType[:3]=="cpu":
                 cpu = statType.replace("cpu","")
+                GWSonarStats["cpu"]["top"][cpu] = {}
                 influxDbStats["imperva_gw_top_cpu"]["cpu="+cpu] = []
                 GWCpuStatAry = influxDbStats["imperva_gw_top_cpu"]["cpu="+cpu]
                 for cpuStat in statsAry:
                     statAry = cpuStat.strip().split()
                     GWCpuStatAry.append(topCpuAttrMap[statAry[1]]+"="+statAry[0])
-                    GWStats["top_"+statType[0].lower()+"_"+topCpuAttrMap[statAry[1]]] = float(statAry[0])
+                    GWStats["top_"+statType.lower()+"_"+topCpuAttrMap[statAry[1]]] = float(statAry[0])                    
+                    GWSonarStats["cpu"]["top"][cpu][topCpuAttrMap[statAry[1]]] = float(statAry[0])
 
         try:
+            # @TODO implement sonar stat for sar
             pipe = Popen(['/usr/bin/sar','-P','ALL','1','1'], stdout=PIPE)
             output = pipe.communicate()
             sarOutputAry = str(output[0]).strip().split("Average:").pop(0).split("\n")
@@ -447,7 +536,8 @@ def getSysStats():
             if stat[:4]!="last":
                 statAry = ' '.join(stat.split()).split(":")
                 GWStats["cpuload_last_sec_"+statAry[0].replace(" ","_")] = int(statAry[1].strip())
-                if stat[:7]=="average":                    
+                GWSonarStats["cpu"]["last_sec_load"][statAry[0].replace(" ","_").replace("_load","")] = int(statAry[1].strip())
+                if stat[:7]=="average":
                     influxDbStats["imperva_gw_cpuload"]["cpu=all"] = []
                     lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu=all"]
                     lastSecAry.append("load="+str(int(statAry[1].strip())))
@@ -471,6 +561,8 @@ def parseGWEventStat(stat):
             GWStats[statKey+"_max"] = int(statAry[3])
             influxDbStats["imperva_gw_hades"]["file=/proc/hades/status"].append(statKey+"="+str(int(statAry[0])))
             influxDbStats["imperva_gw_hades"]["file=/proc/hades/status"].append(statKey+"_max="+str(int(statAry[3])))
+            GWSonarStats["hades_counters"][statKey] = int(statAry[0])
+            GWSonarStats["hades_counters"][statKey+"_max"] = int(statAry[3])
 
 # Parse gateway level /proc/hades/status - CPU secion
 def parseGWCPUStat(stat):
@@ -482,14 +574,18 @@ def parseGWCPUStat(stat):
             influxDbStats["imperva_gw_workers"]["worker="+CoreNum] = []
             #example:  CPU# | kbps 28 (max 237244 2019-03-13 08:20:00) | packets/sec | queue length
             CoreStatKey = ["kbps","packets_sec","queue_length"]
+            GWSonarStats["cores"][str(CoreNum)] = {}
             for index, CoreStat in enumerate(CoreStatsAry, start=0):
                 CoreStatAry = CoreStat.strip().split(' ')
                 GWStats["core_"+CoreNum+"_"+CoreStatKey[index]] = int(CoreStatAry[0])
                 GWStats["core_"+CoreNum+"_"+CoreStatKey[index]+"_max"] = int(CoreStatAry[2])
                 influxDbStats["imperva_gw_workers"]["worker="+CoreNum].append("worker_"+CoreStatKey[index]+"="+CoreStatAry[0])
                 influxDbStats["imperva_gw_workers"]["worker="+CoreNum].append("worker_"+CoreStatKey[index]+"_max="+CoreStatAry[2])
+                GWSonarStats["cores"][str(CoreNum)][CoreStatKey[index]] = CoreStatAry[0]
+                GWSonarStats["cores"][str(CoreNum)][CoreStatKey[index]+"_max"] = CoreStatAry[2]                
 
 def parseGWMeminfoStats():
+    GWSonarStats["memory"]["workers_meminfo"] = {}
     pipe = Popen(['cat',BASEDIR+"meminfo"], stdout=PIPE)
     output = pipe.communicate()
     meminfoOutputAry = str(output[0]).split("top - ").pop().split("\n")
@@ -504,7 +600,10 @@ def parseGWMeminfoStats():
             influxDbStats["imperva_gw_meminfo"]["core="+CoreNum].append("current="+statAry[0])
             influxDbStats["imperva_gw_meminfo"]["core="+CoreNum].append("max="+statAry[1])
             influxDbStats["imperva_gw_meminfo"]["core="+CoreNum].append("available="+statAry[2])
-
+            GWSonarStats["memory"]["workers_meminfo"][str(CoreNum)] = {}
+            GWSonarStats["memory"]["workers_meminfo"][str(CoreNum)]["current"] = statAry[0]
+            GWSonarStats["memory"]["workers_meminfo"][str(CoreNum)]["max"] = statAry[1]
+            GWSonarStats["memory"]["workers_meminfo"][str(CoreNum)]["available"] = statAry[2]
 
 # Parse server group level /proc/hades/sg_[server group name]/status - stats and maximums
 def parseSGStat(servergroupname,sg_stat,SGStats):
@@ -513,17 +612,17 @@ def parseSGStat(servergroupname,sg_stat,SGStats):
         if sg_statstr.find("(") != -1:
             sg_statKey = sg_statstr[sg_statstr.index(' ')+1:sg_statstr.index('(')-1].replace('/','_').replace(' ','_')
             sg_statstr = sg_statstr.replace(sg_statstr[sg_statstr.index(' ')+1:sg_statstr.index('(')-1],sg_statstr[sg_statstr.index(' ')+1:sg_statstr.index('(')-1].replace('/','_').replace(' ','_'))
-            if sg_statKey in SGStats:
+            if sg_statKey in SGStats["hades_counters"]:
                 sg_statAry = sg_statstr.split(" ")
-                SGStats[sg_statKey] = sg_statAry[0]
-                SGStats[sg_statKey+"_max"] = sg_statAry[3]
+                SGStats["hades_counters"][sg_statKey] = sg_statAry[0]
+                SGStats["hades_counters"][sg_statKey+"_max"] = sg_statAry[3]
                 influxDbStats["imperva_sg"]["servergroupname="+servergroupname+",mx_host="+MXHOST].append(sg_statKey+"="+sg_statAry[0])
                 influxDbStats["imperva_sg"]["servergroupname="+servergroupname+",mx_host="+MXHOST].append(sg_statKey+"_max="+sg_statAry[3])
         else:
             sg_statstr = sg_statstr.replace(sg_statstr[sg_statstr.index(' ')+1:len(sg_statstr)-sg_statstr.index(' ')+1],sg_statstr[sg_statstr.index(' ')+1:len(sg_statstr)-sg_statstr.index(' ')+1].replace('/','_').replace(' ','_'))
             sg_statAry = sg_statstr.split(" ")
-            if sg_statAry[1] in SGStats:
-                SGStats[sg_statAry[1]] = sg_statAry[0]
+            if sg_statAry[1] in SGStats["hades_counters"]:
+                SGStats["hades_counters"][sg_statAry[1]] = sg_statAry[0]
                 influxDbStats["imperva_sg"]["servergroupname="+servergroupname+",mx_host="+MXHOST].append(sg_statAry[1]+"="+sg_statAry[0])
     return SGStats
 
@@ -593,17 +692,27 @@ def makeInfluxDBCall(measurement, tags, params):
 
 def sendSyslog(jsonObj):
     if (logHostAvailable["syslog"]==True):
-        logging.info("SYSLOG REQUEST: "+json.dumps(jsonObj))
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(CONNECTIONTIMEOUT)
-            s.connect((CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
-            s.sendall(b'{0}'.format(json.dumps(jsonObj)))
-            s.close()
-        except socket.error as e:
-            logging.warning("sendSyslog() exception: {}".format(e))
-            logging.error("syslog host unreachable, aborting subsequent calls to syslog")
-            logHostAvailable["syslog"] = False
+        for syslogEndpoint in CONFIG["syslog"]["endpoints"]:
+            logging.info("SYSLOG REQUEST: "+json.dumps(jsonObj))
+            try:
+                logger = logging.getLogger('Logger')
+                handler = logging.handlers.SysLogHandler(address = (syslogEndpoint["host"], syslogEndpoint["port"]),facility=syslogEndpoint["facility"],socktype=(socket.SOCK_STREAM if syslogEndpoint["protocol"]=="TCP" else socket.SOCK_DGRAM))
+                logger.addHandler(handler)
+                logger.info(jsonObj)
+            except Exception as e:
+                logging.error("syslog failed")
+
+def sendSonar(jsonObj):
+    if (logHostAvailable["sonar"]==True):
+        for sonarEndpoint in CONFIG["sonar"]["endpoints"]:
+            try:
+                logger = logging.getLogger('Logger')
+                handler = logging.handlers.SysLogHandler(address = (sonarEndpoint["host"], sonarEndpoint["port"]),facility=sonarEndpoint["facility"],socktype=socket.SOCK_STREAM)
+                logger.addHandler(handler)
+                logger.info(json.dumps(jsonObj)+"\n")
+            except Exception as e:
+                logging.error("syslog failed")
+
 
 def searchLogFile(filename, pattern):
     matches = []
