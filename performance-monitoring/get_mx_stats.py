@@ -4,6 +4,7 @@ import socket
 import subprocess
 from subprocess import PIPE,Popen
 from time import localtime, strftime
+import datetime
 import json
 import requests
 import urllib2
@@ -14,6 +15,8 @@ import codecs
 import re
 import sys
 from requests.auth import HTTPBasicAuth
+import syslog 
+import logging.handlers
 
 ############### Examples ###############
 # Add the following to contab -e to get OS stats every minute, and MX system level stats every 6 hours
@@ -23,7 +26,8 @@ from requests.auth import HTTPBasicAuth
 ############### Configs ###############
 CONFIGFILE = '/var/user-data/config.json'
 MXNAME = os.uname()[1].split('.')[0]
-TIMESTAMP = strftime("%Y/%m/%d %H:%M:%S", localtime())
+# TIMESTAMP = strftime("%Y/%m/%d %H:%M:%S", localtime())
+TIMESTAMP = datetime.datetime.now().isoformat()
 MXSourceIp = "n/a"
 with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
     content = content_file.read()
@@ -37,14 +41,15 @@ global logHostAvailable
 logHostAvailable = {
     "newrelic":True,
     "influxdb":True,
-    "syslog":True
+    "syslog":True,
+    "sonar":True
 }
 
 try:
     with open(CONFIGFILE, 'r') as data:
         CONFIG = json.load(data)
 except:
-    print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"debug\",\n\t\"environment\": \"dev\",\n\t\"log_search\": {\n\t\t\"enabled\": true,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"MXStats\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": true,\n\t\t\"host\": \"1.2.3.4\",\n\t\t\"port\": 514\n\t}\n}")
+    print("Missing \""+CONFIGFILE+"\" file, create file named \""+CONFIGFILE+"\" with the following contents:\n{\n\t\"log_level\": \"WARNING\",\n\t\"log_file_name\": \"gateway_statistics.log\",\n\t\"environment\": \"dev\",\n\t\"is_userspace\": false, \n\t\"gateway_mx_host_display_name\": \"your_gateway_mx_hostname_here\",\n\t\"log_search\": {\n\t\t\"enabled\": false,\n\t\t\"files\": [{\n\t\t\t\"path\": \"/var/log/messages\",\n\t\t\t\"search_patterns\": [{\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME\",\n\t\t\t\t\t\"pattern\":\"some text pattern\"\n\t\t\t\t}, {\n\t\t\t\t\t\"name\":\"YOUR_EVENT_NAME_2\",\n\t\t\t\t\t\"pattern\":\"some other text pattern\"\n\t\t\t\t}\n\t\t\t]\n\t\t}]\n\t},\n\t\"newrelic\": {\n\t\t\"enabled\": false,\n\t\t\"account_id\": \"ACCOUNT_ID\",\n\t\t\"api_key\": \"API_KEY\",\n\t\t\"event_type\": \"GWStats\"\n\t},\n\t\"influxdb\": {\n\t\t\"enabled\": false,\n\t\t\"host\": \"http://1.2.3.4:8086/write?db=imperva_performance_stats\"\n\t},\n\t\"syslog\": {\n\t\t\"enabled\": false,\n\t\t\"endpoints\":[\n\t\t\t{\n\t\t\t\t\"host\": \"1.2.3.4\",\n\t\t\t\t\"protocol\": \"TCP\",\n\t\t\t\t\"port\": 514,\n\t\t\t\t\"facility\":21\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"host\": \"1.2.3.5\",\n\t\t\t\t\"protocol\": \"UDP\",\n\t\t\t\t\"port\": 515,\n\t\t\t\t\"facility\":21\n\t\t\t}\t\t]\n\t},\n\t\"sonar\": {\n\t\t\"enabled\": false,\n\t\t\"endpoints\":[\n\t\t\t{\n\t\t\t\t\"host\": \"your.sonar.hostname\",\n\t\t\t\t\"port\": 10667,\n\t\t\t\t\"facility\":21\n\t\t\t}\n\t\t]\n\t}\n}")
     exit()
 if CONFIG["is_userspace"]:
     BASEDIR = "/opt/SecureSphere/etc/proc/hades/"
@@ -58,7 +63,23 @@ logging.basicConfig(filename=CONFIG["log_file_name"], filemode='w', format='%(na
 # MX level statistics
 MXStats = {
     "mx": MXNAME,
+    "event_type": "mx",
     "timestamp": TIMESTAMP
+}
+
+MXSonarStats = {
+    "mx": MXNAME,
+    "event_type": "mx",
+    "timestamp": TIMESTAMP,
+    "disk":{},
+    "memory":{},
+    "cpu":{
+        "top":{},
+        "sar":{}
+    },
+    "network":{},
+    "log_search":{},
+    "system":{}
 }
 
 influxDbStats = {
@@ -85,7 +106,10 @@ def run():
         for fileconfig in CONFIG["log_search"]["files"]:
             for patternconfig in fileconfig["search_patterns"]:
                 matches = searchLogFile(fileconfig["path"], patternconfig["pattern"])
-                MXStats[patternconfig["name"]] = "\n".join(matches).replace('"',"'")
+                match = "\n".join(matches).replace('"',"'")
+                if match!="":
+                    MXStats[patternconfig["name"]] = match
+                    MXSonarStats["log_search"][patternconfig["name"]] = match
 
     if CONFIG["newrelic"]["enabled"]:
         logging.debug("processing newrelic request: "+json.dumps(MXStats))
@@ -93,6 +117,9 @@ def run():
     if CONFIG["syslog"]["enabled"]:
         logging.debug("processing syslog request: "+json.dumps(MXStats))
         sendSyslog(MXStats)
+    if CONFIG["sonar"]["enabled"]:
+        logging.debug("processing sonar request: "+json.dumps(MXSonarStats))
+        sendSonar(MXSonarStats)
     if CONFIG["influxdb"]["enabled"]:
         logging.debug("processing influxdb requests: "+json.dumps(influxDbStats))
         for measurement in influxDbStats:
@@ -215,6 +242,7 @@ def getNetworkStats():
 # Applies to older models of CentOS and gateways prior to 12.5
 def getInterfaceStats_legacy(ifconfigoutput,ifacename):
     influxIfaceStatAry = []
+    MXSonarStats["network"][ifacename] = {}
     for iface in ifconfigoutput[0].strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
@@ -233,7 +261,12 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             MXStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
             MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
             MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
-            MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])            
+            MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
+            MXSonarStats["network"][ifacename]["rx_packets"] = int(rxAry[0])
+            MXSonarStats["network"][ifacename]["rx_errors"] = int(rxAry[2])
+            MXSonarStats["network"][ifacename]["rx_dropped"] = int(rxAry[4])
+            MXSonarStats["network"][ifacename]["rx_overruns"] = int(rxAry[6])
+            MXSonarStats["network"][ifacename]["rx_frame"] = int(rxAry[8])            
         elif (iface[:11].lower()=="tx packets"):
             txAry = iface[11:].split(" ")
             influxIfaceStatAry.append("tx_packets="+txAry[0])
@@ -245,7 +278,12 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             MXStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
             MXStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
             MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
-            MXStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])            
+            MXStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])
+            MXSonarStats["network"][ifacename]["tx_packets"] = int(txAry[0])
+            MXSonarStats["network"][ifacename]["tx_errors"] = int(txAry[2])
+            MXSonarStats["network"][ifacename]["tx_dropped"] = int(txAry[4])
+            MXSonarStats["network"][ifacename]["tx_overruns"] = int(txAry[6])
+            MXSonarStats["network"][ifacename]["tx_frame"] = int(txAry[8])            
         elif (iface[:8].lower()=="rx bytes"):
             rxBytes = iface[9:].split(" ").pop(0)
             txBytes = iface.lower().split("tx bytes").pop(1).split().pop(0)
@@ -253,14 +291,18 @@ def getInterfaceStats_legacy(ifconfigoutput,ifacename):
             influxIfaceStatAry.append("tx_bytes="+txBytes)
             MXStats["interface_"+ifacename+"_rx_bytes"] = int(rxBytes)
             MXStats["interface_"+ifacename+"_tx_bytes"] = int(txBytes)
+            MXSonarStats["network"][ifacename]["rx_bytes"] = int(rxBytes)
+            MXSonarStats["network"][ifacename]["tx_bytes"] = int(txBytes)
         elif (iface[:10].lower()=="collisions"):
             collisions = iface[11:].split(" ").pop()
             influxIfaceStatAry.append("collisions="+collisions)
             MXStats["interface_"+ifacename+"_collisions"] = int(collisions)    
+            MXSonarStats["network"][ifacename]["collisions"] = int(collisions)    
     return influxIfaceStatAry
 
 def getInterfaceStats(ifconfigoutput,ifacename):
     influxIfaceStatAry = []
+    MXSonarStats["network"][ifacename] = {}
     for iface in ifconfigoutput[0].replace(":"," ").strip().split("\n"):
         iface = ' '.join(iface.replace(":"," ").split())
         if (iface[:5].lower()=="inet "):
@@ -274,6 +316,8 @@ def getInterfaceStats(ifconfigoutput,ifacename):
             influxIfaceStatAry.append("rx_bytes="+rxAry[2])
             MXStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
             MXStats["interface_"+ifacename+"_rx_bytes"] = int(rxAry[2])
+            MXSonarStats["network"][ifacename]["rx_packets"] = int(rxAry[0])
+            MXSonarStats["network"][ifacename]["rx_bytes"] = int(rxAry[2])
         elif (iface[:9].lower()=="rx errors"):
             rxAry = iface[10:].split(" ")
             influxIfaceStatAry.append("rx_errors="+rxAry[0])
@@ -284,12 +328,18 @@ def getInterfaceStats(ifconfigoutput,ifacename):
             MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[2])
             MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[4])
             MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[6])
+            MXSonarStats["network"][ifacename]["rx_errors"] = int(rxAry[0])
+            MXSonarStats["network"][ifacename]["rx_dropped"] = int(rxAry[2])
+            MXSonarStats["network"][ifacename]["rx_overruns"] = int(rxAry[4])
+            MXSonarStats["network"][ifacename]["rx_frame"] = int(rxAry[6])
         elif (iface[:10].lower()=="tx packets"):
             txAry = iface[11:].split(" ")
             influxIfaceStatAry.append("tx_packets="+txAry[0])
             influxIfaceStatAry.append("tx_bytes="+txAry[2])
             MXStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
             MXStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[2])
+            MXSonarStats["network"][ifacename]["tx_packets"] = int(txAry[0])
+            MXSonarStats["network"][ifacename]["tx_bytes"] = int(txAry[2])
         elif (iface[:9].lower()=="tx errors"):
             txAry = iface[10:].split(" ")
             influxIfaceStatAry.append("tx_errors="+txAry[0])
@@ -302,12 +352,19 @@ def getInterfaceStats(ifconfigoutput,ifacename):
             MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
             MXStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
             MXStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
+            MXSonarStats["network"][ifacename]["tx_errors"] = int(txAry[0])
+            MXSonarStats["network"][ifacename]["tx_dropped"] = int(txAry[2])
+            MXSonarStats["network"][ifacename]["tx_overruns"] = int(txAry[4])
+            MXSonarStats["network"][ifacename]["tx_carrier"] = int(txAry[6])                            
+            MXSonarStats["network"][ifacename]["collisions"] = int(txAry[8])
         elif (iface[:8].lower()=="rx bytes"):
             recordAry = iface[9:].split(" ")
             influxIfaceStatAry.append("rx_bytes="+recordAry[0])
             influxIfaceStatAry.append("tx_bytes="+recordAry[5])
             MXStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
             MXStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
+            MXSonarStats["network"][ifacename]["rx_bytes"] = int(recordAry[0])
+            MXSonarStats["network"][ifacename]["tx_bytes"] = int(recordAry[5])
     return influxIfaceStatAry
     
 def getDiskStats():
@@ -319,6 +376,7 @@ def getDiskStats():
             mountAry = mount.replace(","," ").split(" ")
             if mountAry[1][:1]=="/":
                 pipe = Popen(['df',mountAry[1]], stdout=PIPE)
+                MXSonarStats["disk"][mountAry[1]] = {}
                 output = pipe.communicate()
                 mountStats = str(output[0]).split("\n")
                 mountStats.pop(0)
@@ -331,6 +389,9 @@ def getDiskStats():
                 MXStats["disk_volume"+mountAry[1]+"_disk_capacity"] = int(mountStatsAry[1])
                 MXStats["disk_volume"+mountAry[1]+"_disk_used"] = int(mountStatsAry[2])
                 MXStats["disk_volume"+mountAry[1]+"_disk_available"] = int(mountStatsAry[3])
+                MXSonarStats["disk"][mountAry[1]]["disk_capacity"] = int(mountStatsAry[1])
+                MXSonarStats["disk"][mountAry[1]]["disk_used"] = int(mountStatsAry[2])
+                MXSonarStats["disk"][mountAry[1]]["disk_available"] = int(mountStatsAry[3])
 
 def getSysStats():
     with open('/opt/SecureSphere/etc/bootstrap.xml', 'r') as content_file:
@@ -343,17 +404,28 @@ def getSysStats():
         influxDbStats["imperva_mx_sys"]["model="+model] = []        
         sysStat = influxDbStats["imperva_mx_sys"]["model="+model]
 
-        pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/impctl','--version'], stdout=PIPE)
+        pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/platform/show'], stdout=PIPE)
         output = pipe.communicate()
-        influxDbStats["imperva_mx_sys"]["version="+output[0].strip()] = []
-        sysStat = influxDbStats["imperva_mx_sys"]["version="+output[0].strip()]
-
+        for stat in output[0].split("\n"):
+            if stat.strip()!="":
+                statAry = stat.split(" ")
+                key = statAry.pop(0)
+                val = statAry.pop()
+                MXSonarStats["system"][key] = val
+                influxDbStats["imperva_mx_sys"][key+"="+val] = []
+                sysStat = influxDbStats["imperva_mx_sys"][key+"="+val]
+                MXStats[key] = val
+        
         pipe = Popen(['cat','/proc/uptime'], stdout=PIPE)
         output = pipe.communicate()
         uptimeAry = str(output[0]).split("\n")
         uptime = str(uptimeAry[0]).split(" ")
-        sysStat.append("uptime="+uptime[0][:-3])
-        MXStats["uptime"] = uptime[0][:-3]
+        global UPTIME
+        UPTIME = uptime[0][:-3]
+    
+        sysStat.append("uptime="+UPTIME)
+        MXStats["uptime"] = UPTIME
+        MXSonarStats["system"]["uptime"] = UPTIME
         pipe = Popen(['top','-bn','2'], stdout=PIPE)
         output = pipe.communicate()
         topOutputAry = str(output[0]).split("top - ").pop().split("\n")
@@ -362,22 +434,29 @@ def getSysStats():
             statType = stat.split(":").pop(0).lower().strip()
             statsAry = ' '.join(stat.split(":").pop().lower().strip().split()).split(",")
             if statType[:3]=="mem" or statType[:4]=="swap":
+                MXSonarStats["memory"][statType] = {}
                 for curStat in statsAry:
                     statAry = curStat.strip().split()
                     statMeasurement = statAry[1][:5].replace(".","").strip()
                     if statMeasurement=="total" or statMeasurement=="used" or statMeasurement=="free":
                         sysStat.append(statType+"_"+statMeasurement+"="+statAry[0])
                         MXStats["top_"+statType+"_"+statMeasurement] = float(statAry[0])
+                        MXStats["top_"+statType+"_"+statMeasurement] = float(statAry[0])
+                        MXSonarStats["memory"][statType][statMeasurement] = float(statAry[0])
+                        MXSonarStats["memory"][statType][statMeasurement] = float(statAry[0])
             elif statType[:3]=="cpu":
                 cpu = statType.replace("cpu","")
+                MXSonarStats["cpu"]["top"][cpu] = {}
                 influxDbStats["imperva_mx_top_cpu"]["cpu="+cpu] = []
                 MXCpuStatAry = influxDbStats["imperva_mx_top_cpu"]["cpu="+cpu]
                 for cpuStat in statsAry:
                     statAry = cpuStat.strip().split()
                     MXCpuStatAry.append(topCpuAttrMap[statAry[1]]+"="+statAry[0])
-                    MXStats["top_"+statType[0].lower()+"_"+topCpuAttrMap[statAry[1]]] = float(statAry[0])
+                    MXStats["top_"+statType.lower()+"_"+topCpuAttrMap[statAry[1]]] = float(statAry[0])
+                    MXSonarStats["cpu"]["top"][cpu][topCpuAttrMap[statAry[1]]] = float(statAry[0])
 
         try:
+            # @TODO implement sonar stat for sar
             pipe = Popen(['/usr/bin/sar','-P','ALL','1','1'], stdout=PIPE)
             output = pipe.communicate()
             sarOutputAry = str(output[0]).strip().split("Average:").pop(0).split("\n")
@@ -467,17 +546,25 @@ def makeInfluxDBCall(measurement, tags, params):
 
 def sendSyslog(jsonObj):
     if (logHostAvailable["syslog"]==True):
-        logging.info("SYSLOG REQUEST: "+json.dumps(jsonObj))
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(CONNECTIONTIMEOUT)
-            s.connect((CONFIG["syslog"]["host"], CONFIG["syslog"]["port"]))
-            s.sendall(b'{0}'.format(json.dumps(jsonObj)))
-            s.close()
-        except socket.error as e:
-            logging.warning("sendSyslog() exception: {}".format(e))
-            logging.error("syslog host unreachable, aborting subsequent calls to syslog")
-            logHostAvailable["syslog"] = False
+        for syslogEndpoint in CONFIG["syslog"]["endpoints"]:
+            try:
+                logger = logging.getLogger('Logger')
+                handler = logging.handlers.SysLogHandler(address=(syslogEndpoint["host"],syslogEndpoint["port"]),facility=syslogEndpoint["facility"],socktype=(socket.SOCK_STREAM if syslogEndpoint["protocol"]=="TCP" else socket.SOCK_DGRAM))
+                logger.addHandler(handler)
+                logger.info(jsonObj)
+            except Exception as e:
+                logging.error("syslog failed")
+
+def sendSonar(jsonObj):
+    if (logHostAvailable["sonar"]==True):
+        for sonarEndpoint in CONFIG["sonar"]["endpoints"]:
+            try:
+                logger = logging.getLogger('Logger')
+                handler = logging.handlers.SysLogHandler(address = (sonarEndpoint["host"], sonarEndpoint["port"]),facility=sonarEndpoint["facility"],socktype=socket.SOCK_STREAM)
+                logger.addHandler(handler)
+                logger.info(json.dumps(jsonObj)+"\n")
+            except Exception as e:
+                logging.error("syslog failed")
 
 def searchLogFile(filename, pattern):
     matches = []

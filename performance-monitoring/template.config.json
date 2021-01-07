@@ -1,5 +1,5 @@
 {
-  "log_level": "debug",
+  "log_level": "WARNING",
   "log_file_name": "gateway_statistics.log",
   "environment": "dev",
   "is_userspace": false, 
@@ -25,12 +25,33 @@
     "event_type": "GWStats"
   },
   "influxdb": {
-    "enabled": true,
+    "enabled": false,
     "host": "http://1.2.3.4:8086/write?db=imperva_performance_stats"
   },
   "syslog": {
     "enabled": false,
-    "host": "1.2.3.4",
-    "port": 514
+    "endpoints":[
+      {
+        "host": "1.2.3.4",
+        "protocol": "TCP",
+        "port": 514,
+        "facility":21
+      },
+      {
+        "host": "1.2.3.5",
+        "protocol": "UDP",
+        "port": 515,
+        "facility":21
+      }    ]
+  },
+  "sonar": {
+    "enabled": false,
+    "endpoints":[
+      {
+        "host": "your.sonar.hostname",
+        "port": 10667,
+        "facility":21
+      }
+    ]
   }
 }
