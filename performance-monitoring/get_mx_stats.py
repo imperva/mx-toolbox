@@ -71,6 +71,9 @@ MXSonarStats = {
     "mx": MXNAME,
     "event_type": "mx",
     "timestamp": TIMESTAMP,
+    "policies":{},
+    "agents":{},
+    "gateways":{},
     "disk":{},
     "memory":{},
     "cpu":{
@@ -137,10 +140,8 @@ def strim(str):
     return re.sub('\s\s+', ' ', str).strip()
 
 def getMXServerStats():
-    pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/support/server/show','--scale-info'], stdout=PIPE)
-    # pipe = Popen(['cat',sys.argv[1]], stdout=PIPE)
-    output = pipe.communicate()
-    serverStatsStr = re.sub(r"-----.*-----", '----------', str(output[0].strip()))
+    input, output, error = os.popen3('/opt/SecureSphere/etc/impctl/bin/support/server/show --scale-info')
+    serverStatsStr = re.sub(r"-----.*-----", '----------', str(output.read().strip()))
     serverStatsAry = serverStatsStr.strip().split("----------")
     # remove first 2 entries that contain no useful stats
     serverStatsAry.pop(0)
@@ -168,11 +169,16 @@ def getMXServerStats():
         influxGWStatAry.append("gw_audit_utilization_percent="+("0" if gwSummaryStatsAry[9].strip()=="%" else gwSummaryStatsAry[9].replace("%","").strip()))
         influxGWStatAry.append("gw_load_kbps="+re.findall(r"Kbps:.([0-9]*\S\w*)", gwSummaryStats).pop().strip())
         influxGWStatAry.append("gw_load_kbps_max="+re.findall(r"Kbps:.[0-9]*\S\w*.+?\(([0-9]*)", gwSummaryStats).pop().strip())
-        # influxGWStatAry.append("gw_load_ipu="+gwSummaryStatsAry[16].replace("(","").replace(")","").strip())
         influxGWStatAry.append("gw_load_hps="+re.findall(r"Hps:.([0-9]*\S\w*)", gwSummaryStats).pop().split(":").pop().strip())
         influxGWStatAry.append("gw_load_hps_max="+re.findall(r"Hps:.[0-9]*\S\w*.+?\(([0-9]*)", gwSummaryStats).pop().strip())
-        # influxGWStatAry.append("gw_load_hps_max2="+gwSummaryStatsAry[20].replace("(","").replace(")","").strip())
-
+        
+        MXSonarStats["gateways"][gw_name] = {}
+        MXSonarStats["gateways"][gw_name]["audit_utilization_percent"] = ("0" if gwSummaryStatsAry[9].strip()=="%" else gwSummaryStatsAry[9].replace("%","").strip())
+        MXSonarStats["gateways"][gw_name]["load_kbps"] = re.findall(r"Kbps:.([0-9]*\S\w*)", gwSummaryStats).pop().strip()
+        MXSonarStats["gateways"][gw_name]["load_kbps_max"] = re.findall(r"Kbps:.[0-9]*\S\w*.+?\(([0-9]*)", gwSummaryStats).pop().strip()
+        MXSonarStats["gateways"][gw_name]["load_hps"] = re.findall(r"Hps:.([0-9]*\S\w*)", gwSummaryStats).pop().split(":").pop().strip()
+        MXSonarStats["gateways"][gw_name]["load_hps_max"] = re.findall(r"Hps:.[0-9]*\S\w*.+?\(([0-9]*)", gwSummaryStats).pop().strip()        
+        
         # Parse out agent stat, example: Gateway: gateway_name_here 0 Agents 0 SG 0 IP Audit: 1% /2% V4500(Sniffing) RUNNING Kbps: 15184 (338032) Ipu: (773) Hps: 738 (50092) ((3591))
         if (''.join(gwUtilStatsAry)!=""):
             while len(gwUtilStatsAry)>0:
@@ -194,6 +200,21 @@ def getMXServerStats():
                     influxAgentStatAry.append("agent_load_hps_max="+statAry[17].replace("(","").replace(")",""))
                     influxAgentStatAry.append("agent_load_percent="+("0" if statAry[18].strip()=="%" else statAry[18].replace("%","").strip()))
                     influxAgentStatAry.append("agent_id="+str(agent_id))
+
+                    MXSonarStats["agents"][agent_name] = {}
+                    MXSonarStats["agents"][agent_name]["id"] = str(agent_id)
+                    MXSonarStats["agents"][agent_name]["gateway"] = gw_name
+                    MXSonarStats["agents"][agent_name]["status"] = agent_status
+                    MXSonarStats["agents"][agent_name]["channels"] = statAry[5]
+                    MXSonarStats["agents"][agent_name]["cores"] = statAry[7]
+                    MXSonarStats["agents"][agent_name]["load_kpbs"] = statAry[10]
+                    MXSonarStats["agents"][agent_name]["load_kpbs_max"] = statAry[11].replace("(","").replace(")","")
+                    MXSonarStats["agents"][agent_name]["load_ipu"] = statAry[13]
+                    MXSonarStats["agents"][agent_name]["load_ipu_max"] = statAry[14].replace("(","").replace(")","")
+                    MXSonarStats["agents"][agent_name]["load_hps"] = statAry[16]
+                    MXSonarStats["agents"][agent_name]["load_hps_max"] = statAry[17].replace("(","").replace(")","")
+                    MXSonarStats["agents"][agent_name]["load_percent"] = ("0" if statAry[18].strip()=="%" else statAry[18].replace("%","").strip())
+
                 elif (statAry[0]=="(!)"):
                     if (statAry[1]=="ApplicativePacketLoss"):
                         influxGWStatAry.append("gateway_daily_packet_loss="+statAry[3].split("/").pop(0))
@@ -202,30 +223,34 @@ def getMXServerStats():
                         influxGWStatAry.append("gateway_weekly_packet_loss="+statAry[6].split("/").pop(0))
                         influxGWStatAry.append("gateway_weekly_packet_loss_percent="+statAry[7].replace("%",""))
                         influxGWStatAry.append("gateway_weekly_total_packets="+statAry[6].split("/").pop())
+                        MXSonarStats["gateways"][gw_name]["daily_packet_loss"] = statAry[3].split("/").pop(0)
+                        MXSonarStats["gateways"][gw_name]["daily_packet_loss_percent"] = statAry[4].replace("%","")
+                        MXSonarStats["gateways"][gw_name]["daily_total_packets"] = statAry[3].split("/").pop()
+                        MXSonarStats["gateways"][gw_name]["weekly_packet_loss"] = statAry[6].split("/").pop(0)
+                        MXSonarStats["gateways"][gw_name]["weekly_packet_loss_percent"] = statAry[7].replace("%","")
+                        MXSonarStats["gateways"][gw_name]["weekly_total_packets"] = statAry[6].split("/").pop()
+
                 elif (statAry[0]=="(A)"):
-                    audit_policy_name = re.findall(r"\(A\) (.*)\s[0-9]+/[0-9]+", stat).pop().strip().replace(" ","_")
+                    audit_policy_name = re.findall(r"\(A\) (.*)\s[0-9]+/[0-9]+", stat).pop().strip()
                     # [0-9].*\/.*[0-9]\s
                     # .[0-9]*\.[0-9].*\%
-                    influxDbStats["imperva_audit_policies"]["mx_name="+MXNAME+",gw_name="+gw_name+",audit_policy_name="+audit_policy_name] = []
-                    influxAuditPolicyStatAry = influxDbStats["imperva_audit_policies"]["mx_name="+MXNAME+",gw_name="+gw_name+",audit_policy_name="+audit_policy_name]
-                    influxAuditPolicyStatAry.append("audit_policy_events="+re.findall(r"([0-9]+)/[0-9]+", stat).pop().strip())
+                    influxDbStats["imperva_audit_policies"]["mx_name="+MXNAME+",gw_name="+gw_name+",audit_policy_name="+audit_policy_name.replace(" ","_")] = []
+                    influxAuditPolicyStatAry = influxDbStats["imperva_audit_policies"]["mx_name="+MXNAME+",gw_name="+gw_name+",audit_policy_name="+audit_policy_name.replace(" ","_")]
+                    influxAuditPolicyStatAry.append("audit_events_phase1="+re.findall(r"([0-9]+)/[0-9]+", stat).pop().strip())
+                    influxAuditPolicyStatAry.append("audit_events_phase2="+re.findall(r"[0-9]+/([0-9]+)", stat).pop().strip())
                     influxAuditPolicyStatAry.append("audit_policy_percent="+re.findall(r"([-+]?[0-9]*\.?[0-9]*)\%", stat).pop().strip())
-                    influxAuditPolicyStatAry.append("audit_total="+re.findall(r"[0-9]+/([0-9]+)", stat).pop().strip())
+                    MXSonarStats["policies"][audit_policy_name] = {}
+                    MXSonarStats["policies"][audit_policy_name]["audit_events_phase1"] = re.findall(r"([0-9]+)/[0-9]+", stat).pop().strip()
+                    MXSonarStats["policies"][audit_policy_name]["audit_events_phase2"] = re.findall(r"[0-9]+/([0-9]+)", stat).pop().strip()
+                    MXSonarStats["policies"][audit_policy_name]["audit_policy_percent"] = re.findall(r"([-+]?[0-9]*\.?[0-9]*)\%", stat).pop().strip()
+
 
 def getNetworkStats():
-    pipe = Popen(['ls','/sys/class/net'], stdout=PIPE)
-    output = pipe.communicate()
-    interfaces = str(output[0]).split("\n")
-    pipe = Popen(['cat','/proc/uptime'], stdout=PIPE)
-    output = pipe.communicate()
-    uptimeAry = str(output[0]).split("\n")
-    uptime = str(uptimeAry[0]).split(" ")
-
-    for ifacename in interfaces:
-        if(ifacename!=""):
+    basedir = "/sys/class/net/"
+    input, ifaceoutput, error = os.popen3("ls "+basedir)
+    for ifacename in ifaceoutput.read().split("\n"):
+        if(ifacename.strip()!=""):
             if(ifacename[:3]=="eth"):
-                # influxDbStats["imperva_gw_net"]["interface="+ifacename] = []
-                # influxIfaceStatAry = influxDbStats["imperva_gw_net"]["interface="+ifacename]
                 pipe = Popen(['/sbin/ifconfig',ifacename], stdout=PIPE)
                 ifconfigoutput = pipe.communicate()
                 ipaddress = "n/a"
@@ -234,138 +259,17 @@ def getNetworkStats():
                     if (iface[:5].lower()=="inet "):
                         ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
                         break
-                if (re.search('(RX packets)\s.*(errors)',ifconfigoutput[0].replace(":"," "))!=None):
-                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+uptime[0][:-3]] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
-                else:
-                    influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+uptime[0][:-3]] = getInterfaceStats(ifconfigoutput,ifacename)
-
-# Applies to older models of CentOS and gateways prior to 12.5
-def getInterfaceStats_legacy(ifconfigoutput,ifacename):
-    influxIfaceStatAry = []
-    MXSonarStats["network"][ifacename] = {}
-    for iface in ifconfigoutput[0].strip().split("\n"):
-        iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:5].lower()=="inet "):
-            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            # sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
-            # influxIfaceStatAry.append("sockets="+sockets)
-            # MXStats["interface_"+ifacename+"_sockets"] = sockets
-        elif (iface[:11].lower()=="rx packets"):
-            rxAry = iface[10:].replace(":"," ").split(" ")
-            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-            influxIfaceStatAry.append("rx_errors="+rxAry[2])
-            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
-            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
-            influxIfaceStatAry.append("rx_frame="+rxAry[8])
-            MXStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-            MXStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
-            MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
-            MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
-            MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
-            MXSonarStats["network"][ifacename]["rx_packets"] = int(rxAry[0])
-            MXSonarStats["network"][ifacename]["rx_errors"] = int(rxAry[2])
-            MXSonarStats["network"][ifacename]["rx_dropped"] = int(rxAry[4])
-            MXSonarStats["network"][ifacename]["rx_overruns"] = int(rxAry[6])
-            MXSonarStats["network"][ifacename]["rx_frame"] = int(rxAry[8])            
-        elif (iface[:11].lower()=="tx packets"):
-            txAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("tx_packets="+txAry[0])
-            influxIfaceStatAry.append("tx_errors="+txAry[2])
-            influxIfaceStatAry.append("tx_dropped="+txAry[4])
-            influxIfaceStatAry.append("tx_overruns="+txAry[6])
-            influxIfaceStatAry.append("tx_frame="+txAry[8])
-            MXStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-            MXStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
-            MXStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
-            MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
-            MXStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])
-            MXSonarStats["network"][ifacename]["tx_packets"] = int(txAry[0])
-            MXSonarStats["network"][ifacename]["tx_errors"] = int(txAry[2])
-            MXSonarStats["network"][ifacename]["tx_dropped"] = int(txAry[4])
-            MXSonarStats["network"][ifacename]["tx_overruns"] = int(txAry[6])
-            MXSonarStats["network"][ifacename]["tx_frame"] = int(txAry[8])            
-        elif (iface[:8].lower()=="rx bytes"):
-            rxBytes = iface[9:].split(" ").pop(0)
-            txBytes = iface.lower().split("tx bytes").pop(1).split().pop(0)
-            influxIfaceStatAry.append("rx_bytes="+rxBytes)
-            influxIfaceStatAry.append("tx_bytes="+txBytes)
-            MXStats["interface_"+ifacename+"_rx_bytes"] = int(rxBytes)
-            MXStats["interface_"+ifacename+"_tx_bytes"] = int(txBytes)
-            MXSonarStats["network"][ifacename]["rx_bytes"] = int(rxBytes)
-            MXSonarStats["network"][ifacename]["tx_bytes"] = int(txBytes)
-        elif (iface[:10].lower()=="collisions"):
-            collisions = iface[11:].split(" ").pop()
-            influxIfaceStatAry.append("collisions="+collisions)
-            MXStats["interface_"+ifacename+"_collisions"] = int(collisions)    
-            MXSonarStats["network"][ifacename]["collisions"] = int(collisions)    
-    return influxIfaceStatAry
-
-def getInterfaceStats(ifconfigoutput,ifacename):
-    influxIfaceStatAry = []
-    MXSonarStats["network"][ifacename] = {}
-    for iface in ifconfigoutput[0].replace(":"," ").strip().split("\n"):
-        iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:5].lower()=="inet "):
-            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
-            influxIfaceStatAry.append("sockets="+sockets)
-            MXStats["interface_"+ifacename+"_sockets"] = sockets
-        elif (iface[:10].lower()=="rx packets"):
-            rxAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-            influxIfaceStatAry.append("rx_bytes="+rxAry[2])
-            MXStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-            MXStats["interface_"+ifacename+"_rx_bytes"] = int(rxAry[2])
-            MXSonarStats["network"][ifacename]["rx_packets"] = int(rxAry[0])
-            MXSonarStats["network"][ifacename]["rx_bytes"] = int(rxAry[2])
-        elif (iface[:9].lower()=="rx errors"):
-            rxAry = iface[10:].split(" ")
-            influxIfaceStatAry.append("rx_errors="+rxAry[0])
-            influxIfaceStatAry.append("rx_dropped="+rxAry[2])
-            influxIfaceStatAry.append("rx_overruns="+rxAry[4])
-            influxIfaceStatAry.append("rx_frame="+rxAry[6])
-            MXStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[0])
-            MXStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[2])
-            MXStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[4])
-            MXStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[6])
-            MXSonarStats["network"][ifacename]["rx_errors"] = int(rxAry[0])
-            MXSonarStats["network"][ifacename]["rx_dropped"] = int(rxAry[2])
-            MXSonarStats["network"][ifacename]["rx_overruns"] = int(rxAry[4])
-            MXSonarStats["network"][ifacename]["rx_frame"] = int(rxAry[6])
-        elif (iface[:10].lower()=="tx packets"):
-            txAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("tx_packets="+txAry[0])
-            influxIfaceStatAry.append("tx_bytes="+txAry[2])
-            MXStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-            MXStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[2])
-            MXSonarStats["network"][ifacename]["tx_packets"] = int(txAry[0])
-            MXSonarStats["network"][ifacename]["tx_bytes"] = int(txAry[2])
-        elif (iface[:9].lower()=="tx errors"):
-            txAry = iface[10:].split(" ")
-            influxIfaceStatAry.append("tx_errors="+txAry[0])
-            influxIfaceStatAry.append("tx_dropped="+txAry[2])
-            influxIfaceStatAry.append("tx_overruns="+txAry[4])
-            influxIfaceStatAry.append("tx_carrier="+txAry[6])
-            influxIfaceStatAry.append("collisions="+txAry[8])
-            MXStats["interface_"+ifacename+"_tx_errors"] = int(txAry[0])
-            MXStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[2])
-            MXStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
-            MXStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
-            MXStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
-            MXSonarStats["network"][ifacename]["tx_errors"] = int(txAry[0])
-            MXSonarStats["network"][ifacename]["tx_dropped"] = int(txAry[2])
-            MXSonarStats["network"][ifacename]["tx_overruns"] = int(txAry[4])
-            MXSonarStats["network"][ifacename]["tx_carrier"] = int(txAry[6])                            
-            MXSonarStats["network"][ifacename]["collisions"] = int(txAry[8])
-        elif (iface[:8].lower()=="rx bytes"):
-            recordAry = iface[9:].split(" ")
-            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
-            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
-            MXStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
-            MXStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
-            MXSonarStats["network"][ifacename]["rx_bytes"] = int(recordAry[0])
-            MXSonarStats["network"][ifacename]["tx_bytes"] = int(recordAry[5])
-    return influxIfaceStatAry
+                influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+UPTIME] = []
+                influxIfaceStatAry = influxDbStats["imperva_mx_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+UPTIME]
+                MXSonarStats["network"][ifacename] = {}
+                input, statoutput, error = os.popen3("ls "+basedir+ifacename+"/statistics/")
+                for stat in statoutput.read().split("\n"):
+                    if stat.strip() !="":
+                        input, output, error = os.popen3("cat "+basedir+ifacename+'/statistics/'+stat)
+                        val = output.read().strip()
+                        influxIfaceStatAry.append(stat+"="+val)
+                        MXStats["interface_"+ifacename+"_"+stat] = int(val)
+                        MXSonarStats["network"][ifacename][stat] = int(val)
     
 def getDiskStats():
     pipe = Popen(['cat','/proc/mounts'], stdout=PIPE)
@@ -416,12 +320,9 @@ def getSysStats():
                 sysStat = influxDbStats["imperva_mx_sys"][key+"="+val]
                 MXStats[key] = val
         
-        pipe = Popen(['cat','/proc/uptime'], stdout=PIPE)
-        output = pipe.communicate()
-        uptimeAry = str(output[0]).split("\n")
-        uptime = str(uptimeAry[0]).split(" ")
         global UPTIME
-        UPTIME = uptime[0][:-3]
+        input, output, error = os.popen3("cat /proc/uptime")
+        UPTIME = output.read().strip().split(" ").pop(0).split(".").pop(0)
     
         sysStat.append("uptime="+UPTIME)
         MXStats["uptime"] = UPTIME

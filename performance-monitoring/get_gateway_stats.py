@@ -248,19 +248,11 @@ def strim(str):
     return re.sub('\s\s+', ' ', str).strip()
 
 def getNetworkStats():
-    pipe = Popen(['ls','/sys/class/net'], stdout=PIPE)
-    output = pipe.communicate()
-    interfaces = str(output[0]).split("\n")
-    pipe = Popen(['cat','/proc/uptime'], stdout=PIPE)
-    output = pipe.communicate()
-    uptimeAry = str(output[0]).split("\n")
-    uptime = str(uptimeAry[0]).split(" ")
-    
-    for ifacename in interfaces:
-        if(ifacename!=""):
+    basedir = "/sys/class/net/"
+    input, ifaceoutput, error = os.popen3("ls "+basedir)
+    for ifacename in ifaceoutput.read().split("\n"):
+        if(ifacename.strip()!=""):
             if(ifacename[:3]=="eth"):
-                # influxDbStats["imperva_gw_net"]["interface="+ifacename] = []
-                # influxIfaceStatAry = influxDbStats["imperva_gw_net"]["interface="+ifacename]
                 pipe = Popen(['/sbin/ifconfig',ifacename], stdout=PIPE)
                 ifconfigoutput = pipe.communicate()
                 ipaddress = "n/a"
@@ -269,136 +261,17 @@ def getNetworkStats():
                     if (iface[:5].lower()=="inet "):
                         ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
                         break
-                if (re.search('(RX packets).*(errors)',ifconfigoutput[0].replace(":"," "))!=None):
-                    influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+uptime[0][:-3].strip()] = getInterfaceStats_legacy(ifconfigoutput,ifacename)
-                else:
-                    influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+uptime[0][:-3].strip()] = getInterfaceStats(ifconfigoutput,ifacename)
-
-# Applies to older models of CentOS and gateways prior to 12.5
-def getInterfaceStats_legacy(ifconfigoutput,ifacename):
-    GWSonarStats["network"][ifacename] = {}
-    influxIfaceStatAry = []
-    for iface in ifconfigoutput[0].strip().split("\n"):
-        iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:5].lower()=="inet "):
-            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-            # sockets = str(subprocess.check_output('netstat -noa |grep -i -e time_wait -e established | grep "'+ipaddress+'" | wc -l', shell=True)).strip()
-            # influxIfaceStatAry.append("sockets="+sockets)
-            # MXStats["interface_"+ifacename+"_sockets"] = sockets
-        elif (iface[:11].lower()=="rx packets"):
-            rxAry = iface[10:].replace(":"," ").split(" ")
-            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-            influxIfaceStatAry.append("rx_errors="+rxAry[2])
-            influxIfaceStatAry.append("rx_dropped="+rxAry[4])
-            influxIfaceStatAry.append("rx_overruns="+rxAry[6])
-            influxIfaceStatAry.append("rx_frame="+rxAry[8])
-            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[2])
-            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[4])
-            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[6])
-            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[8])
-            GWSonarStats["network"][ifacename]["rx_packets"] = int(rxAry[0])
-            GWSonarStats["network"][ifacename]["rx_errors"] = int(rxAry[2])
-            GWSonarStats["network"][ifacename]["rx_dropped"] = int(rxAry[4])
-            GWSonarStats["network"][ifacename]["rx_overruns"] = int(rxAry[6])
-            GWSonarStats["network"][ifacename]["rx_frame"] = int(rxAry[8])
-        elif (iface[:11].lower()=="tx packets"):
-            txAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("tx_packets="+txAry[0])
-            influxIfaceStatAry.append("tx_errors="+txAry[2])
-            influxIfaceStatAry.append("tx_dropped="+txAry[4])
-            influxIfaceStatAry.append("tx_overruns="+txAry[6])
-            influxIfaceStatAry.append("tx_frame="+txAry[8])
-            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[2])
-            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[4])
-            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[6])
-            GWStats["interface_"+ifacename+"_tx_frame"] = int(txAry[8])
-            GWSonarStats["network"][ifacename]["tx_packets"] = int(txAry[0])
-            GWSonarStats["network"][ifacename]["tx_errors"] = int(txAry[2])
-            GWSonarStats["network"][ifacename]["tx_dropped"] = int(txAry[4])
-            GWSonarStats["network"][ifacename]["tx_overruns"] = int(txAry[6])
-            GWSonarStats["network"][ifacename]["tx_frame"] = int(txAry[8])            
-
-        elif (iface[:8].lower()=="rx bytes"):
-            rxBytes = iface[9:].split(" ").pop(0)
-            txBytes = iface.lower().split("tx bytes").pop(1).split().pop(0)
-            influxIfaceStatAry.append("rx_bytes="+rxBytes)
-            influxIfaceStatAry.append("tx_bytes="+txBytes)
-            GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxBytes)
-            GWStats["interface_"+ifacename+"_tx_bytes"] = int(txBytes)
-            GWSonarStats["network"][ifacename]["rx_bytes"] = int(rxBytes)
-            GWSonarStats["network"][ifacename]["tx_bytes"] = int(txBytes)
-        elif (iface[:10].lower()=="collisions"):
-            collisions = iface[11:].split(" ").pop()
-            influxIfaceStatAry.append("collisions="+collisions)
-            GWStats["interface_"+ifacename+"_collisions"] = int(collisions)    
-            GWSonarStats["network"][ifacename]["collisions"] = int(collisions)    
-    return influxIfaceStatAry
-
-def getInterfaceStats(ifconfigoutput,ifacename):
-    GWSonarStats["network"][ifacename] = {}
-    influxIfaceStatAry = []
-    for iface in ifconfigoutput[0].replace(":"," ").strip().split("\n"):
-        iface = ' '.join(iface.replace(":"," ").split())
-        if (iface[:5].lower()=="inet "):
-            ipaddress = iface[5:].replace("addr:","").split(" ").pop(0)
-        elif (iface[:10].lower()=="rx packets"):
-            rxAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("rx_packets="+rxAry[0])
-            influxIfaceStatAry.append("rx_bytes="+rxAry[2])
-            GWStats["interface_"+ifacename+"_rx_packets"] = int(rxAry[0])
-            GWStats["interface_"+ifacename+"_rx_bytes"] = int(rxAry[2])
-            GWSonarStats["network"][ifacename]["rx_packets"] = int(rxAry[0])
-            GWSonarStats["network"][ifacename]["rx_bytes"] = int(rxAry[2])
-        elif (iface[:9].lower()=="rx errors"):
-            rxAry = iface[10:].split(" ")
-            influxIfaceStatAry.append("rx_errors="+rxAry[0])
-            influxIfaceStatAry.append("rx_dropped="+rxAry[2])
-            influxIfaceStatAry.append("rx_overruns="+rxAry[4])
-            influxIfaceStatAry.append("rx_frame="+rxAry[6])
-            GWStats["interface_"+ifacename+"_rx_errors"] = int(rxAry[0])
-            GWStats["interface_"+ifacename+"_rx_dropped"] = int(rxAry[2])
-            GWStats["interface_"+ifacename+"_rx_overruns"] = int(rxAry[4])
-            GWStats["interface_"+ifacename+"_rx_frame"] = int(rxAry[6])
-            GWSonarStats["network"][ifacename]["rx_errors"] = int(rxAry[0])
-            GWSonarStats["network"][ifacename]["rx_dropped"] = int(rxAry[2])
-            GWSonarStats["network"][ifacename]["rx_overruns"] = int(rxAry[4])
-            GWSonarStats["network"][ifacename]["rx_frame"] = int(rxAry[6])
-        elif (iface[:10].lower()=="tx packets"):
-            txAry = iface[11:].split(" ")
-            influxIfaceStatAry.append("tx_packets="+txAry[0])
-            influxIfaceStatAry.append("tx_bytes="+txAry[2])
-            GWStats["interface_"+ifacename+"_tx_packets"] = int(txAry[0])
-            GWStats["interface_"+ifacename+"_tx_bytes"] = int(txAry[2])
-            GWSonarStats["network"][ifacename]["tx_packets"] = int(txAry[0])
-            GWSonarStats["network"][ifacename]["tx_bytes"] = int(txAry[2])
-        elif (iface[:9].lower()=="tx errors"):
-            txAry = iface[10:].split(" ")
-            influxIfaceStatAry.append("tx_errors="+txAry[0])
-            influxIfaceStatAry.append("tx_dropped="+txAry[2])
-            influxIfaceStatAry.append("tx_overruns="+txAry[4])
-            influxIfaceStatAry.append("tx_carrier="+txAry[6])
-            influxIfaceStatAry.append("collisions="+txAry[8])
-            GWStats["interface_"+ifacename+"_tx_errors"] = int(txAry[0])
-            GWStats["interface_"+ifacename+"_tx_dropped"] = int(txAry[2])
-            GWStats["interface_"+ifacename+"_tx_overruns"] = int(txAry[4])
-            GWStats["interface_"+ifacename+"_tx_carrier"] = int(txAry[6])                            
-            GWStats["interface_"+ifacename+"_collisions"] = int(txAry[8])
-            GWSonarStats["network"][ifacename]["tx_errors"] = int(txAry[0])
-            GWSonarStats["network"][ifacename]["tx_dropped"] = int(txAry[2])
-            GWSonarStats["network"][ifacename]["tx_overruns"] = int(txAry[4])
-            GWSonarStats["network"][ifacename]["tx_carrier"] = int(txAry[6])                            
-            GWSonarStats["network"][ifacename]["collisions"] = int(txAry[8])
-        elif (iface[:8].lower()=="rx bytes"):
-            recordAry = iface[9:].split(" ")
-            influxIfaceStatAry.append("rx_bytes="+recordAry[0])
-            influxIfaceStatAry.append("tx_bytes="+recordAry[5])
-            GWStats["interface_"+ifacename+"_rx_bytes"] = int(recordAry[0])
-            GWStats["interface_"+ifacename+"_tx_bytes"] = int(recordAry[5])
-            GWSonarStats["network"][ifacename]["rx_bytes"] = int(recordAry[0])
-            GWSonarStats["network"][ifacename]["tx_bytes"] = int(recordAry[5])
-    return influxIfaceStatAry
+                influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+UPTIME] = []
+                influxIfaceStatAry = influxDbStats["imperva_gw_net"]["interface="+ifacename+",ipaddress="+ipaddress+",uptime="+UPTIME]
+                GWSonarStats["network"][ifacename] = {}
+                input, statoutput, error = os.popen3("ls "+basedir+ifacename+"/statistics/")
+                for stat in statoutput.read().split("\n"):
+                    if stat.strip() !="":
+                        input, output, error = os.popen3("cat "+basedir+ifacename+'/statistics/'+stat)
+                        val = output.read().strip()
+                        influxIfaceStatAry.append(stat+"="+val)
+                        GWStats["interface_"+ifacename+"_"+stat] = int(val)
+                        GWSonarStats["network"][ifacename][stat] = int(val)
 
 def getDiskStats():
     pipe = Popen(['cat','/proc/mounts'], stdout=PIPE)
@@ -468,12 +341,9 @@ def getSysStats():
         GWSonarStats["system"]["supported_kbps"] = int(gwSizingStats[model]["gw_supported_kbps"])
         GWSonarStats["system"]["supported_hps"] = int(gwSizingStats[model]["gw_supported_hps"])        
         
-        pipe = Popen(['cat','/proc/uptime'], stdout=PIPE)
-        output = pipe.communicate()
-        uptimeAry = str(output[0]).split("\n")
-        uptime = str(uptimeAry[0]).split(" ")
         global UPTIME
-        UPTIME = uptime[0][:-3]
+        input, output, error = os.popen3("cat /proc/uptime")
+        UPTIME = output.read().strip().split(" ").pop(0).split(".").pop(0)
         sysStat.append("uptime="+UPTIME)
         GWStats["uptime"] = UPTIME
         GWSonarStats["system"]["uptime"] = UPTIME
