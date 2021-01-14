@@ -1,0 +1,21 @@
+{
+    "connection_sec_max": "4",
+    "connection_sec": "0",
+    "event_type": "server_group",
+    "gateway": "i-00b939447e9dddc4d"
+    "hdfs_hits_sec": "0",
+    "http_hits_sec_max": "0",
+    "http_hits_sec": "0",
+    "kbps_max": "24232",
+    "kbps": "0",
+    "mx_host": "i-0e3ffb6c1767cfa2a",
+    "server_group_id": "520858184227134307",
+    "server_group": "isbt_sg",
+    "sql_audit_phase2_events_sec_max": "0",
+    "sql_audit_phase2_events_sec": "0",
+    "sql_hits_sec_max": "40",
+    "sql_hits_sec": "0",
+    "timestamp": "2021/01/06 03:03:49",
+    "wfd_successful_hits_sec_max": "0",
+    "wfd_successful_hits_sec": "0",
+}

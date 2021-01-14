@@ -1,0 +1,486 @@
+{
+    "imperva_gw_top_cpu": {
+        "cpu=0": [
+            "user=0.0",
+            "system=0.7",
+            "nice=0.0",
+            "idle=99.3",
+            "wait=0.0",
+            "hardware=0.0",
+            "software=0.0",
+            "steal_time=0.0"
+        ],
+        "cpu=1": [
+            "user=0.0",
+            "system=0.3",
+            "nice=0.0",
+            "idle=99.3",
+            "wait=0.0",
+            "hardware=0.0",
+            "software=0.0",
+            "steal_time=0.3"
+        ],
+        "cpu=2": [
+            "user=0.3",
+            "system=0.0",
+            "nice=0.0",
+            "idle=99.7",
+            "wait=0.0",
+            "hardware=0.0",
+            "software=0.0",
+            "steal_time=0.0"
+        ],
+        "cpu=3": [
+            "user=0.0",
+            "system=0.0",
+            "nice=0.0",
+            "idle=100.0",
+            "wait=0.0",
+            "hardware=0.0",
+            "software=0.0",
+            "steal_time=0.0"
+        ]
+    },
+    "imperva_sg": {
+        "servergroupname=isbt_web_app_sg,mx_host=i-0e3ffb6c1767cfa2a": [
+            "kbps=20",
+            "kbps_max=356",
+            "connection_sec=0",
+            "connection_sec_max=0",
+            "http_hits_sec=0",
+            "http_hits_sec_max=0",
+            "wfd_successful_hits_sec=0",
+            "wfd_successful_hits_sec_max=0",
+            "sql_hits_sec=0",
+            "sql_hits_sec_max=0",
+            "sql_audit_phase2_events_sec=0",
+            "sql_audit_phase2_events_sec_max=0",
+            "hdfs_hits_sec=0"
+        ],
+        "servergroupname=isbt_sg,mx_host=i-0e3ffb6c1767cfa2a": [
+            "kbps=0",
+            "kbps_max=24232",
+            "connection_sec=0",
+            "connection_sec_max=4",
+            "http_hits_sec=0",
+            "http_hits_sec_max=0",
+            "wfd_successful_hits_sec=0",
+            "wfd_successful_hits_sec_max=0",
+            "sql_hits_sec=0",
+            "sql_hits_sec_max=40",
+            "sql_audit_phase2_events_sec=0",
+            "sql_audit_phase2_events_sec_max=0",
+            "hdfs_hits_sec=0"
+        ]
+    },
+    "imperva_gw_hades": {
+        "file=/proc/hades/status": [
+            "kbps=20",
+            "kbps_max=50876",
+            "kbps_application=0",
+            "kbps_application_max=24220",
+            "connection_sec=0",
+            "connection_sec_max=4",
+            "overload_connection_sec=0",
+            "overload_connection_sec_max=0",
+            "sql_hits_sec=0",
+            "sql_hits_sec_max=40",
+            "overload_sql_hits_sec=0",
+            "overload_sql_hits_sec_max=0",
+            "sql_audit_phase2_events_sec=0",
+            "sql_audit_phase2_events_sec_max=40",
+            "overload_sql_audit_phase2_events_sec=0",
+            "overload_sql_audit_phase2_events_sec_max=0",
+            "http_hits_sec=0",
+            "http_hits_sec_max=0",
+            "total_number_of_requests_with_alert=0",
+            "total_number_of_requests_with_alert_total=0",
+            "total_number_of_requests_sent_to_the_server=0",
+            "total_number_of_requests_sent_to_the_server_total=0",
+            "total_number_of_requests_blocked=0",
+            "total_number_of_requests_blocked_total=0"
+        ]
+    },
+    "imperva_gw_sys": {
+        "mx_hostname=i-0e3ffb6c1767cfa2a": [],
+        "version=14.1.0.15_0": [
+            "gw_supported_kbps=500000",
+            "gw_supported_hps=5000",
+            "uptime=3028737",
+            "mem_total=16266460",
+            "mem_free=560528",
+            "mem_used=12045324",
+            "swap_total=4095996",
+            "swap_free=4095996",
+            "swap_used=0"
+        ],
+        "model=AV2500": []
+    },
+    "imperva_gw_workers": {
+        "worker=11": [
+            "worker_kbps=0",
+            "worker_kbps_max=19092",
+            "worker_packets_sec=4",
+            "worker_packets_sec_max=2783",
+            "worker_queue_length=0",
+            "worker_queue_length_max=2176"
+        ],
+        "worker=10": [
+            "worker_kbps=0",
+            "worker_kbps_max=10788",
+            "worker_packets_sec=0",
+            "worker_packets_sec_max=1583",
+            "worker_queue_length=0",
+            "worker_queue_length_max=276"
+        ],
+        "worker=1": [
+            "worker_kbps=0",
+            "worker_kbps_max=39172",
+            "worker_packets_sec=1",
+            "worker_packets_sec_max=1918",
+            "worker_queue_length=0",
+            "worker_queue_length_max=786"
+        ],
+        "worker=0": [
+            "worker_kbps=0",
+            "worker_kbps_max=10804",
+            "worker_packets_sec=1",
+            "worker_packets_sec_max=1594",
+            "worker_queue_length=0",
+            "worker_queue_length_max=272"
+        ],
+        "worker=3": [
+            "worker_kbps=0",
+            "worker_kbps_max=20740",
+            "worker_packets_sec=0",
+            "worker_packets_sec_max=3033",
+            "worker_queue_length=0",
+            "worker_queue_length_max=282"
+        ],
+        "worker=2": [
+            "worker_kbps=0",
+            "worker_kbps_max=10848",
+            "worker_packets_sec=2",
+            "worker_packets_sec_max=1617",
+            "worker_queue_length=0",
+            "worker_queue_length_max=1245"
+        ],
+        "worker=5": [
+            "worker_kbps=0",
+            "worker_kbps_max=15488",
+            "worker_packets_sec=0",
+            "worker_packets_sec_max=2262",
+            "worker_queue_length=0",
+            "worker_queue_length_max=259"
+        ],
+        "worker=4": [
+            "worker_kbps=0",
+            "worker_kbps_max=13008",
+            "worker_packets_sec=3",
+            "worker_packets_sec_max=1916",
+            "worker_queue_length=0",
+            "worker_queue_length_max=837"
+        ],
+        "worker=7": [
+            "worker_kbps=0",
+            "worker_kbps_max=10812",
+            "worker_packets_sec=0",
+            "worker_packets_sec_max=1590",
+            "worker_queue_length=0",
+            "worker_queue_length_max=251"
+        ],
+        "worker=6": [
+            "worker_kbps=0",
+            "worker_kbps_max=19028",
+            "worker_packets_sec=0",
+            "worker_packets_sec_max=2797",
+            "worker_queue_length=0",
+            "worker_queue_length_max=2137"
+        ],
+        "worker=9": [
+            "worker_kbps=0",
+            "worker_kbps_max=10808",
+            "worker_packets_sec=0",
+            "worker_packets_sec_max=1616",
+            "worker_queue_length=0",
+            "worker_queue_length_max=267"
+        ],
+        "worker=8": [
+            "worker_kbps=0",
+            "worker_kbps_max=10808",
+            "worker_packets_sec=1",
+            "worker_packets_sec_max=1590",
+            "worker_queue_length=0",
+            "worker_queue_length_max=1379"
+        ]
+    },
+    "imperva_gw_disk": {
+        "volume=/var/lib/nfs/rpc_pipefs": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/sys/fs/cgroup/pids": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/dev/hugepages": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/sys/fs/cgroup/freezer": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/sys/fs/cgroup/systemd": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/sys/fs/cgroup/cpu": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/run/user/0": [
+            "disk_capacity=1626648",
+            "disk_used=0",
+            "disk_available=1626648"
+        ],
+        "volume=/var": [
+            "disk_capacity=40185112",
+            "disk_used=1911944",
+            "disk_available=36208784"
+        ],
+        "volume=/sys/kernel/debug": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/sys": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/sys/fs/cgroup": [
+            "disk_capacity=8133228",
+            "disk_used=0",
+            "disk_available=8133228"
+        ],
+        "volume=/sys/kernel/config": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/dev/mqueue": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/sys/fs/cgroup/blkio": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/sys/fs/pstore": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/proc": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/dev": [
+            "disk_capacity=8108472",
+            "disk_used=0",
+            "disk_available=8108472"
+        ],
+        "volume=/sys/fs/cgroup/devices": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/run/user/1004": [
+            "disk_capacity=1626648",
+            "disk_used=0",
+            "disk_available=1626648"
+        ],
+        "volume=/dev/shm": [
+            "disk_capacity=8133228",
+            "disk_used=0",
+            "disk_available=8133228"
+        ],
+        "volume=/data": [
+            "disk_capacity=73280552",
+            "disk_used=347912",
+            "disk_available=69187056"
+        ],
+        "volume=/sys/fs/cgroup/net_cls": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/run/user/99": [
+            "disk_capacity=1626648",
+            "disk_used=0",
+            "disk_available=1626648"
+        ],
+        "volume=/run": [
+            "disk_capacity=8133228",
+            "disk_used=787200",
+            "disk_available=7346028"
+        ],
+        "volume=/sys/fs/cgroup/cpuset": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/sys/fs/cgroup/memory": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/sys/fs/selinux": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/": [
+            "disk_capacity=30106488",
+            "disk_used=8031048",
+            "disk_available=20523056"
+        ],
+        "volume=/sys/fs/cgroup/hugetlb": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/home": [
+            "disk_capacity=991512",
+            "disk_used=2536",
+            "disk_available=921392"
+        ],
+        "volume=/sys/kernel/security": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/var/log/audit": [
+            "disk_capacity=1983056",
+            "disk_used=39080",
+            "disk_available=1825192"
+        ],
+        "volume=/dev/pts": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/boot": [
+            "disk_capacity=991512",
+            "disk_used=157184",
+            "disk_available=766744"
+        ],
+        "volume=/sys/fs/cgroup/perf_event": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ],
+        "volume=/proc/sys/fs/binfmt_misc": [
+            "disk_capacity=0",
+            "disk_used=0",
+            "disk_available=0"
+        ]
+    },
+    "imperva_gw_meminfo": {
+        "core=0": [
+            "current=0",
+            "max=1",
+            "available=11538"
+        ],
+        "core=1": [
+            "current=0",
+            "max=1",
+            "available=11538"
+        ],
+        "core=2": [
+            "current=0",
+            "max=1",
+            "available=11538"
+        ],
+        "core=3": [
+            "current=0",
+            "max=1",
+            "available=11538"
+        ],
+        "core=4": [
+            "current=0",
+            "max=2",
+            "available=11538"
+        ],
+        "core=5": [
+            "current=0",
+            "max=2",
+            "available=11538"
+        ],
+        "core=6": [
+            "current=0",
+            "max=1",
+            "available=11538"
+        ],
+        "core=7": [
+            "current=0",
+            "max=1",
+            "available=11538"
+        ],
+        "core=8": [
+            "current=0",
+            "max=1",
+            "available=11538"
+        ],
+        "core=9": [
+            "current=0",
+            "max=1",
+            "available=11538"
+        ]
+    },
+    "imperva_gw_sar_cpu": {},
+    "imperva_gw_cpuload": {
+        "cpu=0": [
+            "load=5"
+        ],
+        "cpu=1": [
+            "load=2"
+        ],
+        "cpu=2": [
+            "load=1"
+        ],
+        "cpu=all": [
+            "load=2"
+        ],
+        "cpu=3": [
+            "load=2"
+        ]
+    },
+    "imperva_gw_net": {
+        "interface=eth0,ipaddress=172.20.0.91,uptime=3028740": [
+            "rx_packets=59449336",
+            "rx_bytes=14644326912",
+            "rx_errors=0",
+            "rx_dropped=0",
+            "rx_overruns=0",
+            "rx_frame=0",
+            "tx_packets=60493850",
+            "tx_bytes=15905771245",
+            "tx_errors=0",
+            "tx_dropped=0",
+            "tx_overruns=0",
+            "tx_carrier=0",
+            "collisions=0"
+        ]
+    }
+}

@@ -1,0 +1,361 @@
+{
+    "event_type": "mx",
+    "timestamp": "2021-01-14T15:11:02.009893",
+    "agents": {
+        "ip-172-20-0-126.ec2.internal": {
+            "status": "Disconnected",
+            "load_hps_max": "0",
+            "load_ipu_max": "0",
+            "load_kpbs": "0",
+            "load_percent": "0",
+            "gateway": "i-00b939447e9dddc4d",
+            "channels": "3",
+            "load_kpbs_max": "0",
+            "load_hps": "0",
+            "load_ipu": "53",
+            "cores": "1",
+            "id": "10000"
+        },
+        "ip-172-20-0-113.ec2.internal": {
+            "status": "Running",
+            "load_hps_max": "22",
+            "load_ipu_max": "0",
+            "load_kpbs": "0",
+            "load_percent": "0",
+            "gateway": "i-00b939447e9dddc4d",
+            "channels": "3",
+            "load_kpbs_max": "1916",
+            "load_hps": "0",
+            "load_ipu": "0",
+            "cores": "1",
+            "id": "10040"
+        },
+        "ip-172-20-0-173.ec2.internal": {
+            "status": "Disconnected",
+            "load_hps_max": "0",
+            "load_ipu_max": "0",
+            "load_kpbs": "0",
+            "load_percent": "0",
+            "gateway": "i-00b939447e9dddc4d",
+            "channels": "3",
+            "load_kpbs_max": "0",
+            "load_hps": "0",
+            "load_ipu": "9",
+            "cores": "1",
+            "id": "10020"
+        }
+    },
+    "log_search": {},
+    "disk": {
+        "/var/lib/nfs/rpc_pipefs": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/proc": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/fs/cgroup/freezer": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/dev/pts": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/fs/selinux": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/fs/cgroup/hugetlb": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/fs/pstore": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/kernel/config": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/fs/cgroup/blkio": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/boot": {
+            "disk_available": 766640,
+            "disk_capacity": 991512,
+            "disk_used": 157288
+        },
+        "/proc/sys/fs/binfmt_misc": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/": {
+            "disk_available": 20166100,
+            "disk_capacity": 30106488,
+            "disk_used": 8388004
+        },
+        "/dev/hugepages": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/home": {
+            "disk_available": 921392,
+            "disk_capacity": 991512,
+            "disk_used": 2536
+        },
+        "/sys/fs/cgroup/pids": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/run/user/99": {
+            "disk_available": 765000,
+            "disk_capacity": 765000,
+            "disk_used": 0
+        },
+        "/sys/fs/cgroup/devices": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/dev/mqueue": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/var": {
+            "disk_available": 102477212,
+            "disk_capacity": 113598700,
+            "disk_used": 6076436
+        },
+        "/sys/fs/cgroup/systemd": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/fs/cgroup/cpu": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/fs/cgroup/cpuset": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/kernel/security": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/run/user/0": {
+            "disk_available": 765000,
+            "disk_capacity": 765000,
+            "disk_used": 0
+        },
+        "/dev/shm": {
+            "disk_available": 3816000,
+            "disk_capacity": 3824996,
+            "disk_used": 8996
+        },
+        "/sys/fs/cgroup/perf_event": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/dev": {
+            "disk_available": 3800240,
+            "disk_capacity": 3800240,
+            "disk_used": 0
+        },
+        "/run/user/1004": {
+            "disk_available": 765000,
+            "disk_capacity": 765000,
+            "disk_used": 0
+        },
+        "/var/log/audit": {
+            "disk_available": 1822280,
+            "disk_capacity": 1983056,
+            "disk_used": 41992
+        },
+        "/run/user/1002": {
+            "disk_available": 765000,
+            "disk_capacity": 765000,
+            "disk_used": 0
+        },
+        "/sys/fs/cgroup": {
+            "disk_available": 3824996,
+            "disk_capacity": 3824996,
+            "disk_used": 0
+        },
+        "/run/user/1000": {
+            "disk_available": 765000,
+            "disk_capacity": 765000,
+            "disk_used": 0
+        },
+        "/run": {
+            "disk_available": 3430928,
+            "disk_capacity": 3824996,
+            "disk_used": 394068
+        },
+        "/sys/fs/cgroup/net_cls": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/fs/cgroup/memory": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys/kernel/debug": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/sys": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        }
+    },
+    "network": {
+        "eth0": {
+            "rx_over_errors": 0,
+            "tx_window_errors": 0,
+            "tx_aborted_errors": 0,
+            "rx_compressed": 0,
+            "rx_nohandler": 0,
+            "tx_carrier_errors": 0,
+            "collisions": 0,
+            "tx_packets": 252452302,
+            "tx_dropped": 0,
+            "rx_packets": 198565176,
+            "rx_length_errors": 0,
+            "rx_missed_errors": 0,
+            "tx_bytes": 34022220763,
+            "rx_frame_errors": 0,
+            "rx_dropped": 0,
+            "rx_crc_errors": 0,
+            "rx_bytes": 63720587594,
+            "tx_errors": 0,
+            "rx_fifo_errors": 0,
+            "tx_fifo_errors": 0,
+            "tx_heartbeat_errors": 0,
+            "multicast": 0,
+            "rx_errors": 0,
+            "tx_compressed": 0
+        }
+    },
+    "system": {
+        "uptime": "18988459",
+        "vendor": "Imperva",
+        "environment": "AWS",
+        "hard-asset-tag": "XEN",
+        "version": "14.1.0.15_0",
+        "asset-tag": "AVM150",
+        "model": "AVM150"
+    },
+    "mx": "i-0e3ffb6c1767cfa2a",
+    "gateways": {
+        "i-01088692e2c769d0b": {
+            "load_hps": "0",
+            "audit_utilization_percent": "0",
+            "load_kbps_max": "0",
+            "load_kbps": "0",
+            "load_hps_max": "0"
+        },
+        "i-00b939447e9dddc4d": {
+            "load_hps": "0",
+            "audit_utilization_percent": "0",
+            "load_kbps_max": "56",
+            "load_kbps": "16",
+            "load_hps_max": "2"
+        },
+        "i-09c195a60b269d32f": {
+            "load_hps": "0",
+            "audit_utilization_percent": "0",
+            "load_kbps_max": "0",
+            "load_kbps": "0",
+            "load_hps_max": "0"
+        }
+    },
+    "policies": {
+        "Default Rule - All Events": {
+            "audit_events_phase2": "3422",
+            "audit_policy_percent": "100",
+            "audit_events_phase1": "3422"
+        }
+    },
+    "memory": {
+        "mem": {
+            "total": 7649996,
+            "used": 3692580,
+            "free": 209704
+        },
+        "swap": {
+            "total": 4095996,
+            "used": 744960,
+            "free": 3351036
+        }
+    },
+    "cpu": {
+        "sar": {},
+        "top": {
+            "0": {
+                "software": 0,
+                "system": 0.3,
+                "hardware": 0,
+                "idle": 98.3,
+                "user": 1.3,
+                "steal_time": 0,
+                "wait": 0,
+                "nice": 0
+            },
+            "1": {
+                "software": 0,
+                "system": 0.3,
+                "hardware": 0,
+                "idle": 99.3,
+                "user": 0.3,
+                "steal_time": 0,
+                "wait": 0,
+                "nice": 0
+            },
+            "2": {
+                "software": 0.3,
+                "system": 0,
+                "hardware": 0,
+                "idle": 98.3,
+                "user": 1.3,
+                "steal_time": 0,
+                "wait": 0,
+                "nice": 0
+            },
+            "3": {
+                "software": 0,
+                "system": 0.3,
+                "hardware": 0,
+                "idle": 99.3,
+                "user": 0.3,
+                "steal_time": 0,
+                "wait": 0,
+                "nice": 0
+            }
+        }
+    }
+}
