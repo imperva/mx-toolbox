@@ -1,6 +1,6 @@
 {
   "log_level": "WARNING",
-  "log_file_name": "gateway_statistics.log",
+  "log_file_name": "performance_monitoring.log",
   "environment": "dev",
   "is_userspace": false, 
   "gateway_mx_host_display_name": "your_gateway_mx_hostname_here",
@@ -36,13 +36,8 @@
         "protocol": "TCP",
         "port": 514,
         "facility":21
-      },
-      {
-        "host": "1.2.3.5",
-        "protocol": "UDP",
-        "port": 515,
-        "facility":21
-      }    ]
+      }
+    ]
   },
   "sonar": {
     "enabled": false,

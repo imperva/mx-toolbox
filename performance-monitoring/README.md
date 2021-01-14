@@ -31,12 +31,13 @@ Example:
 
 ```
 {
-  "log_level": "debug",
-  "log_file_name": "gateway_statistics.log",
+  "log_level": "WARNING",
+  "log_file_name": "performance_monitoring.log",
   "environment": "dev",
   "is_userspace": false, 
-  "gw_log_search": {
-    "enabled": true,
+  "gateway_mx_host_display_name": "your_gateway_mx_hostname_here",
+  "log_search": {
+    "enabled": false,
     "files": [{
       "path": "/var/log/messages",
       "search_patterns": [{
@@ -56,13 +57,29 @@ Example:
     "event_type": "GWStats"
   },
   "influxdb": {
-    "enabled": true,
+    "enabled": false,
     "host": "http://1.2.3.4:8086/write?db=imperva_performance_stats"
   },
   "syslog": {
-    "enabled": true,
-    "host": "1.2.3.4",
-    "port": 514
+    "enabled": false,
+    "endpoints":[
+      {
+        "host": "1.2.3.4",
+        "protocol": "TCP",
+        "port": 514,
+        "facility":21
+      }
+    ]
+  },
+  "sonar": {
+    "enabled": false,
+    "endpoints":[
+      {
+        "host": "your.sonar.hostname",
+        "port": 10667,
+        "facility":21
+      }
+    ]
   }
 }
 ```
@@ -115,9 +132,21 @@ Example:
 
 `syslog.enabled` - _(required)_ set to true if using syslog
 
-`syslog.host` - _(optional)_ the syslog host. Ex. `10.10.10.20` or `syslog.servername.local`
+`syslog.endpoints[].host` - _(optional)_ the syslog host. Ex. `10.10.10.20` or `syslog.servername.local`
 
-`syslog.port` - _(optional)_ the syslog port. Ex. `514`. 
+`syslog.endpoints[].protocol` - _(optional)_ the syslog protocol. Ex. `TCP` or `UDP`. 
+
+`syslog.endpoints[].port` - _(optional)_ the syslog port. Ex. `514`. 
+
+`syslog.endpoints[].facility` - _(optional)_ the syslog facility, an interger. Ex. `21`. 
+
+`syslog.enabled` - _(required)_ set to true if using sonar
+
+`syslog.endpoints[].host` - _(optional)_ the syslog host. Ex. `10.10.10.20` or `sonar.servername.local`
+
+`syslog.endpoints[].port` - _(optional)_ the Sonar syslog port. Default is: `10667`. 
+
+`syslog.endpoints[].facility` - _(optional)_ the syslog facility, an interger. Ex. `21`. 
 
 `proxy_host` - _(optional)_ the proxy host. Ex. `webcache.example.com`
 
