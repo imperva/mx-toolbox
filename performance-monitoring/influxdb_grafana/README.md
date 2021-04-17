@@ -51,7 +51,7 @@ Create influxdb datasource in grafana, and import performance monitoring dashboa
 
    `Name` - _(required)_ the name of the data source: `Imperva Performance Stats`
 
-   `URL` - _(required)_ the endpoint of influxdb: `http://localhost:8086`.
+   `URL` - _(required)_ the endpoint of influxdb: `http://influxdb:8086`.
 
    `Database` - _(required)_ name of database `imperva_performance_stats`.
 
