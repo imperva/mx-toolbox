@@ -184,10 +184,23 @@ def getMXServerStats():
             while len(gwUtilStatsAry)>0:
                 stat = gwUtilStatsAry.pop(0)
                 statAry = ' '.join(stat.strip().split()).split()
+
                 if (statAry[0]=="Agent:"):
                     agent_name = statAry[1]
-                    agent_status = statAry[8]
                     agent_id = statAry[3]
+                    agent_status = str(statAry[8].lower())                    
+                    agent_status_int = 0
+                    if ("running" in agent_status and "errors" in agent_status):
+                        agent_status_int = 4
+                    elif ("running" in agent_status):
+                        agent_status_int = 5
+                    elif ("disabled" in agent_status):
+                        agent_status_int = 2
+                    elif ("gateway" in agent_status and "disconnected" in agent_status):
+                        agent_status_int = 1
+                    elif ("disconnected" in agent_status):
+                        agent_status_int = 3
+                    
                     influxDbStats["imperva_agents"]["mx_name="+MXNAME+",gw_name="+gw_name+",agent_name="+agent_name+",agent_status="+agent_status] = []
                     influxAgentStatAry = influxDbStats["imperva_agents"]["mx_name="+MXNAME+",gw_name="+gw_name+",agent_name="+agent_name+",agent_status="+agent_status]
                     influxAgentStatAry.append("agent_channels="+statAry[5])
@@ -200,11 +213,13 @@ def getMXServerStats():
                     influxAgentStatAry.append("agent_load_hps_max="+statAry[17].replace("(","").replace(")",""))
                     influxAgentStatAry.append("agent_load_percent="+("0" if statAry[18].strip()=="%" else statAry[18].replace("%","").strip()))
                     influxAgentStatAry.append("agent_id="+str(agent_id))
+                    influxAgentStatAry.append("agent_status_int="+str(agent_status_int))
 
                     MXSonarStats["agents"][agent_name] = {}
                     MXSonarStats["agents"][agent_name]["id"] = str(agent_id)
                     MXSonarStats["agents"][agent_name]["gateway"] = gw_name
                     MXSonarStats["agents"][agent_name]["status"] = agent_status
+                    MXSonarStats["agents"][agent_name]["status_int"] = agent_status_int
                     MXSonarStats["agents"][agent_name]["channels"] = statAry[5]
                     MXSonarStats["agents"][agent_name]["cores"] = statAry[7]
                     MXSonarStats["agents"][agent_name]["load_kpbs"] = statAry[10]
@@ -455,6 +470,7 @@ def sendSyslog(jsonObj):
                 logger.info(jsonObj)
             except Exception as e:
                 logging.error("syslog failed")
+                logging.error(e)
 
 def sendSonar(jsonObj):
     if (logHostAvailable["sonar"]==True):
@@ -465,7 +481,8 @@ def sendSonar(jsonObj):
                 logger.addHandler(handler)
                 logger.info(json.dumps(jsonObj)+"\n")
             except Exception as e:
-                logging.error("syslog failed")
+                logging.error("sendSonar failed")
+                logging.error(e)
 
 def searchLogFile(filename, pattern):
     matches = []
