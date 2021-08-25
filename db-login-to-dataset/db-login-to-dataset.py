@@ -42,7 +42,7 @@ CREATE_DATASETS = False
 DATASET_WORKSTATION = CONFIG["dataset-name"]+" Workstations"
 DATASET_NOT_WORKSTATION = CONFIG["dataset-name"]+" Non-Workstations"
 DATASET_UNRESOLVED_HOSTS = CONFIG["dataset-name"]+" Unresolved Hosts"
-HOSTNAME_PREFIXES = ["1.0.0","WM","a23","ip-"]
+HOSTNAME_PREFIXES = ["your-prefix-1","your-prefix-1"]
 SESSIONPATH = "currentsession.txt"
 IPADDR = sys.argv[1]
 
