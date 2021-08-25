@@ -49,15 +49,11 @@ Example:
 {
     "log_level": "debug",
     "environment": "dev",
+    "dataset-name": "db-logins",
     "mx": {
         "endpoint": "https://127.0.0.1:8083",
-        "username": "your_username",
-        "password": "your_password_here"
-    },
-    "servicenow": {
-        "endpoint": "http://your.service-now.com",
-        "username": "your_username",
-        "password": "your_password_here"
+        "username": "youruser",
+        "password": "yourpassword"
     }
 }
 ```
@@ -73,9 +69,3 @@ Example:
 `mx.username` - _(required)_ the username of the user authenticating to the MX API 
 
 `mx.password` - _(required)_ the password of the user authenticating to the MX API 
-
-`servicenow.endpoint` - _(required)_ endpoint of the servicenow instance
-
-`servicenow.username` - _(required)_ the username of the user authenticating to the servicenow API 
-
-`servicenow.password` - _(required)_ the password of the user authenticating to the servicenow API 
