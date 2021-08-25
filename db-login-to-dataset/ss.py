@@ -98,22 +98,22 @@ def login(mx_host,username, password):
 
 def getSession(mx_host,username, password):	
 	try:
-		print("opening session file: "+sessionfile)
 		logging.warning("opening session file: "+sessionfile)
 		f = open(sessionfile, "r")
 		session_id = f.read()
 		result = makeCall(mx_host, session_id, "/administration/version")
-		if (result.status_code==200):
-			logging.warning("invalid session, logging in and creating file: "+sessionfile)		
+		if (result.status_code!=200):
+			logging.warning("Invalid session, logging in and creating file: "+sessionfile)		
 			filehandle = open(sessionfile, 'w')
 			session_id = login(mx_host,username, password)
 			filehandle.write(session_id)
 			filehandle.close()
 			return session_id
 		else:
+			logging.warning("Valid session found in '"+sessionfile+"': "+session_id)
 			return session_id
 	except:
-		logging.warning("missing session file, logging in and creating file: "+sessionfile)		
+		logging.warning("Missing session file, logging in and creating file: "+sessionfile)		
 		filehandle = open(sessionfile, 'w')
 		session_id = login(mx_host,username, password)
 		filehandle.write(session_id)
