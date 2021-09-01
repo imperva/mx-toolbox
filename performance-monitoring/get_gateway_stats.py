@@ -373,6 +373,13 @@ def getSysStats():
                     GWCpuStatAry.append(topCpuAttrMap[statAry[1]]+"="+statAry[0])
                     GWStats["top_"+statType.lower()+"_"+topCpuAttrMap[statAry[1]]] = float(statAry[0])                    
                     GWSonarStats["cpu"]["top"][cpu][topCpuAttrMap[statAry[1]]] = float(statAry[0])
+            elif "load average" in stat:
+                average = stat.split("load average: ").pop(1).split(",").pop(0).strip()
+                influxDbStats["imperva_gw_cpuload"]["cpu=all"] = []
+                lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu=all"]
+                lastSecAry.append("load="+str(average))
+                GWStats["cpuload_last_sec_average_load"] = float(average)
+                GWSonarStats["cpu"]["last_sec_load"]["average"] = float(average)
 
         try:
             # @TODO implement sonar stat for sar
@@ -407,15 +414,20 @@ def getSysStats():
                 statAry = ' '.join(stat.split()).split(":")
                 GWStats["cpuload_last_sec_"+statAry[0].replace(" ","_")] = int(statAry[1].strip())
                 GWSonarStats["cpu"]["last_sec_load"][statAry[0].replace(" ","_").replace("_load","")] = int(statAry[1].strip())
-                if stat[:7]=="average":
-                    influxDbStats["imperva_gw_cpuload"]["cpu=all"] = []
-                    lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu=all"]
-                    lastSecAry.append("load="+str(int(statAry[1].strip())))
-                else:
+                if stat[:7!="average"]:
                     cpuNum = statAry[0].replace("cpu","").split().pop(0)
                     influxDbStats["imperva_gw_cpuload"]["cpu="+cpuNum] = []
                     lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu="+cpuNum]
                     lastSecAry.append("load="+str(int(statAry[1].strip())))
+                # if stat[:7]=="average":
+                #     influxDbStats["imperva_gw_cpuload"]["cpu=all"] = []
+                #     lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu=all"]
+                #     lastSecAry.append("load="+str(int(statAry[1].strip())))
+                # else:
+                #     cpuNum = statAry[0].replace("cpu","").split().pop(0)
+                #     influxDbStats["imperva_gw_cpuload"]["cpu="+cpuNum] = []
+                #     lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu="+cpuNum]
+                #     lastSecAry.append("load="+str(int(statAry[1].strip())))
 
 # Parse stats and maximums
 # example: 0 connection/sec (max 4 2019-03-20 05:39:56)
