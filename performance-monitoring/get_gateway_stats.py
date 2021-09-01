@@ -500,10 +500,12 @@ def makeCallNewRelicCall(stat):
     if (logHostAvailable["newrelic"]==True):
         stat["eventType"] = CONFIG["newrelic"]["event_type"]
         new_relic_url = "https://insights-collector.newrelic.com/v1/accounts/"+CONFIG["newrelic"]["account_id"]+"/events"
-        headers = {
+        headers = CONFIG["newrelic"].get("headers", {
             "Content-Type": "application/json",
             "X-Insert-Key": CONFIG["newrelic"]["api_key"]
-        }
+        })
+        if "X-Insert-Key" not in headers: 
+            headers["X-Insert-Key"] = CONFIG["newrelic"]["api_key"]
         logging.info("NEW RELIC REQUEST (" + new_relic_url + ")" + json.dumps(stat))
         if "proxies" in CONFIG:
             try: 
@@ -523,10 +525,10 @@ def makeCallNewRelicCall(stat):
 
 def makeInfluxDBCall(measurement, tags, params):
     if (logHostAvailable["influxdb"]==True):
-        headers = {
-            "Content-Type": "application/octet-stream",
-        }
         influxdb_url = CONFIG["influxdb"]["host"]
+        headers = CONFIG["influxdb"].get("headers", {
+            "Content-Type": "text/plain; charset=utf-8" if "/v2/" in influxdb_url else "application/octet-stream",
+        })
         data = measurement+","+tags+" "+params
         logging.info("INFLUXDB REQUEST: "+influxdb_url+"?"+data)
         if "proxies" in CONFIG:
