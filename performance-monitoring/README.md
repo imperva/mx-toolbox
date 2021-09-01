@@ -54,11 +54,19 @@ Example:
     "enabled": false,
     "account_id": "ACCOUNT_ID",
     "api_key": "API_KEY",
-    "event_type": "GWStats"
+    "event_type": "GWStats",
+    "headers": {
+      "Inject": "Your custom headers here",
+      "Or-Remove-Attribute": "For defaults"
+    }
   },
   "influxdb": {
     "enabled": false,
-    "host": "http://1.2.3.4:8086/write?db=imperva_performance_stats"
+    "host": "http://1.2.3.4:8086/write?db=imperva_performance_stats OR http://1.2.3.4:8086/api/v2/write?bucket=imperva_performance_stats&org=imperva (see options)",
+    "headers": {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Authorization": "Token <API_TOKEN_FOR_INFLUXDB_V2>"
+    }
   },
   "syslog": {
     "enabled": false,
@@ -118,15 +126,21 @@ Example:
 
 `newrelic.api_key` - _(required)_ the API Key for the Insights API
 
+`newrelic.headers` - _(optional)_ override the default HTTP headers for New Relic requests. The `X-Insert-Key` header will obtain the value of the `api_key` attribute, no need to specify it here again
+
 `influxdb` - _(optional) section is not required, if not using influxdb, either set influxdb.enabled to false or section can be removed from config
 
 `influxdb.enabled` - _(required)_ set to true if using influxdb
 
-`influxdb.host` - _(required)_ the influxdb protocol, host, port, and database name. Ex. `[protocol]://[host]:[port]/write?db=[influx_db_name]` or `http://1.2.3.4:8086/write?db=imperva_performance_stats`
+`influxdb.host` - _(required)_ the influxdb protocol, host, port, and bucket/database name. Examples:
+* InfluxDB 1.x - `[protocol]://[host]:[port]/write?db=[influx_db_name]` or `http://1.2.3.4:8086/write?db=imperva_performance_stats`
+* InfluxDB 2.x - `[protocol]://[host]:[port]/api/v2/write?bucket=[bucket_name]&org=[org_name]` or `http://1.2.3.4:8086/api/v2/write?bucket=imperva_performance_stats&org=imperva`
 
 `influxdb.username` - _(optional)_ if auth is required for influxdb, specify the username.
 
 `influxdb.password` - _(optional)_ if auth is required for influxdb, specify the password.
+
+`influxdb.headers` - _(optional)_ override the default HTTP headers for InfluxDB requests. For InfluxDB 2.x endpoints, the `Authorization: Token [api_token]` must be injected
 
 `syslog` - _(optional) section is not required, if not using syslog, either set syslog.enabled to false or section can be removed from config
 
@@ -225,7 +239,9 @@ If you have not yet done so, create influxdb datasource in grafana, and import p
 
 #### Create InfluxDB Datasource ####
 
-1. Navigate to grafana via a browser referencing the IP of your docker host.  In this example, it is run locally on a work station and access with the following: [http://influxdb-host:3000](http://influxdb-host:3000)
+1. If InfluxDB 2.x is used, access your InfluxDB host/container's shell and create a DBRP mapping for your bucket in the InfluxDB 1.x compatibility API as follows:
+`influx v1 dbrp create --db imperva_performance_stats --rp perfstat-rp --bucket-id imperva_performance_stats --default`
+1. Navigate to Grafana via a browser referencing the IP of your docker host.  In this example, it is run locally on a work station and access with the following: [http://influxdb-host:3000](http://influxdb-host:3000)
 
 1. Log in with your credentials.  If you are using the docker image in [influxdb_grafana][https://github.com/imperva/mx-toolbox/tree/master/performance-monitoring/influxdb_grafana] folder, the default credentials are admin/admin, and you will need to create a new password.
 
@@ -239,15 +255,15 @@ If you have not yet done so, create influxdb datasource in grafana, and import p
 
    `HTTP Method` - _(required)_ the HTTP method used to push data into influxdb `POST`
 
+    `Custom HTTP Headers` - _(**required only with InfluxDB 2.x**)_ Add header `Authorization` with value `Token <YOUR_INFLUXDB_API_TOKEN>`
+
+
 1. Click `Save & Test` to validate grafana is able to access the datasource correctly.
 
 #### Import Grafana Dashboards ####
 1. Navigate to Home screen by clicking the Grafana logo in the top left corner.
 
 1. Import each of dashboard files in the `mx-tools/performance-monitoring/influxdb_grafana/grafana_dashboards` directory by repeating the following steps:
-  -  Click `+ -> Create -> Import` to import a dashboard
+   * Click `+ -> Create -> Import` to import a dashboard
 
-1. Click `Upload JSON file` and one dashboard at a time to import repeating this process for each.
- 
-
- 
+   * Click `Upload JSON file` and one dashboard at a time to import repeating this process for each.
