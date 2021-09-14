@@ -345,7 +345,9 @@ def getSysStats():
         pipe = Popen(['top','-bn','2'], stdout=PIPE)
         output = pipe.communicate()
         topOutputAry = str(output[0]).split("top - ").pop().split("\n")
-        for stat in topOutputAry:
+        minute_load_avg = re.findall('(\d*\.?\d+)', topOutputAry[0])[6]
+        influxDbStats["imperva_mx_top_cpu"]["cpu=all"] = ['minute_load_average={}'.format(minute_load_avg)]
+        for stat in topOutputAry[1:]: # Skip first element as it was already handled
             stat = stat.lower().replace("%"," ").replace("kib ","").replace("k","")
             statType = stat.split(":").pop(0).lower().strip()
             statsAry = ' '.join(stat.split(":").pop().lower().strip().split()).split(",")
