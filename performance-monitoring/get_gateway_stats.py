@@ -406,7 +406,7 @@ def getSysStats():
                     GWSonarStats["cpu"]["top"][cpu][topCpuAttrMap[statAry[1]]] = float(statAry[0])
             elif "load average" in stat:
                 last_min_average = stat.split("load average: ").pop(1).split(",").pop(0).strip()
-                lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu=all"] = []                
+                lastSecAry = influxDbStats["imperva_gw_top_cpu"]["cpu=all"] = []                
                 lastSecAry.append("last_min_load_average="+str(last_min_average))
                 GWStats["cpuload_last_min_load_average"] = float(last_min_average)
                 GWSonarStats["cpu"]["last_min_load"]["average"] = float(last_min_average)
