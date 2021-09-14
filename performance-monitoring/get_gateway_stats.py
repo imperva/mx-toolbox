@@ -117,7 +117,8 @@ GWSonarStats = {
     "cpu":{
         "top":{},
         "sar":{},
-        "last_sec_load":{}
+        "last_sec_load":{},
+        "last_min_load": {}
     },
     "cores":{},
     "disk":{},
@@ -247,7 +248,37 @@ def run():
 def strim(str):
     return re.sub('\s\s+', ' ', str).strip()
 
+def tuplize(values, expected_length, default_value=0):
+    """
+    Verifies the amount of elements in the 'values' list matches the specified expected length and
+    returns them as a tuple. In case of a mismatch, the function returns a correctly sized tuple
+    populated with the specified default value
+    """
+    return tuple(values) if len(values) == expected_length else (default_value, ) * expected_length
+
+def to_influxdb_stats(stats_dict):
+    """
+    Converts a dictionary into an InfluxDB-compatible list of stringified stats. Example:
+    {'a': 1, 'b': 2, 'c': 3} --> ['a=1', 'b=2', 'c=3']
+    """
+    return ['{}={}'.format(k, v) for k, v in stats_dict.items()]
+
 def getNetworkStats():
+    def getSocketConnectFailureStats():
+        input, output, error = os.popen3("grep \"\\[\\!] socket connect\" %s | awk 'BEGIN {ORS = \" \"} {print $(NF-1)}'" % os.path.join(BASEDIR, 'counters'))
+        failed, bad_state, unknown = tuplize(output.read().split(), expected_length=3)
+        return {'socket_connect_failed': failed, 'socket_connect_bad_state': bad_state, 'socket_connect_unknown_server': unknown}
+
+    def getMaxSocketQueuesStats():
+        input, output, error = os.popen3("/usr/sbin/ss -t state established | awk '(NR==2){max_recv=$1; max_send=$2}; (NR>2){max_recv = ($1 > max_recv ? $1 : max_recv); max_send = ($2 > max_send ? $2 : max_send)} END {print max_recv, max_send}'")
+        recv, send = tuplize(output.read().split(), expected_length=2)
+        return {'max_recv_queue': recv, 'max_send_queue': send}
+
+    # General socket stats - not directly associated with a particular interface
+    influx_all_if_stats = influxDbStats["imperva_gw_net"]["interface=all"] = []
+    influx_all_if_stats.extend(to_influxdb_stats(getMaxSocketQueuesStats()))
+    influx_all_if_stats.extend(to_influxdb_stats(getSocketConnectFailureStats()))
+
     basedir = "/sys/class/net/"
     input, ifaceoutput, error = os.popen3("ls "+basedir)
     for ifacename in ifaceoutput.read().split("\n"):
@@ -374,12 +405,11 @@ def getSysStats():
                     GWStats["top_"+statType.lower()+"_"+topCpuAttrMap[statAry[1]]] = float(statAry[0])                    
                     GWSonarStats["cpu"]["top"][cpu][topCpuAttrMap[statAry[1]]] = float(statAry[0])
             elif "load average" in stat:
-                average = stat.split("load average: ").pop(1).split(",").pop(0).strip()
-                influxDbStats["imperva_gw_cpuload"]["cpu=all"] = []
-                lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu=all"]
-                lastSecAry.append("load="+str(average))
-                GWStats["cpuload_last_sec_average_load"] = float(average)
-                GWSonarStats["cpu"]["last_sec_load"]["average"] = float(average)
+                last_min_average = stat.split("load average: ").pop(1).split(",").pop(0).strip()
+                lastSecAry = influxDbStats["imperva_gw_cpuload"]["cpu=all"] = []                
+                lastSecAry.append("last_min_load_average="+str(last_min_average))
+                GWStats["cpuload_last_min_load_average"] = float(last_min_average)
+                GWSonarStats["cpu"]["last_min_load"]["average"] = float(last_min_average)
 
         try:
             # @TODO implement sonar stat for sar
