@@ -33,7 +33,7 @@ This project provides the scripts and configuration steps needed to export a csv
     - Working Dir: `/var/user-data`  
     - Run on Every Event: ![checked.png](images/checked.png)  
     ![create-action-set-2.png](images/create-action-set-2.png)
-1. Navigate to Reports->Manage Reports, select the desired .csv report ensuring the format is .csv, and select `Export report to dataset` as the `Followed Action`.
+1. Navigate to Reports->Manage Reports, select the desired .csv report ensuring the format is .csv, and select `Export report to dataset` as the `Followed Action`.  
     ![assign-followed-action.png](images/assign-followed-action.png)
 
 ### Configuration Options ###
