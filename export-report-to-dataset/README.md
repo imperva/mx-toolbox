@@ -1,6 +1,6 @@
-# SecureSphere DB Login to Dataset
+# SecureSphere Export Report to Dataset
 
-This project provides the scripts and configuration steps needed to identify db client hostnames (by prefixes) segmenting workstations, non-workstations, and unresolved hosts into datasets.  These datasets can then be used as predicates in security and audit policies for granular monitoring and alerting by client hostnames in DHCP networks universally for all databsae service types. 
+This project provides the scripts and configuration steps needed to export a csv report, and dynamically create a dataset pushing the contents of the report into that dataset as a followed action. 
 
 #### Step 1: Download and copy script and config to the managemnt server (MX)
 
