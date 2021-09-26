@@ -138,7 +138,10 @@ GWSonarStats = {
 # imperva_sg example: {"servergroupname=Mongo DB":["kbps=10","kbps_max=100","connections_sec=10","connectiions_sec_max=100"...]}
 
 influxDbStats = {
-    "imperva_gw_hades":{"file=/proc/hades/status":[]},
+    "imperva_gw_hades":{
+        "file={}".format(os.path.join(BASEDIR, 'status')): [],
+        "file={}".format(os.path.join(BASEDIR, 'counters')): []
+    },
     "imperva_gw_workers":{},
     "imperva_gw_net":{},
     "imperva_gw_disk":{},
@@ -151,7 +154,7 @@ influxDbStats = {
 }
 
 def run():
-    # pull /proc/hades/status file to parse gateway level stats
+    # pull <BASEDIR>/status file to parse gateway level stats
     f = open(os.path.join(BASEDIR, 'status'), 'r')
     gw_status_stats = f.read().split("\n")
     statType = None
@@ -167,7 +170,8 @@ def run():
             statType = 'cpu'
     parseGWMeminfoStats()
 
-    pipe = Popen(['cat',BASEDIR+'counters'], stdout=PIPE)
+    counters_file = os.path.join(BASEDIR, 'counters')
+    pipe = Popen(['cat', counters_file], stdout=PIPE)
     output = pipe.communicate()
     m = re.findall('(total number of requests.*)',output[0].lower())
     for counterStat in m:
@@ -178,8 +182,8 @@ def run():
         statTotal = counterStatValAry[1].split("=").pop()
         GWStats["imperva_gw_"+statKey] = int(statVal)
         GWStats["imperva_gw_"+statKey+"_total"] = int(statTotal)
-        influxDbStats["imperva_gw_hades"]["file=/proc/hades/status"].append(statKey+"="+str(statVal))
-        influxDbStats["imperva_gw_hades"]["file=/proc/hades/status"].append(statKey+"_total="+str(statTotal))
+        influxDbStats["imperva_gw_hades"]["file={}".format(counters_file)].append(statKey+"="+str(statVal))
+        influxDbStats["imperva_gw_hades"]["file={}".format(counters_file)].append(statKey+"_total="+str(statTotal))
         GWSonarStats["hades_counters"][statKey] = statVal
         GWSonarStats["hades_counters"][statKey+"_total"] = statTotal
         
@@ -463,6 +467,7 @@ def getSysStats():
 # example: 0 connection/sec (max 4 2019-03-20 05:39:56)
 # [stat],[statKey],(max,[max],[max_date],[max_time])
 def parseGWEventStat(stat):
+    status_file = os.path.join(BASEDIR, 'status')
     if strim(stat) != '':
         statstr = strim(stat).lower()
         statKey = statstr[statstr.index(' ')+1:statstr.index('(')-1].replace('/','_').replace(' ','_')
@@ -471,12 +476,12 @@ def parseGWEventStat(stat):
             statAry = statstr.split(" ")
             GWStats[statKey] = int(statAry[0])
             GWStats[statKey+"_max"] = int(statAry[3])
-            influxDbStats["imperva_gw_hades"]["file=/proc/hades/status"].append(statKey+"="+str(int(statAry[0])))
-            influxDbStats["imperva_gw_hades"]["file=/proc/hades/status"].append(statKey+"_max="+str(int(statAry[3])))
+            influxDbStats["imperva_gw_hades"]["file={}".format(status_file)].append(statKey+"="+str(int(statAry[0])))
+            influxDbStats["imperva_gw_hades"]["file={}".format(status_file)].append(statKey+"_max="+str(int(statAry[3])))
             GWSonarStats["hades_counters"][statKey] = int(statAry[0])
             GWSonarStats["hades_counters"][statKey+"_max"] = int(statAry[3])
 
-# Parse gateway level /proc/hades/status - CPU secion
+# Parse gateway level <BASEDIR>/status - CPU section
 def parseGWCPUStat(stat):
     if strim(stat) != '':
         statstr = strim(stat).lower()
@@ -517,7 +522,7 @@ def parseGWMeminfoStats():
             GWSonarStats["memory"]["workers_meminfo"][str(CoreNum)]["max"] = statAry[1]
             GWSonarStats["memory"]["workers_meminfo"][str(CoreNum)]["available"] = statAry[2]
 
-# Parse server group level /proc/hades/sg_[server group name]/status - stats and maximums
+# Parse server group level <BASEDIR>/sg_[server group name]/status - stats and maximums
 def parseSGStat(servergroupname,sg_stat,SGStats):
     sg_statstr = strim(sg_stat).lower()
     if sg_statstr != '':
@@ -686,4 +691,3 @@ gwSizingStats = {
 
 if __name__ == '__main__':
     run()
-
