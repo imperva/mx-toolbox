@@ -78,7 +78,8 @@ MXSonarStats = {
     "memory":{},
     "cpu":{
         "top":{},
-        "sar":{}
+        "sar":{},
+        "last_min_load": {}
     },
     "network":{},
     "log_search":{},
@@ -370,6 +371,12 @@ def getSysStats():
                     MXCpuStatAry.append(topCpuAttrMap[statAry[1]]+"="+statAry[0])
                     MXStats["top_"+statType.lower()+"_"+topCpuAttrMap[statAry[1]]] = float(statAry[0])
                     MXSonarStats["cpu"]["top"][cpu][topCpuAttrMap[statAry[1]]] = float(statAry[0])
+            elif "load average" in stat:
+                last_min_average = stat.split("load average: ").pop(1).split(",").pop(0).strip()
+                lastSecAry = influxDbStats["imperva_mx_top_cpu"]["cpu=all"] = []                
+                lastSecAry.append("last_min_load_average="+str(last_min_average))
+                MXStats["cpuload_last_min_load_average"] = float(last_min_average)
+                MXSonarStats["cpu"]["last_min_load"]["average"] = float(last_min_average)
 
         try:
             # @TODO implement sonar stat for sar
