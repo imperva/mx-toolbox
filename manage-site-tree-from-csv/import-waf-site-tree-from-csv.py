@@ -50,23 +50,28 @@ def run():
                 logging.warning("Adding server group '"+server_group_name+"' to site '"+site_name+"' to site tree.")
                 response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/serverGroups/"+site_name+"/"+server_group_name,"POST",json.dumps({}))
                 if ss.ErrorCheck(response):
-                    for server_ip in server_group["server_ips"]:
-                        response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/serverGroups/"+site_name+"/"+server_group_name+"/protectedIPs/"+server_ip+"?gatewayGroup="+server_group["server_ips"][server_ip],"POST",json.dumps({}))
-                    for service_name in server_group["services"]:
-                        service = server_group["services"][service_name]
-                        data = {
-                            "ports":list(service["ports"].keys()),
-                            "sslPorts":list(service["sslPorts"].keys())
-                        }
-                        response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name,"POST",json.dumps(data))
-                        
-                        for ssl_key_name in service["sslCerts"]:
-                            sslCertObj = service["sslCerts"][ssl_key_name]
-                            response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name+"/sslCertificates/"+ssl_key_name,"POST",json.dumps(sslCertObj))
+                    if "operation_mode" in server_group:
+                        data = {"operationMode":server_group["operation_mode"]}
+                        response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/serverGroups/"+site_name+"/"+server_group_name,"PUT",json.dumps(data)) 
+                    if "server_ip" in server_group:
+                        for server_ip in server_group["server_ips"]:
+                            response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/serverGroups/"+site_name+"/"+server_group_name+"/protectedIPs/"+server_ip+"?gatewayGroup="+server_group["server_ips"][server_ip],"POST",json.dumps({}))
+                    if "service_name" in server_group:
+                        for service_name in server_group["services"]:
+                            service = server_group["services"][service_name]
+                            data = {
+                                "ports":list(service["ports"].keys()),
+                                "sslPorts":list(service["sslPorts"].keys())
+                            }
+                            response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name,"POST",json.dumps(data))
+                            
+                            for ssl_key_name in service["sslCerts"]:
+                                sslCertObj = service["sslCerts"][ssl_key_name]
+                                response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name+"/sslCertificates/"+ssl_key_name,"POST",json.dumps(sslCertObj))
 
-                        for krp_alias_name in service["krpConfigs"]:
-                            krp_rule = service["krpConfigs"][krp_alias_name]
-                            response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name+"/krpInboundRules/"+krp_rule["gateway_group"]+"/"+krp_rule["gateway_krp_alias_name"]+"/"+krp_rule["krp_inbound_port"],"POST",json.dumps(krp_rule["krpRules"]))
+                            for krp_alias_name in service["krpConfigs"]:
+                                krp_rule = service["krpConfigs"][krp_alias_name]
+                                response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name+"/krpInboundRules/"+krp_rule["gateway_group"]+"/"+krp_rule["gateway_krp_alias_name"]+"/"+krp_rule["krp_inbound_port"],"POST",json.dumps(krp_rule["krpRules"]))
 
 if __name__ == '__main__':
     run()
