@@ -1,0 +1,8 @@
+Site,Server Group,Operation Mode,Server IP,Gateway Group,Service,Service Ports,Service SSL Ports,SSL Key Name,SSL Private Key,SSL Public Key,HSM,SSL P12,SSL P12 Passphrase,Gateway KRP Alias Name,KRP Inbound Port,KRP Outbound Priority,KRP Internal Host,KRP Outbound Port,KRP Encrypt Outbound,Application,Application Mapping Priority,Application Mapping Host,Host Match Type
+Test Site,Test SG,,,,HTTP,80,443,My Key,certs/mytest.key,certs/mytest.crt,FALSE,,,GWKRP_225,80,1,1.2.3.4,81,TRUE,Default Web Application,2,some.host.com,Exact
+Test Site,Test SG,simulation,192.168.123.130,SecureSphereGW14KRP,HTTP,"81,82",444,,,,,,,GWKRP_225,80,2,1.2.3.5,82,FALSE,test,1,test.host.com,Prefix
+Test Site,Test SG 2,active,192.168.123.130,SecureSphereGW14KRP,HTTP,83,,,,,,,,GWKRP_225,81,1,1.2.3.6,87,,,,,
+Test Site,Test SG 3,,192.168.123.131,SecureSphereGW14Sniffing,HTTP,,,,,,,,,,,,,,,,,,
+Test Site,Server Group 1,simulation,,,,,,,,,,,,,,,,,,,,,
+Test Site,Server Group 2,active,,,,,,,,,,,,,,,,,,,,,
+Test Site,Server Group 3,,,,,,,,,,,,,,,,,,,,,,

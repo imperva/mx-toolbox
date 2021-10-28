@@ -1,5 +1,0 @@
-Site,Server Group,Server IP,Gateway Group,Service,Service Ports,Service SSL Ports,SSL Key Name,SSL Private Key,SSL Public Key,HSM,SSL P12,SSL P12 Passphrase,Gateway KRP Alias Name,KRP Inbound Port,KRP Outbound Priority,KRP Internal Host,KRP Outbound Port,KRP Encrypt Outbound
-Test Site,Test SG,192.168.123.129,SecureSphereGW14KRP,HTTP,80,443,My Key,certs/mytest.key,certs/mytest.crt,FALSE,,,GWKRP_225,80,1,1.2.3.4,81,TRUE
-Test Site,Test SG,192.168.123.130,SecureSphereGW14KRP,HTTP,"81,82",444,,,,,,,GWKRP_225,80,2,1.2.3.5,82,
-Test Site,Test SG,192.168.123.130,SecureSphereGW14KRP,HTTP,83,,,,,,,,GWKRP_225,81,1,1.2.3.6,87,
-Test Site,Test SG,192.168.123.131,SecureSphereGW14Sniffing,HTTP,,,,,,,,,,,,,,

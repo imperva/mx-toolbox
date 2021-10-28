@@ -15,7 +15,7 @@ policyMapping = {
 	"HTTP/1.x Protocol Validation": "httpProtocolPolicies",
 	"HTTP/2 Protocol Validation": "http2ProtocolPolicies",
 	"Snippet Injection": "snippetInjectionPolicies",
-	"Stream Signature": "streamSignaturesPolicies",
+	"Stream Signature": "streamSignaturesPolicies",   
 	"Web Application Custom": "webApplicationCustomPolicies",
 	"Web Application Signatures": "webApplicationSignaturesPolicies",
 	"Web Profile": "webProfilePolicies",
@@ -254,8 +254,14 @@ def upsertIPGroup(mx_host, session_id, ipGroupObj):
 	}
 
 
-def getSignature():
+def getSignature(mx_host, session_id, signature):
 	print("getSignature()")
+	# implement signature retrieval
+	# dataResponse = makeCall(mx_host, session_id, "/conf/ipGroups/"+str(ip_group)+"/data")
+	# return {
+	# 	"name": ip_group,
+	# 	"data": dataResponse.json()
+	# }
 
 def upsertSignature():
 	print("upsertSignature()")
@@ -307,6 +313,46 @@ def upsertWebPolicy(mx_host, cur_session_id, policy_name, policyAttr):
 		"timestamp": strftime("%Y/%m/%d %H:%M:%S", localtime())
 	}
 
+def ParseCsvWafPolicies(CSV_FILE_PATH):
+	policies = {}
+	rowIndex = {}
+	f = open(CSV_FILE_PATH, 'r', encoding='utf-8-sig')
+	csvfile = f.read().split("\n")
+	rows = list(csv.reader(csvfile, quotechar='"', delimiter=',', quoting=csv.QUOTE_ALL, skipinitialspace=True, dialect=csv.excel))
+	
+	# Parse csv headers by name/index order into associative lookup to support csv data in different column order
+	for i in range(len(rows[0])):
+		if (rows[0][i].strip()!=""):
+			rowIndex[rows[0][i].strip().lower().replace(" ","_")] = i
+	if ("policy_name" not in rowIndex or "policy_type" not in rowIndex ):
+		logging.warning('[ERROR] Required fields are missing, csv must contain a minimum of the the following columns:Policy Name, and Policy Type')
+		exit()
+	
+	for row_num in range(len(rows[1:])):
+		row_num_str = str(row_num+1)
+		row = rows[row_num+1]
+		if (len(row)!=0):
+			policy_name = row[rowIndex["policy_name"]].strip()
+			policy_type = row[rowIndex["policy_type"]].strip()
+			policy_level = row[rowIndex["policy_level"]].strip()
+			if (policy_name not in policies): 
+				policies[policy_name] = {
+					"policy_level":policy_level,
+					"policy_type":policy_type,
+					"rules":{}
+				}			
+			rule_name = row[rowIndex["rule_name"]].strip()
+			rule_action = row[rowIndex["rule_action"]].strip()
+			rule_severity = row[rowIndex["rule_severity"]].strip()
+			rule_enabled = row[rowIndex["rule_enabled"]].strip()
+			policies[policy_name]["rules"][rule_name] = {
+				"rule_action":rule_action,
+				"rule_severity":rule_severity,
+				"rule_enabled":rule_enabled
+			}
+			# policies.append({"policy_name":policy_name,"policy_type":policy_type})
+	return policies	
+
 def ParseCsvWaf(CSV_FILE_PATH):
 	sites = {}
 	rowIndex = {}
@@ -320,8 +366,8 @@ def ParseCsvWaf(CSV_FILE_PATH):
 			rowIndex[rows[0][i].lower().replace(" ","_")] = i
 	
 	# Check for minimum required fields
-	if ("site" not in rowIndex or "server_group" not in rowIndex or "server_group" not in rowIndex):
-		print('[ERROR] Required fields are missing, csv must contain a minimum of the the following columns:\nSite, Server Group, Service')
+	if ("site" not in rowIndex or "server_group" not in rowIndex or "operation_mode" not in rowIndex or "service" not in rowIndex or "application" not in rowIndex):
+		logging.warning('[ERROR] Required fields are missing, csv must contain a minimum of the the following columns:\nSite, Server Group, Operation, Service, and Application')
 		exit()
 
 	# Process each row into normalized site tree object
@@ -329,131 +375,156 @@ def ParseCsvWaf(CSV_FILE_PATH):
 		row_num_str = str(row_num+1)
 		row = rows[row_num+1]
 		site_name = row[rowIndex["site"]].strip()
-		if site_name not in sites:
-			sites[site_name] = {}
-		
-		server_group_name = row[rowIndex["server_group"]].strip()
-		if server_group_name not in sites[site_name]:
-			sites[site_name][server_group_name] = {"services":{}}
-		
-		# Check for both server_ip and gateway_group columns to be present
-		if ("server_ip" in rowIndex or "gateway_group" in rowIndex):
-			if ("server_ip" in rowIndex and "gateway_group" in rowIndex):
-				server_ip = row[rowIndex["server_ip"]].strip()
-				gateway_group = row[rowIndex["gateway_group"]].strip()
-				# Check for both server_ip and gateway_group columns to have values
-				if (server_ip.strip()!="" or gateway_group.strip()!=""):
-					if (server_ip.strip()!="" and gateway_group.strip()!=""):
-						if ("server_ips" not in sites[site_name][server_group_name]):
-							sites[site_name][server_group_name]["server_ips"] = {}
-						sites[site_name][server_group_name]["server_ips"][server_ip] = gateway_group
+		if (site_name==""):
+			logging.warning("[WARNING] CSV Row "+row_num_str+" - Site name empty, ignoring record.")
+			logging.warning("CSV Row "+row_num_str+" Data: "+str(row)+"\n")
+		else:
+			if site_name not in sites:
+				sites[site_name] = {}
+			server_group_name = row[rowIndex["server_group"]].strip()
+			if (server_group_name==""):
+				logging.warning("[WARNING] CSV Row "+row_num_str+" - Server Group name empty, ignoring record.")
+				logging.warning("CSV Row "+row_num_str+" Data: "+str(row)+"\n")
+			else:
+				if server_group_name not in sites[site_name]:
+					sites[site_name][server_group_name] = {"services":{}}
+					operation_mode = row[rowIndex["operation_mode"]].strip().lower()
+					if (operation_mode!=""):
+						sites[site_name][server_group_name]["operation_mode"] = operation_mode
+
+				# Check for both server_ip and gateway_group columns to be present
+				if ("server_ip" in rowIndex or "gateway_group" in rowIndex):
+					if ("server_ip" in rowIndex and "gateway_group" in rowIndex):
+						server_ip = row[rowIndex["server_ip"]].strip()
+						gateway_group = row[rowIndex["gateway_group"]].strip()
+						# Check for both server_ip and gateway_group columns to have values
+						if (server_ip.strip()!="" or gateway_group.strip()!=""):
+							if (server_ip.strip()!="" and gateway_group.strip()!=""):
+								if ("server_ips" not in sites[site_name][server_group_name]):
+									sites[site_name][server_group_name]["server_ips"] = {}
+								sites[site_name][server_group_name]["server_ips"][server_ip] = gateway_group
+							else:
+								logging.warning("[ERROR] CSV Row "+row_num_str+" - Required fields are missing, if you have column Server IP, you mush also specify column Gateway Group")
+								logging.warning("CSV Row "+row_num_str+" Data: "+str(row)+"\n")
 					else:
-						print("[ERROR] CSV Row "+row_num_str+" - Required fields are missing, if you have column Server IP, you mush also specify column Gateway Group")
-						print("CSV Row "+row_num_str+" Data: "+row_str)
-			else:
-				print('[ERROR] Required fields are missing, if you have column Server IP, you mush also specify column Gateway Group')
-				exit()
-				
-		service_name = row[rowIndex["service"]].strip()
-		if service_name not in sites[site_name][server_group_name]["services"]:
-			sites[site_name][server_group_name]["services"][service_name] = {"ports":{},"sslPorts":{},"sslCerts":{},"krpConfigs":{}}
+						logging.warning('[ERROR] Required fields are missing, if you have column Server IP, you mush also specify column Gateway Group')
 
-		if ("service_ports" in rowIndex):
-			service_ports = row[rowIndex["service_ports"]].strip()
-			# Check for port, if no port is specified, assign default HTTP port of 80
-			if (service_ports==""):
-				sites[site_name][server_group_name]["services"][service_name]["ports"]["80"] = True
-			else: 
-				for port in service_ports.split(","):
-					sites[site_name][server_group_name]["services"][service_name]["ports"][port] = True
+				service_name = row[rowIndex["service"]].strip()				
+				if (service_name==""):
+					logging.warning("[WARNING] CSV Row "+row_num_str+" - Service name empty, ignoring service and application level configuration portions of this record.")
+					logging.warning("CSV Row "+row_num_str+" Data: "+str(row)+"\n")
+				else:
+					if service_name not in sites[site_name][server_group_name]["services"]:
+						sites[site_name][server_group_name]["services"][service_name] = {"ports":{},"sslPorts":{},"sslCerts":{},"krpConfigs":{}, "applications":{}}
 
-		if ("service_ssl_ports" in rowIndex):
-			service_ssl_ports = row[rowIndex["service_ssl_ports"]].strip()
-			# Check for port, if no port is specified, assign default HTTP port of 80
-			if (service_ssl_ports==""):
-				sites[site_name][server_group_name]["services"][service_name]["sslPorts"]["443"] = True
-			else: 
-				for port in service_ssl_ports.split(","):
-					sites[site_name][server_group_name]["services"][service_name]["sslPorts"][port] = True
-				service_name = row[rowIndex["service"]].strip()
-		
-		certPresent = False
-		# Check for both ssl_private_key and ssl_public_key columns to be present
-		if ("ssl_private_key" in rowIndex or "ssl_public_key" in rowIndex or "ssl_key_name" in rowIndex or "hsm" in rowIndex):
-			if ("ssl_private_key" in rowIndex and "ssl_public_key" in rowIndex and "ssl_key_name" in rowIndex and "hsm" in rowIndex):
-				ssl_key_name = row[rowIndex["ssl_key_name"]].strip()
-				ssl_private_key = row[rowIndex["ssl_private_key"]].strip()
-				ssl_public_key = row[rowIndex["ssl_public_key"]].strip()
-				hsm_val = row[rowIndex["hsm"]].strip().lower()
-				hsm = bool(distutils.util.strtobool(hsm_val)) if hsm_val!="" else False
-				# Check for both ssl_private_key and ssl_public_key columns to have values
-				if (ssl_private_key!="" or ssl_public_key!="" or ssl_key_name!=""):
-					if (ssl_private_key!="" and ssl_public_key!="" and ssl_key_name!=""):
-						certPresent = True
-						cert = {
-							"format":"pem",
-							"private":OpenFile(ssl_private_key),
-							"certificate":OpenFile(ssl_public_key),
-							"hsm":hsm
-						}
-						sites[site_name][server_group_name]["services"][service_name]["sslCerts"][ssl_key_name] = cert
+					if ("service_ports" in rowIndex):
+						service_ports = row[rowIndex["service_ports"]].strip()
+						# Check for port, if no port is specified, assign default HTTP port of 80
+						if (service_ports==""):
+							sites[site_name][server_group_name]["services"][service_name]["ports"]["80"] = True
+						else: 
+							for port in service_ports.split(","):
+								sites[site_name][server_group_name]["services"][service_name]["ports"][port] = True
+
+					if ("service_ssl_ports" in rowIndex):
+						service_ssl_ports = row[rowIndex["service_ssl_ports"]].strip()
+						# Check for port, if no port is specified, assign default HTTP port of 80
+						if (service_ssl_ports==""):
+							sites[site_name][server_group_name]["services"][service_name]["sslPorts"]["443"] = True
+						else: 
+							for port in service_ssl_ports.split(","):
+								sites[site_name][server_group_name]["services"][service_name]["sslPorts"][port] = True
+							service_name = row[rowIndex["service"]].strip()
+					
+					certPresent = False
+					# Check for both ssl_private_key and ssl_public_key columns to be present
+					if ("ssl_private_key" in rowIndex or "ssl_public_key" in rowIndex or "ssl_key_name" in rowIndex or "hsm" in rowIndex):
+						if ("ssl_private_key" in rowIndex and "ssl_public_key" in rowIndex and "ssl_key_name" in rowIndex and "hsm" in rowIndex):
+							ssl_key_name = row[rowIndex["ssl_key_name"]].strip()
+							ssl_private_key = row[rowIndex["ssl_private_key"]].strip()
+							ssl_public_key = row[rowIndex["ssl_public_key"]].strip()
+							hsm_val = row[rowIndex["hsm"]].strip().lower()
+							hsm = bool(distutils.util.strtobool(hsm_val)) if hsm_val!="" else False
+							# Check for both ssl_private_key and ssl_public_key columns to have values
+							if (ssl_private_key!="" or ssl_public_key!="" or ssl_key_name!=""):
+								if (ssl_private_key!="" and ssl_public_key!="" and ssl_key_name!=""):
+									certPresent = True
+									cert = {
+										"format":"pem",
+										"private":OpenFile(ssl_private_key),
+										"certificate":OpenFile(ssl_public_key),
+										"hsm":hsm
+									}
+									sites[site_name][server_group_name]["services"][service_name]["sslCerts"][ssl_key_name] = cert
+								else:
+									logging.warning("[ERROR] CSV Row "+row_num_str+" - Required fields are missing, you mush have SSL Key Name, SSL Private Key, and SSL Private Key to upload a SSL pem type certificate")
+									logging.warning("CSV Row "+row_num_str+" Data: ",row)
+						else:
+							logging.warning('[ERROR] Required fields are missing, if you have column Server IP, you mush also specify column Gateway Group')
+							exit()
+					# ssl_p12
+					# ssl_p12_passphrase
+
+					if ("krp_inbound_port" in rowIndex or "krp_internal_host" in rowIndex or "krp_outbound_port" in rowIndex or "gateway_group" in rowIndex or "krp_outbound_priority" in rowIndex or "gateway_krp_alias_name" in rowIndex):
+						if ("krp_inbound_port" in rowIndex and "krp_internal_host" in rowIndex and "krp_outbound_port" in rowIndex and "gateway_group" in rowIndex and "krp_outbound_priority" in rowIndex and "gateway_krp_alias_name" in rowIndex):
+							krp_inbound_port = row[rowIndex["krp_inbound_port"]].strip()
+							krp_internal_host = row[rowIndex["krp_internal_host"]].strip()
+							krp_outbound_port = row[rowIndex["krp_outbound_port"]].strip()
+							gateway_group = row[rowIndex["gateway_group"]].strip()
+							krp_outbound_priority = row[rowIndex["krp_outbound_priority"]].strip()
+							gateway_krp_alias_name = row[rowIndex["gateway_krp_alias_name"]].strip()
+							
+							if (krp_inbound_port!="" or krp_internal_host!="" or krp_outbound_port!="" or gateway_group!="" or krp_outbound_priority!="" or gateway_krp_alias_name!=""):
+								if (krp_inbound_port!="" and krp_internal_host!="" and krp_outbound_port!="" and gateway_group!="" and krp_outbound_priority!="" and gateway_krp_alias_name!=""):
+									krpConfig = {
+										"krp_inbound_port":krp_inbound_port,
+										"gateway_group":gateway_group,
+										"gateway_krp_alias_name":gateway_krp_alias_name,
+										"krpRules":{
+											"outboundRules":{}
+										}
+									}
+									krp_config_id = gateway_group+"_"+gateway_krp_alias_name+"_"+krp_inbound_port+"_"+str(ssl_key_name)
+									if krp_config_id not in sites[site_name][server_group_name]["services"][service_name]["krpConfigs"]:
+										sites[site_name][server_group_name]["services"][service_name]["krpConfigs"][krp_config_id] = krpConfig
+
+									if certPresent:
+										sites[site_name][server_group_name]["services"][service_name]["krpConfigs"][krp_config_id]["krpRules"]["serverCertificate"] = ssl_key_name
+
+									encrypt = bool(distutils.util.strtobool(row[rowIndex["krp_encrypt_outbound"]].strip().lower())) if hsm_val!="" else False
+									outboundRule = {
+										"externalHost": "Any",
+										"internalIpHost": row[rowIndex["krp_internal_host"]],
+										"serverPort": row[rowIndex["krp_outbound_port"]], 
+										"encrypt": encrypt
+									}
+									sites[site_name][server_group_name]["services"][service_name]["krpConfigs"][krp_config_id]["krpRules"]["outboundRules"][krp_outbound_priority] = outboundRule
+						else:
+							logging.warning('[ERROR] Required fields are missing, to specify a KRP rule, you must have all of following columns populated: KRP Alias Name, Inbound KRP Port, KRP Internal Host, KRP Outbound Port, Gateway Group and KRP Outbound Priority.')
+
+					application_name = row[rowIndex["application"]].strip()
+					if (application_name==""):
+						logging.warning("[WARNING] CSV Row "+row_num_str+" - Application name empty, ignoring application configuration portions of this record.")
+						logging.warning("CSV Row "+row_num_str+" Data: "+str(row)+"\n")
 					else:
-						print("[ERROR] CSV Row "+row_num_str+" - Required fields are missing, you mush have SSL Key Name, SSL Private Key, and SSL Private Key to upload a SSL pem type certificate")
-						print("CSV Row "+row_num_str+" Data: ",row)
-			else:
-				print('[ERROR] Required fields are missing, if you have column Server IP, you mush also specify column Gateway Group')
-				exit()
-		# ssl_p12
-		# ssl_p12_passphrase
+						sites[site_name][server_group_name]["services"][service_name]["applications"][application_name] = {"hostToAppMappings":{}}
+						if ("application_mapping_priority" in rowIndex or "application_mapping_host" in rowIndex or "host_match_type" in rowIndex):
+							if ("application_mapping_priority" in rowIndex and "application_mapping_host" in rowIndex and "host_match_type" in rowIndex):
+								priority = row[rowIndex["application_mapping_priority"]].strip()
+								host = row[rowIndex["application_mapping_host"]].strip()
+								host_match_type = row[rowIndex["host_match_type"]].strip().lower().capitalize()
+								
+								# Check for all app required values
+								if (priority!="" or host!="" or host_match_type!=""):
+									if (priority!="" and host!="" and host_match_type!=""):
+										appMapping = {"host":host,"hostMatchType":host_match_type}
+										sites[site_name][server_group_name]["services"][service_name]["applications"][application_name]["hostToAppMappings"][priority] = appMapping
+									else:
+										logging.warning("[ERROR] CSV Row "+row_num_str+" - Required fields are missing, you mush have Application, Application Mapping Priority, Application Mapping Host, and Host Match Type to map applications")
+										logging.warning("CSV Row "+row_num_str+" Data: ",str(row))
 
-		# Gateway KRP Alias Name	
-		# KRP Inbound Port	
-		# KRP Outbound Priority	
-		# KRP Internal Host	
-		# KRP Outbound Port	
-		# KRP Encrypt Outbound
-
-		if ("krp_inbound_port" in rowIndex or "krp_internal_host" in rowIndex or "krp_outbound_port" in rowIndex or "gateway_group" in rowIndex or "krp_outbound_priority" in rowIndex or "gateway_krp_alias_name" in rowIndex):
-			if ("krp_inbound_port" in rowIndex and "krp_internal_host" in rowIndex and "krp_outbound_port" in rowIndex and "gateway_group" in rowIndex and "krp_outbound_priority" in rowIndex and "gateway_krp_alias_name" in rowIndex):
-				krp_inbound_port = row[rowIndex["krp_inbound_port"]].strip()
-				krp_internal_host = row[rowIndex["krp_internal_host"]].strip()
-				krp_outbound_port = row[rowIndex["krp_outbound_port"]].strip()
-				gateway_group = row[rowIndex["gateway_group"]].strip()
-				krp_outbound_priority = row[rowIndex["krp_outbound_priority"]].strip()
-				gateway_krp_alias_name = row[rowIndex["gateway_krp_alias_name"]].strip()
-				
-				if (krp_inbound_port!="" or krp_internal_host!="" or krp_outbound_port!="" or gateway_group!="" or krp_outbound_priority!="" or gateway_krp_alias_name!=""):
-					if (krp_inbound_port!="" and krp_internal_host!="" and krp_outbound_port!="" and gateway_group!="" and krp_outbound_priority!="" and gateway_krp_alias_name!=""):
-						krpConfig = {
-							"krp_inbound_port":krp_inbound_port,
-							"gateway_group":gateway_group,
-							"gateway_krp_alias_name":gateway_krp_alias_name,
-							"krpRules":{
-								"outboundRules":{}
-							}
-						}
-						krp_config_id = gateway_group+"_"+gateway_krp_alias_name+"_"+krp_inbound_port+"_"+str(ssl_key_name)
-						if krp_config_id not in sites[site_name][server_group_name]["services"][service_name]["krpConfigs"]:
-							sites[site_name][server_group_name]["services"][service_name]["krpConfigs"][krp_config_id] = krpConfig
-
-						if certPresent:
-							sites[site_name][server_group_name]["services"][service_name]["krpConfigs"][krp_config_id]["krpRules"]["serverCertificate"] = ssl_key_name
-
-						encrypt = bool(distutils.util.strtobool(row[rowIndex["krp_encrypt_outbound"]].strip().lower())) if hsm_val!="" else False
-						outboundRule = {
-							"externalHost": "Any",
-							"internalIpHost": row[rowIndex["krp_internal_host"]],
-							"serverPort": row[rowIndex["krp_outbound_port"]], 
-							"encrypt": encrypt
-						}
-						sites[site_name][server_group_name]["services"][service_name]["krpConfigs"][krp_config_id]["krpRules"]["outboundRules"][krp_outbound_priority] = outboundRule
-			else:
-				print('[ERROR] Required fields are missing, to specify a KRP rule, you must have all of following columns populated: KRP Alias Name, Inbound KRP Port, KRP Internal Host, KRP Outbound Port, Gateway Group and KRP Outbound Priority.')
-				exit()
-
-		# application = row[rowIndex["application"]]
-		# hostname = row[rowIndex["hostname"]]
 	# print("\n\n"+json.dumps(sites))
+	# exit()
 	return sites
 
 def ErrorCheck(response):
@@ -464,6 +535,11 @@ def ErrorCheck(response):
 		if (responseObj["errors"][0]["error-code"]=="IMP-10005"):
 			isOk=True
 	return isOk
+
+def WriteFile(fileName, data):
+	open(fileName, 'w+').close()
+	file=open(fileName,"w+")
+	file.write(data)
 
 def OpenFile(fileName, readMode="rt"):
 	try:
