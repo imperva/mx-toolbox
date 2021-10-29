@@ -38,6 +38,7 @@ except:
 
 def run():
     sites = ss.ParseCsvWaf(CSV_FILE_PATH)
+    print(json.dumps(sites))
     mx_host = CONFIG["mx"]["endpoint"]
     session_id = ss.login(mx_host, CONFIG["mx"]["username"], CONFIG["mx"]["password"])
     for site_name in sites:
@@ -51,27 +52,56 @@ def run():
                 response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/serverGroups/"+site_name+"/"+server_group_name,"POST",json.dumps({}))
                 if ss.ErrorCheck(response):
                     if "operation_mode" in server_group:
+                        logging.warning("Setting operationMode '"+server_group["operation_mode"]+"' for '"+server_group_name+"'")
                         data = {"operationMode":server_group["operation_mode"]}
                         response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/serverGroups/"+site_name+"/"+server_group_name,"PUT",json.dumps(data)) 
                     if "server_ip" in server_group:
                         for server_ip in server_group["server_ips"]:
+                            logging.warning("Adding '"+server_ip+"' to protectedIPs for '"+server_group_name+"'")
                             response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/serverGroups/"+site_name+"/"+server_group_name+"/protectedIPs/"+server_ip+"?gatewayGroup="+server_group["server_ips"][server_ip],"POST",json.dumps({}))
-                    if "service_name" in server_group:
-                        for service_name in server_group["services"]:
-                            service = server_group["services"][service_name]
-                            data = {
-                                "ports":list(service["ports"].keys()),
-                                "sslPorts":list(service["sslPorts"].keys())
-                            }
-                            response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name,"POST",json.dumps(data))
-                            
-                            for ssl_key_name in service["sslCerts"]:
-                                sslCertObj = service["sslCerts"][ssl_key_name]
-                                response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name+"/sslCertificates/"+ssl_key_name,"POST",json.dumps(sslCertObj))
+                    for service_name in server_group["services"]:
+                        logging.warning("Adding '"+service_name+"' service to '"+server_group_name+"'")
+                        service = server_group["services"][service_name]
+                        data = {
+                            "ports":list(service["ports"].keys()),
+                            "sslPorts":list(service["sslPorts"].keys())
+                        }
+                        response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name,"POST",json.dumps(data))
+                        
+                        for ssl_key_name in service["sslCerts"]:
+                            logging.warning("Adding SSL key '"+ssl_key_name+"' to '"+service_name+"' service")
+                            sslCertObj = service["sslCerts"][ssl_key_name]
+                            response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name+"/sslCertificates/"+ssl_key_name,"POST",json.dumps(sslCertObj))
 
-                            for krp_alias_name in service["krpConfigs"]:
-                                krp_rule = service["krpConfigs"][krp_alias_name]
-                                response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name+"/krpInboundRules/"+krp_rule["gateway_group"]+"/"+krp_rule["gateway_krp_alias_name"]+"/"+krp_rule["krp_inbound_port"],"POST",json.dumps(krp_rule["krpRules"]))
+                        for krp_alias_name in service["krpConfigs"]:
+                            logging.warning("Adding KRP inbound rule to '"+service_name+"' service")
+                            krp_rule = service["krpConfigs"][krp_alias_name]
+                            response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name+"/krpInboundRules/"+krp_rule["gateway_group"]+"/"+krp_rule["gateway_krp_alias_name"]+"/"+krp_rule["krp_inbound_port"],"POST",json.dumps(krp_rule["krpRules"]))
+                        
+                        for application_name in service["applications"]:
+                            appObj = service["applications"][application_name]
+                            newAppObj = {"learnSettings":"LearnAll","parseOCSPRequests":False}
+                            logging.warning("Adding application '"+application_name+"' to service "+service_name)
+                            response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webApplications/"+site_name+"/"+server_group_name+"/"+service_name+"/"+application_name,"POST",json.dumps(newAppObj))
+                            for priority in appObj["hostToAppMappings"]:
+                                appMappingObj = appObj["hostToAppMappings"][priority]
+                                logging.warning("Adding application mapping '"+json.dumps(appMappingObj)+"' to service "+service_name)
+                                response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/webServices/"+site_name+"/"+server_group_name+"/"+service_name+"/hostToAppMappings/"+application_name+"/"+priority,"POST",json.dumps(appMappingObj))
+            
+    # Apply policies
+    # if CONFIG["applyWAFPolicies"]["enabled"]:
+    #     print("apply policies")
+    # policies = ss.ParseCsvWafPolicies(CONFIG["applyWAFPolicies"]["pathToCsv"])
+    # for server_group_name in site:
+    #     server_group = site[server_group_name]
+    #     for service_name in server_group["services"]:
+            # https://172.16.57.220:8083/SecureSphere/api/v1/conf/webServices/{siteName}/{serverGroupName}/{webServiceName}/securityPolicies
+    #         service = server_group["services"][service_name]
+    #         for application_name in service["applications"]:
+    #             # https://172.16.57.220:8083/SecureSphere/api/v1/conf/webApplications/{siteName}/{serverGroupName}/{webServiceName}/{webApplicationName}/webApplicationCustomPolicies/{policyName}
+
+
+
 
 if __name__ == '__main__':
     run()

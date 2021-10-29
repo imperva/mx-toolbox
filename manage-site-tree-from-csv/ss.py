@@ -484,7 +484,7 @@ def ParseCsvWaf(CSV_FILE_PATH):
 											"outboundRules":{}
 										}
 									}
-									krp_config_id = gateway_group+"_"+gateway_krp_alias_name+"_"+krp_inbound_port+"_"+str(ssl_key_name)
+									krp_config_id = gateway_group+"_"+gateway_krp_alias_name+"_"+krp_inbound_port
 									if krp_config_id not in sites[site_name][server_group_name]["services"][service_name]["krpConfigs"]:
 										sites[site_name][server_group_name]["services"][service_name]["krpConfigs"][krp_config_id] = krpConfig
 
