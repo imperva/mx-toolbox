@@ -10,7 +10,7 @@ from distutils import util
 PREFIX = "/SecureSphere/api/v1"
 
 policyMapping = {
-	"Firewall Policy": "firewallPolicies",
+	# "Firewall Policy": "firewallPolicies",
 	"HTTP Protocol Signatures": "httpProtocolSignaturesPolicies",
 	"HTTP/1.x Protocol Validation": "httpProtocolPolicies",
 	"HTTP/2 Protocol Validation": "http2ProtocolPolicies",
@@ -158,6 +158,30 @@ def initMxSyncLog(mx_host, session_id, dataset):
 	colResponse = makeCall(mx_host, session_id, "/conf/dataSets/" + datasetObj["dataset-name"] + "/columns")
 	if colResponse.status_code != 200:
 		makeCall(mx_host, session_id, "/conf/dataSets/createDataset?caseSensitive=false", "POST", dataset)
+
+def getSiteTree(mx_host, session_id):
+	siteTree = {}
+	sites = makeCall(mx_host, session_id, "/conf/sites")
+	sitesObj = sites.json()
+	for site_name in sitesObj["sites"]:
+		siteTree[site_name] = {"serverGroups":{}}
+		site = siteTree[site_name]
+		serverGroups = makeCall(mx_host, session_id, "/conf/serverGroups/"+site_name)
+		serverGroupsObj = serverGroups.json()
+		for server_group_name in serverGroupsObj["server-groups"]:
+			site["serverGroups"][server_group_name] = {"services":{},"policies":{}}
+			serverGroup = site["serverGroups"][server_group_name]
+			services = makeCall(mx_host, session_id, "/conf/webServices/"+site_name+"/"+server_group_name)
+			servicesObj = services.json()
+			for service_name in servicesObj["web-services"]:
+				serverGroup["services"][service_name] = {"applications":{},"policies":{}}
+				service = serverGroup["services"][service_name]
+				applications = makeCall(mx_host, session_id, "/conf/webApplications/"+site_name+"/"+server_group_name+"/"+service_name)
+				applicationsObj = applications.json()
+				for application_name in applicationsObj["webApplications"]:
+					service["applications"][application_name] = {"policies":{}}
+	return siteTree
+
 
 def getDataset(mx_host, session_id, dataset_name):
 	colResponse = makeCall(mx_host, session_id, "/conf/dataSets/" + dataset_name + "/columns")
@@ -526,6 +550,7 @@ def ParseCsvWaf(CSV_FILE_PATH):
 	# print("\n\n"+json.dumps(sites))
 	# exit()
 	return sites
+
 
 def ErrorCheck(response):
 	isOk=True
