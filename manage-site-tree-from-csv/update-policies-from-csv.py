@@ -100,5 +100,6 @@ def run():
                 print("ERROR: "+json.dumps(policyObj))
         else:
             print("Unsupported policy type '"+policyConfig["policy_type"]+"' for policy '"+policy_name+"'")
+
 if __name__ == '__main__':
     run()
