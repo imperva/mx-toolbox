@@ -68,7 +68,7 @@ def run():
 				policy_attr["isok"] = False
 			else:
 				policyObj = response.json()
-				ALLPOLICIES[policy_name] = policyObj
+				ALLPOLICIES[policy_name] = {"name":policy_name,"type":policy_type,"obj":policyObj}
 				policy_attr["policy_obj"] = policyObj
 				policy_attr["isok"] = True
 				logging.warning("RESPONSE: \n"+str(policyObj))
@@ -202,7 +202,7 @@ def run():
 
 	os.makedirs("export/policies",exist_ok = True)
 	for policy_name in ALLPOLICIES:
-		ss.WriteFile("export/policies/"+policy_name.replace("/","_")+".json", json.dumps({"name":policy_name,"obj":ALLPOLICIES[policy_name]}))
+		ss.WriteFile("export/policies/"+policy_name.replace("/","_")+".json", json.dumps(ALLPOLICIES[policy_name]))
 	
 if __name__ == '__main__':
 	run()
