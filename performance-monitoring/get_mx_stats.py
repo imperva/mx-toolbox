@@ -418,14 +418,14 @@ def makeCallNewRelicCall(stat):
                 proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
                 requests.post(new_relic_url, json.dumps(stat), proxies=proxies, headers=headers, verify=False, timeout=(CONNECTIONTIMEOUT,15))
             except requests.exceptions.RequestException as e:
-                logging.error("requests timeout error: {}".format(e))
+                logging.error("requests timeout error: {0}".format(e))
                 logging.error("newrelic host unreachable, aborting subsequent calls to newrelic")
                 logHostAvailable["newrelic"] = False
         else:
             try:
                 requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False, timeout=(3,15))
             except requests.exceptions.RequestException as e:
-                logging.error("requests timeout error: {}".format(e))
+                logging.error("requests timeout error: {0}".format(e))
                 logging.error("newrelic host unreachable, aborting subsequent calls to newrelic")
                 logHostAvailable["newrelic"] = False
 
@@ -445,7 +445,7 @@ def makeInfluxDBCall(measurement, tags, params):
                 if (response.status_code!=204):
                     logging.error("Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
             except requests.exceptions.RequestException as e:
-                logging.error("requests timeout error: {}".format(e))
+                logging.error("requests timeout error: {0}".format(e))
                 logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
                 logHostAvailable["influxdb"] = False
         
@@ -456,7 +456,7 @@ def makeInfluxDBCall(measurement, tags, params):
                     if (response.status_code!=204):
                         logging.error("Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
                 except requests.exceptions.RequestException as e:
-                    logging.error("[ERROR] requests timeout error: {}".format(e))
+                    logging.error("[ERROR] requests timeout error: {0}".format(e))
                     logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
                     logHostAvailable["influxdb"] = False
             else:
@@ -465,7 +465,7 @@ def makeInfluxDBCall(measurement, tags, params):
                     if (response.status_code!=204):
                         logging.warning("[ERROR] Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
                 except requests.exceptions.RequestException as e:
-                    logging.error("[ERROR] requests timeout error: {}".format(e))
+                    logging.error("[ERROR] requests timeout error: {0}".format(e))
                     logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
                     logHostAvailable["influxdb"] = False
 
