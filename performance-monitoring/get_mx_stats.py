@@ -193,6 +193,8 @@ def getMXServerStats():
                     agent_status_int = 0
                     if ("running" in agent_status and "errors" in agent_status):
                         agent_status_int = 4
+                    elif ("bad" in agent_status and "connectivity" in agent_status):
+                        agent_status_int = 6
                     elif ("running" in agent_status):
                         agent_status_int = 5
                     elif ("disabled" in agent_status):
