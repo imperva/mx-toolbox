@@ -139,8 +139,8 @@ GWSonarStats = {
 
 influxDbStats = {
     "imperva_gw_hades":{
-        "file={}".format(os.path.join(BASEDIR, 'status')): [],
-        "file={}".format(os.path.join(BASEDIR, 'counters')): []
+        "file={0}".format(os.path.join(BASEDIR, 'status')): [],
+        "file={0}".format(os.path.join(BASEDIR, 'counters')): []
     },
     "imperva_gw_workers":{},
     "imperva_gw_net":{},
@@ -182,8 +182,8 @@ def run():
         statTotal = counterStatValAry[1].split("=").pop()
         GWStats["imperva_gw_"+statKey] = int(statVal)
         GWStats["imperva_gw_"+statKey+"_total"] = int(statTotal)
-        influxDbStats["imperva_gw_hades"]["file={}".format(counters_file)].append(statKey+"="+str(statVal))
-        influxDbStats["imperva_gw_hades"]["file={}".format(counters_file)].append(statKey+"_total="+str(statTotal))
+        influxDbStats["imperva_gw_hades"]["file={0}".format(counters_file)].append(statKey+"="+str(statVal))
+        influxDbStats["imperva_gw_hades"]["file={0}".format(counters_file)].append(statKey+"_total="+str(statTotal))
         GWSonarStats["hades_counters"][statKey] = statVal
         GWSonarStats["hades_counters"][statKey+"_total"] = statTotal
         
@@ -265,7 +265,7 @@ def to_influxdb_stats(stats_dict):
     Converts a dictionary into an InfluxDB-compatible list of stringified stats. Example:
     {'a': 1, 'b': 2, 'c': 3} --> ['a=1', 'b=2', 'c=3']
     """
-    return ['{}={}'.format(k, v) for k, v in stats_dict.items()]
+    return ['{0}={1}'.format(k, v) for k, v in stats_dict.items()]
 
 def getNetworkStats():
     def getSocketConnectFailureStats():
@@ -476,8 +476,8 @@ def parseGWEventStat(stat):
             statAry = statstr.split(" ")
             GWStats[statKey] = int(statAry[0])
             GWStats[statKey+"_max"] = int(statAry[3])
-            influxDbStats["imperva_gw_hades"]["file={}".format(status_file)].append(statKey+"="+str(int(statAry[0])))
-            influxDbStats["imperva_gw_hades"]["file={}".format(status_file)].append(statKey+"_max="+str(int(statAry[3])))
+            influxDbStats["imperva_gw_hades"]["file={0}".format(status_file)].append(statKey+"="+str(int(statAry[0])))
+            influxDbStats["imperva_gw_hades"]["file={0}".format(status_file)].append(statKey+"_max="+str(int(statAry[3])))
             GWSonarStats["hades_counters"][statKey] = int(statAry[0])
             GWSonarStats["hades_counters"][statKey+"_max"] = int(statAry[3])
 
@@ -559,14 +559,14 @@ def makeCallNewRelicCall(stat):
                 proxies = {"https": "https://" + CONFIG["proxies"]["proxy_username"] + ":" + CONFIG["proxies"]["proxy_password"] + "@" + CONFIG["proxies"]["proxy_host"] + ":" + CONFIG["proxies"]["proxy_port"]}
                 requests.post(new_relic_url, json.dumps(stat), proxies=proxies, headers=headers, verify=False, timeout=(CONNECTIONTIMEOUT,15))
             except requests.exceptions.RequestException as e:
-                logging.error("requests timeout error: {}".format(e))
+                logging.error("requests timeout error: {0}".format(e))
                 logging.error("newrelic host unreachable, aborting subsequent calls to newrelic")
                 logHostAvailable["newrelic"] = False
         else:
             try:
                 requests.post(new_relic_url, json.dumps(stat), headers=headers, verify=False, timeout=(3,15))
             except requests.exceptions.RequestException as e:
-                logging.error("requests timeout error: {}".format(e))
+                logging.error("requests timeout error: {0}".format(e))
                 logging.error("newrelic host unreachable, aborting subsequent calls to newrelic")
                 logHostAvailable["newrelic"] = False
 
@@ -585,7 +585,7 @@ def makeInfluxDBCall(measurement, tags, params):
                 if (response.status_code!=204):
                     logging.error("Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
             except requests.exceptions.RequestException as e:
-                logging.error("requests timeout error: {}".format(e))
+                logging.error("requests timeout error: {0}".format(e))
                 logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
                 logHostAvailable["influxdb"] = False
         
@@ -596,7 +596,7 @@ def makeInfluxDBCall(measurement, tags, params):
                     if (response.status_code!=204):
                         logging.error("Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
                 except requests.exceptions.RequestException as e:
-                    logging.error("[ERROR] requests timeout error: {}".format(e))
+                    logging.error("[ERROR] requests timeout error: {0}".format(e))
                     logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
                     logHostAvailable["influxdb"] = False
             else:
@@ -605,7 +605,7 @@ def makeInfluxDBCall(measurement, tags, params):
                     if (response.status_code!=204):
                         logging.warning("[ERROR] Influxdb error - status_code ("+str(response.status_code)+") response: " + json.dumps(response.json()))
                 except requests.exceptions.RequestException as e:
-                    logging.error("[ERROR] requests timeout error: {}".format(e))
+                    logging.error("[ERROR] requests timeout error: {0}".format(e))
                     logging.error("influxdb host unreachable, aborting subsequent calls to influxdb")
                     logHostAvailable["influxdb"] = False
 
