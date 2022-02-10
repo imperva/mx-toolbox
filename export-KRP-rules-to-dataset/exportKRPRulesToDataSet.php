@@ -13,9 +13,9 @@ define("CREATE_DATASETS","false");
 define("DATASET","ALL_KRP_Rules");
 define("DEBUG","true");
 include('ss.php');
-define("MX_SERVER","https://192.168.12.70:8083/SecureSphere/api");
-define("MX_USER","admin");
-define("MX_PASS","webco123");
+define("MX_SERVER","https://[mxendpoint]:8083/SecureSphere/api");
+define("MX_USER","your_username");
+define("MX_PASS","your_password");
 define("SESSION",ss_login());
 $emptyJSONObj = (object)array();
 

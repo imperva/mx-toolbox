@@ -7,14 +7,10 @@ define("CACHESESSION","false");
 define("DEBUG","false");
 include('ss.php');
 $authAry = array(
-	"https://192.168.12.70:8083/SecureSphere/api"=>array(
-		"username"=>"admin",
-		"password"=>"webco123"
-	)/*,
-	"https://192.168.12.71:8083/SecureSphere/api"=>array(
-		"username"=>"admin",
-		"password"=>"webco123"
-	)*/
+	"https://[mxendpoint]:8083/SecureSphere/api"=>array(
+		"username"=>"your_username",
+		"password"=>"your_password"
+	)
 );
 $emptyJSONObj = (object)array();
 
