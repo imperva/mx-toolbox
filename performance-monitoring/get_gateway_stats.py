@@ -383,6 +383,12 @@ def getSysStats():
         GWStats["uptime"] = UPTIME
         GWSonarStats["system"]["uptime"] = UPTIME
 
+        # Get latest successful configuration revision message
+        input, output, error = os.popen3("cat /opt/SecureSphere/etc/logs/GatewayLog/GatewayLog.html | awk '/applied successfully/ {line=$0} END{print line}' | grep -E -o '[0-9]+'")
+        revision_update_data = output.read().split()
+        current_revision_index = -2
+        sysStat.append("current_revision=" + revision_update_data[current_revision_index])
+
         pipe = Popen(['top','-bn','2'], stdout=PIPE)
         output = pipe.communicate()
         topOutputAry = str(output[0]).split("top - ").pop().split("\n")
