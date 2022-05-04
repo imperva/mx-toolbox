@@ -20,7 +20,8 @@ Download the latest files from the performance-monitoring folder.  Within this f
 
 1. Bulk create and apply policies in alert only.  Must run the export at least once from the GOLD MX (the MX with the baseline set of policies) so the json version of the policies are created locally to be referenced later.  Then run the duplicate script once against each MX that needs to be configured. 
     -	Script: export-waf-policies-to-json.py
-    -	Duplicate and apply missing policies to assets in the site tree. Script: duplicate-waf-policies-alert-only-from-csv.py
+    -	Script: duplicate-waf-policies-alert-only-from-csv.py
+    -	CSV Template:   baselinePolicies.csv
     -	SS Library:  ss.py
     -	Template Config:  template.config.json
 
