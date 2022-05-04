@@ -1,0 +1,26 @@
+Policy Name,Policy Level,Policy Type,Rule Action,Rule Severity,Rule Enabled,Rule Name
+Network Protocol Violations Policy,Network,Network Protocol Validation,None,Informative,Enabled,TCP - SYN with FIN
+Recommended Signatures Policy for General Applications,Network,Stream Signature,Block,High,Enabled,Recommended for Blocking for General Applications 
+Network Protocol Violations Policy,Network,Network Protocol Validation,Block,Medium,Enabled,TCP - LAND Attack
+Access to Restricted Configuration Files,Web Service,Web Service Custom,Block,Medium,Enabled,Custom Violation
+Kitchen Sink HTTP1,Web Service,HTTP/1.x Protocol Validation,Block/Risk acceptance as per LM feedback,Low,Enabled,Illegal Parameter Encoding
+Kitchen Sink HTTP2,Web Service,HTTP/2 Protocol Validation,Block,Low,Enabled,Abnormally Long Header Line
+Web Worm Policy,Web Application,Web Worm,Block,High,Enabled,Web Worm
+Recommended Signatures Policy for General Applications,Network,Stream Signature,None,Low,Enabled,Recommended for Detection for General Applications 
+Recommended Signatures Policy for General Applications,Network,Stream Signature,Block,High,Enabled,Recommended for Blocking for General Applications 
+Kitchen Sink WAS2,Web Application,Web Application Signatures,Block,High,Enabled,Web Worm - Defacement
+Kitchen Sink WSC min,Web Service,Web Service Custom,Block,High,Enabled,Custom Violation
+Kitchen Sink WAC2,Web Application,Web Application Custom,Block,High,Enabled,Custom Violation
+Kitchen Sink FW,Network,Firewall Policy,Block,High,Enabled,Custom Violation
+Recommended Signatures Policy for Web Applications,Web Service,HTTP Protocol Signatures,None,High,Enabled,MSSQL Data Retrieval with Implicit Conversion Errors
+Recommended Signatures Policy for Web Applications,Web Service,HTTP Protocol Signatures,Block,No Alert,Enabled,PHP Address Book 
+Recommended Signatures Policy for Web Applications,Web Service,HTTP Protocol Signatures,Block,No Alert,Enabled,PHP Double Precision Non Convergence DoS
+Recommended Signatures Policy for Web Applications,Web Service,HTTP Protocol Signatures,Block,High,Enabled,Worms and Critical Vulnerabilities for Web Applications
+Recommended Signatures Policy for Web Applications,Web Service,HTTP Protocol Signatures,None,Low,Enabled,Recommended for Detection for Web Applications
+Recommended Signatures Policy for Web Applications,Web Service,HTTP Protocol Signatures,Block,High,Enabled,Recommended for Blocking for Web Applications 
+Recommended Signatures Policy for Web Applications,Web Service,HTTP Protocol Signatures,Block,No Alert,Enabled,Java Double Precision Non Convergence DoS
+Recommended Signatures Policy for Web Applications,Web Service,HTTP Protocol Signatures,Block,Informative,Enabled,IIS Code Upload
+Recommended Signatures Policy for Web Applications,Web Service,HTTP Protocol Signatures,None,No Alert,Enabled,Fullwidth/Halfwidth Unicode Encoding on URL/Parameter
+Web Correlation Policy,Web Service,Web Service Correlated Validation,Block,High,disabled,SQL injection
+Web Correlation Policy,Web Service,Web Service Correlated Validation,Block,High,Enabled,Too Many of the Same Response Code
+Web Correlation Policy,Web Service,Web Service Correlated Validation,Block,High,Enabled,Cross-site scripting
