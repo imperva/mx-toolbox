@@ -476,6 +476,7 @@ def sendSyslog(jsonObj):
         for syslogEndpoint in CONFIG["syslog"]["endpoints"]:
             try:
                 logger = logging.getLogger('Logger')
+                logger.setLevel(logging.INFO)
                 handler = logging.handlers.SysLogHandler(address=(syslogEndpoint["host"],syslogEndpoint["port"]),facility=syslogEndpoint["facility"],socktype=(socket.SOCK_STREAM if syslogEndpoint["protocol"]=="TCP" else socket.SOCK_DGRAM))
                 logger.addHandler(handler)
                 logger.info(jsonObj)
@@ -488,6 +489,7 @@ def sendSonar(jsonObj):
         for sonarEndpoint in CONFIG["sonar"]["endpoints"]:
             try:
                 logger = logging.getLogger('Logger')
+                logger.setLevel(logging.INFO)
                 handler = logging.handlers.SysLogHandler(address = (sonarEndpoint["host"], sonarEndpoint["port"]),facility=sonarEndpoint["facility"],socktype=socket.SOCK_STREAM)
                 logger.addHandler(handler)
                 logger.info(json.dumps(jsonObj)+"\n")

@@ -621,23 +621,26 @@ def sendSyslog(jsonObj):
             logging.info("SYSLOG REQUEST: "+json.dumps(jsonObj))
             try:
                 logger = logging.getLogger('Logger')
+                logger.setLevel(logging.INFO)
                 handler = logging.handlers.SysLogHandler(address = (syslogEndpoint["host"], syslogEndpoint["port"]),facility=syslogEndpoint["facility"],socktype=(socket.SOCK_STREAM if syslogEndpoint["protocol"]=="TCP" else socket.SOCK_DGRAM))
                 logger.addHandler(handler)
                 logger.info(jsonObj)
             except Exception as e:
                 logging.error("syslog failed")
+                logging.error(e)
 
 def sendSonar(jsonObj):
     if (logHostAvailable["sonar"]==True):
         for sonarEndpoint in CONFIG["sonar"]["endpoints"]:
             try:
                 logger = logging.getLogger('Logger')
+                logger.setLevel(logging.INFO)
                 handler = logging.handlers.SysLogHandler(address = (sonarEndpoint["host"], sonarEndpoint["port"]),facility=sonarEndpoint["facility"],socktype=socket.SOCK_STREAM)
                 logger.addHandler(handler)
                 logger.info(json.dumps(jsonObj)+"\n")
             except Exception as e:
                 logging.error("syslog failed")
-
+                logging.error(e)
 
 def searchLogFile(filename, pattern):
     matches = []
