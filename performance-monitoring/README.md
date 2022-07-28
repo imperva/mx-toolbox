@@ -102,19 +102,21 @@ Example:
 
 `is_userspace` - _(required)_ set to true if using WAF gateway in NGRP mode (version 14.1 or later)
 
-`gw_log_search` - _(optional)_ feature to search a configurable list of local log files for a configurable list of patterns.  Configuring this can add specific events from a local any local log file (/var/log/messges, or /opt/SecureSphere/etc/logs/GatewayLog/GatewayLog.html for example) to be added to syslog output as soon as the event ocurs.
+`gateway_mx_host_display_name` - _(required for gateway config)_ set to the hostname of the MX.  This is used to correlate gateway events to MX events.
 
-`gw_log_search.enabled` - _(required)_ set to true to enable gw_log_search feature
+`log_search` - _(optional)_ feature to search a configurable list of local log files for a configurable list of patterns.  Configuring this can add specific events from a local any local log file (/var/log/messges, or /opt/SecureSphere/etc/logs/GatewayLog/GatewayLog.html for example) to be added to syslog output as soon as the event ocurs.
 
-`gw_log_search.files` - _(required)_ array of objects with the key->value pairs of path and search_patterns
+`log_search.enabled` - _(required)_ set to true to enable gw_log_search feature
 
-`gw_log_search.files[].path` - _(required)_ the path to a local log file to execute a set of search_patterns against
+`log_search.files` - _(required)_ array of objects with the key->value pairs of path and search_patterns
 
-`gw_log_search.files[].search_patters` - _(required)_ array of objects with the key->value pairs of name and pattern to search for in a the specified file
+`log_search.files[].path` - _(required)_ the path to a local log file to execute a set of search_patterns against
 
-`gw_log_search.files[].search_patters[].name` - _(required)_ array of objects with the key->value pairs of name and pattern to search for in a the specified 
+`log_search.files[].search_patters` - _(required)_ array of objects with the key->value pairs of name and pattern to search for in a the specified file
 
-`gw_log_search.files[].search_patters[].pattern` - _(required)_ any arbitrary string to search for in a specified local log file, the pattern will match even a partial string and return the whole line to be output in syslog feed 
+`log_search.files[].search_patters[].name` - _(required)_ array of objects with the key->value pairs of name and pattern to search for in a the specified 
+
+`log_search.files[].search_patters[].pattern` - _(required)_ any arbitrary string to search for in a specified local log file, the pattern will match even a partial string and return the whole line to be output in syslog feed 
 
 `newrelic` - (optional) sectional is not required, if not using newrelic, either set newrelic.enabled to false section can be removed from config
 
