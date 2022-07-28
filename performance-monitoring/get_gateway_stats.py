@@ -397,13 +397,14 @@ def getSysStats():
             statType = stat.split(":").pop(0).lower().strip()
             statsAry = ' '.join(stat.split(":").pop().lower().strip().split()).split(",")
             if statType[:3]=="mem" or statType[:4]=="swap":
+                GWSonarStats["memory"][statType] = {}
                 for curStat in statsAry:
                     statAry = curStat.strip().split()
                     statMeasurement = statAry[1][:5].replace(".","").strip()
                     if statMeasurement=="total" or statMeasurement=="used" or statMeasurement=="free":
                         sysStat.append(statType+"_"+statMeasurement+"="+statAry[0])
                         GWStats["top_"+statType+"_"+statMeasurement] = float(statAry[0])
-                        GWSonarStats["memory"]["top_"+statType+"_"+statMeasurement] = float(statAry[0])
+                        GWSonarStats["memory"][statType][statMeasurement] = float(statAry[0])
             elif statType[:3]=="cpu":
                 cpu = statType.replace("cpu","")
                 GWSonarStats["cpu"]["top"][cpu] = {}
