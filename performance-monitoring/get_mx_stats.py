@@ -72,7 +72,6 @@ MXSonarStats = {
     "event_type": "mx",
     "timestamp": TIMESTAMP,
     "policies":{},
-    "agents":{},
     "gateways":{},
     "disk":{},
     "memory":{},
@@ -85,6 +84,8 @@ MXSonarStats = {
     "log_search":{},
     "system":{}
 }
+
+AgentStats = {}
 
 influxDbStats = {
     "imperva_mx":{},
@@ -124,6 +125,8 @@ def run():
     if CONFIG["sonar"]["enabled"]:
         logging.debug("processing sonar request: "+json.dumps(MXSonarStats))
         sendSonar(MXSonarStats)
+        for agent_name in AgentStats:
+            sendSonar(AgentStats[agent_name])
     if CONFIG["influxdb"]["enabled"]:
         logging.debug("processing influxdb requests: "+json.dumps(influxDbStats))
         for measurement in influxDbStats:
@@ -218,20 +221,22 @@ def getMXServerStats():
                     influxAgentStatAry.append("agent_id="+str(agent_id))
                     influxAgentStatAry.append("agent_status_int="+str(agent_status_int))
 
-                    MXSonarStats["agents"][agent_name] = {}
-                    MXSonarStats["agents"][agent_name]["id"] = str(agent_id)
-                    MXSonarStats["agents"][agent_name]["gateway"] = gw_name
-                    MXSonarStats["agents"][agent_name]["status"] = agent_status
-                    MXSonarStats["agents"][agent_name]["status_int"] = agent_status_int
-                    MXSonarStats["agents"][agent_name]["channels"] = statAry[5]
-                    MXSonarStats["agents"][agent_name]["cores"] = statAry[7]
-                    MXSonarStats["agents"][agent_name]["load_kpbs"] = statAry[10]
-                    MXSonarStats["agents"][agent_name]["load_kpbs_max"] = statAry[11].replace("(","").replace(")","")
-                    MXSonarStats["agents"][agent_name]["load_ipu"] = statAry[13]
-                    MXSonarStats["agents"][agent_name]["load_ipu_max"] = statAry[14].replace("(","").replace(")","")
-                    MXSonarStats["agents"][agent_name]["load_hps"] = statAry[16]
-                    MXSonarStats["agents"][agent_name]["load_hps_max"] = statAry[17].replace("(","").replace(")","")
-                    MXSonarStats["agents"][agent_name]["load_percent"] = ("0" if statAry[18].strip()=="%" else statAry[18].replace("%","").strip())
+                    AgentStats[agent_name] = {"agent_name":agent_name,"event_type":"agent","counters":{}}
+                    AgentStats[agent_name]["timestamp"] = TIMESTAMP
+                    AgentStats[agent_name]["agent_id"] = str(agent_id)
+                    AgentStats[agent_name]["mx"] = MXNAME
+                    AgentStats[agent_name]["gw"] = gw_name
+                    AgentStats[agent_name]["status"] = agent_status
+                    AgentStats[agent_name]["status_int"] = agent_status_int
+                    AgentStats[agent_name]["counters"]["channels"] = statAry[5]
+                    AgentStats[agent_name]["counters"]["cores"] = statAry[7]
+                    AgentStats[agent_name]["counters"]["load_kpbs"] = statAry[10]
+                    AgentStats[agent_name]["counters"]["load_kpbs_max"] = statAry[11].replace("(","").replace(")","")
+                    AgentStats[agent_name]["counters"]["load_ipu"] = statAry[13]
+                    AgentStats[agent_name]["counters"]["load_ipu_max"] = statAry[14].replace("(","").replace(")","")
+                    AgentStats[agent_name]["counters"]["load_hps"] = statAry[16]
+                    AgentStats[agent_name]["counters"]["load_hps_max"] = statAry[17].replace("(","").replace(")","")
+                    AgentStats[agent_name]["counters"]["load_percent"] = ("0" if statAry[18].strip()=="%" else statAry[18].replace("%","").strip())
 
                 elif (statAry[0]=="(!)"):
                     if (statAry[1]=="ApplicativePacketLoss"):
@@ -520,3 +525,4 @@ topCpuAttrMap = {
 
 if __name__ == '__main__':
     run()
+

@@ -627,7 +627,6 @@ def sendSyslog(jsonObj):
                 logger.info(jsonObj)
             except Exception as e:
                 logging.error("syslog failed")
-                logging.error(e)
 
 def sendSonar(jsonObj):
     if (logHostAvailable["sonar"]==True):
@@ -640,7 +639,7 @@ def sendSonar(jsonObj):
                 logger.info(json.dumps(jsonObj)+"\n")
             except Exception as e:
                 logging.error("syslog failed")
-                logging.error(e)
+
 
 def searchLogFile(filename, pattern):
     matches = []
