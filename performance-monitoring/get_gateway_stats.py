@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# Version 
 import os
 import socket
 import subprocess
@@ -421,6 +420,24 @@ def getSysStats():
                 lastSecAry.append("last_min_load_average="+str(last_min_average))
                 GWStats["cpuload_last_min_load_average"] = float(last_min_average)
                 GWSonarStats["cpu"]["last_min_load"]["average"] = float(last_min_average)
+
+        # create average of each stat
+        systemCpuStats = {"used":0}
+        totalCpus = 0
+        for stat in GWSonarStats["cpu"]["top"]["0"]:
+            systemCpuStats[stat] = 0
+        for cpu in GWSonarStats["cpu"]["top"]:
+            totalCpus+=1
+            for stat in GWSonarStats["cpu"]["top"][cpu]:
+                systemCpuStats[stat] += GWSonarStats["cpu"]["top"][cpu][stat]        
+        totalStats = 0
+        for stat in systemCpuStats:
+            systemCpuStats[stat] = systemCpuStats[stat]/totalCpus
+            if stat!="idle":
+                totalStats+=1
+                systemCpuStats["used"]+=systemCpuStats[stat]
+        systemCpuStats["used"] = systemCpuStats["used"]/totalStats
+        GWSonarStats["cpu"]["top"]["system"] = systemCpuStats
 
         try:
             # @TODO implement sonar stat for sar

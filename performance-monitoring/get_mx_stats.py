@@ -384,6 +384,24 @@ def getSysStats():
                 lastSecAry.append("last_min_load_average="+str(last_min_average))
                 MXStats["cpuload_last_min_load_average"] = float(last_min_average)
                 MXSonarStats["cpu"]["last_min_load"]["average"] = float(last_min_average)
+        
+        # create average of each stat
+        systemCpuStats = {"used":0}
+        totalCpus = 0
+        for stat in MXSonarStats["cpu"]["top"]["0"]:
+            systemCpuStats[stat] = 0
+        for cpu in MXSonarStats["cpu"]["top"]:
+            totalCpus+=1
+            for stat in MXSonarStats["cpu"]["top"][cpu]:
+                systemCpuStats[stat] += MXSonarStats["cpu"]["top"][cpu][stat]        
+        totalStats = 0
+        for stat in systemCpuStats:
+            systemCpuStats[stat] = systemCpuStats[stat]/totalCpus
+            if stat!="idle":
+                totalStats+=1
+                systemCpuStats["used"]+=systemCpuStats[stat]
+        systemCpuStats["used"] = systemCpuStats["used"]/totalStats
+        MXSonarStats["cpu"]["top"]["system"] = systemCpuStats
 
         try:
             # @TODO implement sonar stat for sar
@@ -525,4 +543,3 @@ topCpuAttrMap = {
 
 if __name__ == '__main__':
     run()
-
