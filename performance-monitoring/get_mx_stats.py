@@ -331,6 +331,8 @@ def getSysStats():
         influxDbStats["imperva_mx_sys"]["model="+model] = []        
         sysStat = influxDbStats["imperva_mx_sys"]["model="+model]
 
+        
+
         pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/platform/show'], stdout=PIPE)
         output = pipe.communicate()
         for stat in output[0].split("\n"):
@@ -365,8 +367,6 @@ def getSysStats():
                     if statMeasurement=="total" or statMeasurement=="used" or statMeasurement=="free":
                         sysStat.append(statType+"_"+statMeasurement+"="+statAry[0])
                         MXStats["top_"+statType+"_"+statMeasurement] = float(statAry[0])
-                        MXStats["top_"+statType+"_"+statMeasurement] = float(statAry[0])
-                        MXSonarStats["memory"][statType][statMeasurement] = float(statAry[0])
                         MXSonarStats["memory"][statType][statMeasurement] = float(statAry[0])
             elif statType[:3]=="cpu":
                 cpu = statType.replace("cpu","")
@@ -384,24 +384,6 @@ def getSysStats():
                 lastSecAry.append("last_min_load_average="+str(last_min_average))
                 MXStats["cpuload_last_min_load_average"] = float(last_min_average)
                 MXSonarStats["cpu"]["last_min_load"]["average"] = float(last_min_average)
-        
-        # create average of each stat
-        systemCpuStats = {"used":0}
-        totalCpus = 0
-        for stat in MXSonarStats["cpu"]["top"]["0"]:
-            systemCpuStats[stat] = 0
-        for cpu in MXSonarStats["cpu"]["top"]:
-            totalCpus+=1
-            for stat in MXSonarStats["cpu"]["top"][cpu]:
-                systemCpuStats[stat] += MXSonarStats["cpu"]["top"][cpu][stat]        
-        totalStats = 0
-        for stat in systemCpuStats:
-            systemCpuStats[stat] = systemCpuStats[stat]/totalCpus
-            if stat!="idle":
-                totalStats+=1
-                systemCpuStats["used"]+=systemCpuStats[stat]
-        systemCpuStats["used"] = systemCpuStats["used"]/totalStats
-        MXSonarStats["cpu"]["top"]["system"] = systemCpuStats
 
         try:
             # @TODO implement sonar stat for sar
@@ -517,8 +499,17 @@ def sendSonar(jsonObj):
                 logger.addHandler(handler)
                 logger.info(json.dumps(jsonObj)+"\n")
             except Exception as e:
-                logging.error("sendSonar failed")
+                logging.error("sendSonar() logging.handlers.SysLogHandler() failed")
                 logging.error(e)
+                try:
+                    logging.warning("retrying with socket connection: ")
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.connect((sonarEndpoint["host"], sonarEndpoint["port"]))
+                    s.sendall(b'{0}'.format(json.dumps(jsonObj)))
+                    s.close()
+                except socket.error as msg:
+                    logging.warning("sendSonar() exception: ")
+                    logging.warning(msg)                    
 
 def searchLogFile(filename, pattern):
     matches = []
@@ -543,3 +534,4 @@ topCpuAttrMap = {
 
 if __name__ == '__main__':
     run()
+

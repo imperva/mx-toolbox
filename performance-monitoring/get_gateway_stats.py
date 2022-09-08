@@ -656,8 +656,15 @@ def sendSonar(jsonObj):
                 logger.addHandler(handler)
                 logger.info(json.dumps(jsonObj)+"\n")
             except Exception as e:
-                logging.error("syslog failed")
-
+                logging.error("logging.handlers.SysLogHandler failed", e)
+                try:
+                    logging.warning("retrying with socket connection: ")
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.connect((sonarEndpoint["host"], sonarEndpoint["port"]))
+                    s.sendall(b'{0}'.format(json.dumps(jsonObj)))
+                    s.close()
+                except socket.error as msg:
+                    logging.warning("sendSonar() exception: "+msg)
 
 def searchLogFile(filename, pattern):
     matches = []
