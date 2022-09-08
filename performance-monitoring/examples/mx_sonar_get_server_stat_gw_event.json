@@ -1,0 +1,21 @@
+{
+    "gw": "i-abcde12345",
+    "agent_name": "ip-172-20-0-103.ec2.internal",
+    "event_type": "agent",
+    "timestamp": "2022-09-08T00:26:06.931666",
+    "status_int": 5,
+    "status": "running",
+    "agent_id": "10020",
+    "mx": "i-abcde12345",
+    "counters": {
+        "load_hps_max": "26",
+        "load_ipu_max": "1",
+        "load_kpbs": "162",
+        "load_percent": "0",
+        "channels": "3",
+        "load_kpbs_max": "9172",
+        "load_hps": "0",
+        "cores": "1",
+        "load_ipu": "1"
+    }
+}

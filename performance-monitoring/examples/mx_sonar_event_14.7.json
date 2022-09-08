@@ -1,6 +1,6 @@
 {
     "event_type": "mx",
-    "timestamp": "2022-08-16T17:23:23.354340",
+    "timestamp": "2022-09-08T00:26:06.931666",
     "log_search": {},
     "disk": {
         "/var/lib/nfs/rpc_pipefs": {
@@ -59,9 +59,9 @@
             "disk_used": 0
         },
         "/": {
-            "disk_available": 13288916,
+            "disk_available": 13086524,
             "disk_capacity": 30106488,
-            "disk_used": 15265188
+            "disk_used": 15467580
         },
         "/dev/hugepages": {
             "disk_available": 0,
@@ -69,9 +69,9 @@
             "disk_used": 0
         },
         "/var/log/audit": {
-            "disk_available": 1817840,
+            "disk_available": 1822672,
             "disk_capacity": 1983056,
-            "disk_used": 46432
+            "disk_used": 41600
         },
         "/sys/fs/cgroup/pids": {
             "disk_available": 0,
@@ -94,9 +94,9 @@
             "disk_used": 0
         },
         "/var": {
-            "disk_available": 102235440,
+            "disk_available": 100797992,
             "disk_capacity": 113598700,
-            "disk_used": 6318208
+            "disk_used": 7755656
         },
         "/sys/fs/cgroup/systemd": {
             "disk_available": 0,
@@ -159,9 +159,9 @@
             "disk_used": 0
         },
         "/run": {
-            "disk_available": 3414680,
+            "disk_available": 3414712,
             "disk_capacity": 3824964,
-            "disk_used": 410284
+            "disk_used": 410252
         },
         "/sys/fs/cgroup/net_cls": {
             "disk_available": 0,
@@ -193,16 +193,16 @@
             "rx_nohandler": 0,
             "tx_carrier_errors": 0,
             "collisions": 0,
-            "tx_packets": 7595816,
+            "tx_packets": 12886807,
             "tx_dropped": 0,
-            "rx_packets": 6338867,
+            "rx_packets": 10837163,
             "rx_length_errors": 0,
             "rx_missed_errors": 0,
-            "tx_bytes": 1171261136,
+            "tx_bytes": 1918293561,
             "rx_frame_errors": 0,
             "rx_dropped": 0,
             "rx_crc_errors": 0,
-            "rx_bytes": 2499687415,
+            "rx_bytes": 4718519494,
             "tx_errors": 0,
             "rx_fifo_errors": 0,
             "tx_fifo_errors": 0,
@@ -213,7 +213,7 @@
         }
     },
     "system": {
-        "uptime": "2754545",
+        "uptime": "4680709",
         "vendor": "Imperva",
         "environment": "AWS",
         "hard-asset-tag": "XEN",
@@ -221,38 +221,27 @@
         "asset-tag": "AVM150",
         "model": "AVM150"
     },
-    "mx": "i-02a24728bf5767eaa",
+    "mx": "i-abcde12345",
     "gateways": {
         "i-08cb2573d94e77879": {
             "load_hps": "0",
             "audit_utilization_percent": "0",
-            "load_kbps_max": "1768",
-            "load_kbps": "96",
-            "load_hps_max": "6"
+            "load_kbps_max": "1784",
+            "load_kbps": "104",
+            "load_hps_max": "7"
         }
     },
-    "policies": {
-        "Craig Test": {
-            "audit_events_phase2": "51733",
-            "audit_policy_percent": "11.85",
-            "audit_events_phase1": "6128"
-        },
-        "Default Rule - All Events": {
-            "audit_events_phase2": "51733",
-            "audit_policy_percent": "88.15",
-            "audit_events_phase1": "45605"
-        }
-    },
+    "policies": {},
     "memory": {
         "mem": {
             "total": 7649932.0,
-            "used": 5079388.0,
-            "free": 152976.0
+            "used": 5162980.0,
+            "free": 146108.0
         },
         "swap": {
             "total": 4095996.0,
-            "used": 1394688.0,
-            "free": 2701308.0
+            "used": 3072704.0,
+            "free": 1023292.0
         }
     },
     "cpu": {
@@ -262,17 +251,17 @@
                 "software": 0.0,
                 "system": 0.0,
                 "hardware": 0.0,
-                "idle": 98.7,
-                "user": 1.0,
+                "idle": 99.7,
+                "user": 0.3,
                 "steal_time": 0.0,
-                "wait": 0.3,
+                "wait": 0.0,
                 "nice": 0.0
             },
             "0": {
                 "software": 0.0,
-                "system": 0.3,
+                "system": 0.0,
                 "hardware": 0.0,
-                "idle": 99.7,
+                "idle": 100.0,
                 "user": 0.0,
                 "steal_time": 0.0,
                 "wait": 0.0,
@@ -282,8 +271,8 @@
                 "software": 0.0,
                 "system": 0.0,
                 "hardware": 0.0,
-                "idle": 98.7,
-                "user": 1.3,
+                "idle": 100.0,
+                "user": 0.0,
                 "steal_time": 0.0,
                 "wait": 0.0,
                 "nice": 0.0
@@ -297,21 +286,10 @@
                 "steal_time": 0.0,
                 "wait": 0.0,
                 "nice": 0.0
-            },
-            "system": {
-                "used": 3.2156249999999997,
-                "nice": 0.0,
-                "system": 0.075,
-                "hardware": 0.0,
-                "idle": 74.275,
-                "user": 25.575,
-                "steal_time": 0.0,
-                "wait": 0.075,
-                "software": 0.0
             }
         },
         "last_min_load": {
-            "average": 1.15
+            "average": 1.05
         }
     }
 }

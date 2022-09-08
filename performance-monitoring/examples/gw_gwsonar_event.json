@@ -1,89 +1,74 @@
 {
-    "gw": "i-08cb2573d94e77879",
+    "gw": "SecureSphereGW13Sniffing",
     "event_type": "gw",
-    "timestamp": "2022-08-16T17:27:16.250897",
+    "timestamp": "2022-09-07T17:26:14.115068",
     "memory": {
         "mem": {
-            "total": 16266460.0,
-            "used": 13431832.0,
-            "free": 424520.0
+            "total": 3926880.0,
+            "free": 440856.0,
+            "used": 3486024.0
         },
         "workers_meminfo": {
             "1": {
                 "current": "0",
-                "max": "2",
-                "available": "11538"
+                "max": "0",
+                "available": "16000"
             },
             "0": {
                 "current": "0",
-                "max": "2",
-                "available": "11538"
+                "max": "0",
+                "available": "16000"
             },
             "3": {
                 "current": "0",
-                "max": "1",
-                "available": "11538"
+                "max": "0",
+                "available": "16000"
             },
             "2": {
                 "current": "0",
-                "max": "1",
-                "available": "11538"
-            },
-            "5": {
-                "current": "0",
-                "max": "1",
-                "available": "11538"
-            },
-            "4": {
-                "current": "0",
-                "max": "2",
-                "available": "11538"
-            },
-            "7": {
-                "current": "0",
-                "max": "2",
-                "available": "11538"
-            },
-            "6": {
-                "current": "0",
-                "max": "2",
-                "available": "11538"
-            },
-            "9": {
-                "current": "0",
-                "max": "1",
-                "available": "11538"
-            },
-            "8": {
-                "current": "0",
-                "max": "2",
-                "available": "11538"
+                "max": "0",
+                "available": "16000"
             }
         },
         "swap": {
-            "total": 4095996.0,
-            "used": 79104.0,
-            "free": 4016892.0
+            "total": 3145720.0,
+            "free": 3145720.0,
+            "used": 0.0
         }
     },
     "log_search": {},
     "disk": {
-        "/var/lib/nfs/rpc_pipefs": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
+        "/var": {
+            "disk_available": 38916804,
+            "disk_capacity": 41284928,
+            "disk_used": 270972
         },
         "/proc": {
             "disk_available": 0,
             "disk_capacity": 0,
             "disk_used": 0
         },
-        "/data": {
-            "disk_available": 69422976,
-            "disk_capacity": 73280552,
-            "disk_used": 111992
+        "/dev": {
+            "disk_available": 1951864,
+            "disk_capacity": 1952024,
+            "disk_used": 160
         },
-        "/sys/fs/cgroup/freezer": {
+        "/boot": {
+            "disk_available": 197479,
+            "disk_capacity": 247919,
+            "disk_used": 37640
+        },
+        "/proc/sys/fs/binfmt_misc": {
+            "disk_available": 0,
+            "disk_capacity": 0,
+            "disk_used": 0
+        },
+        "/": {
+            "disk_available": 18317220,
+            "disk_capacity": 28899452,
+            "disk_used": 9114228
+        },
+        "/proc/bus/usb": {
             "disk_available": 0,
             "disk_capacity": 0,
             "disk_used": 0
@@ -93,181 +78,120 @@
             "disk_capacity": 0,
             "disk_used": 0
         },
-        "/sys/fs/selinux": {
+        "/var/run/vmblock-fuse": {
             "disk_available": 0,
             "disk_capacity": 0,
             "disk_used": 0
         },
-        "/sys/fs/cgroup/hugetlb": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/sys/fs/pstore": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/sys/kernel/config": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/data/audit": {
-            "disk_available": 489177944,
-            "disk_capacity": 515924224,
-            "disk_used": 515704
-        },
-        "/sys/fs/cgroup/blkio": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/boot": {
-            "disk_available": 767364,
-            "disk_capacity": 991512,
-            "disk_used": 156564
-        },
-        "/proc/sys/fs/binfmt_misc": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/": {
-            "disk_available": 13817804,
-            "disk_capacity": 30106488,
-            "disk_used": 14736300
-        },
-        "/dev/hugepages": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/var/log/audit": {
-            "disk_available": 1821260,
-            "disk_capacity": 1983056,
-            "disk_used": 43012
-        },
-        "/sys/fs/cgroup/pids": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/run/user/99": {
-            "disk_available": 1626648,
-            "disk_capacity": 1626648,
-            "disk_used": 0
-        },
-        "/sys/fs/cgroup/devices": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/dev/mqueue": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/var": {
-            "disk_available": 37556904,
-            "disk_capacity": 40185112,
-            "disk_used": 563824
-        },
-        "/sys/fs/cgroup/systemd": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/sys/fs/cgroup/cpu": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/sys/fs/cgroup/cpuset": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/sys/kernel/security": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/dev/shm": {
-            "disk_available": 8133208,
-            "disk_capacity": 8133228,
-            "disk_used": 20
-        },
-        "/sys/fs/cgroup/perf_event": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/dev": {
-            "disk_available": 8108576,
-            "disk_capacity": 8108576,
-            "disk_used": 0
-        },
-        "/run/user/1004": {
-            "disk_available": 1626648,
-            "disk_capacity": 1626648,
-            "disk_used": 0
-        },
-        "/home": {
-            "disk_available": 921392,
-            "disk_capacity": 991512,
-            "disk_used": 2536
-        },
-        "/sys/fs/cgroup": {
-            "disk_available": 8133228,
-            "disk_capacity": 8133228,
-            "disk_used": 0
-        },
-        "/run": {
-            "disk_available": 7347136,
-            "disk_capacity": 8133228,
-            "disk_used": 786092
-        },
-        "/sys/fs/cgroup/net_cls": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/sys/fs/cgroup/memory": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
-        },
-        "/sys/kernel/debug": {
-            "disk_available": 0,
-            "disk_capacity": 0,
-            "disk_used": 0
+        "/data": {
+            "disk_available": 64528752,
+            "disk_capacity": 68732448,
+            "disk_used": 712268
         },
         "/sys": {
             "disk_available": 0,
             "disk_capacity": 0,
             "disk_used": 0
+        },
+        "/dev/shm": {
+            "disk_available": 1963440,
+            "disk_capacity": 1963440,
+            "disk_used": 0
         }
     },
     "network": {
+        "eth3": {
+            "rx_over_errors": 0,
+            "tx_window_errors": 0,
+            "tx_aborted_errors": 0,
+            "rx_compressed": 0,
+            "tx_carrier_errors": 0,
+            "collisions": 0,
+            "tx_packets": 0,
+            "tx_dropped": 0,
+            "rx_packets": 0,
+            "rx_length_errors": 0,
+            "rx_missed_errors": 0,
+            "tx_bytes": 0,
+            "rx_frame_errors": 0,
+            "rx_dropped": 0,
+            "rx_crc_errors": 0,
+            "rx_bytes": 0,
+            "tx_errors": 0,
+            "rx_fifo_errors": 0,
+            "tx_fifo_errors": 0,
+            "tx_heartbeat_errors": 0,
+            "multicast": 0,
+            "rx_errors": 0,
+            "tx_compressed": 0
+        },
+        "eth2": {
+            "rx_over_errors": 0,
+            "tx_window_errors": 0,
+            "tx_aborted_errors": 0,
+            "rx_compressed": 0,
+            "tx_carrier_errors": 0,
+            "collisions": 0,
+            "tx_packets": 0,
+            "tx_dropped": 0,
+            "rx_packets": 0,
+            "rx_length_errors": 0,
+            "rx_missed_errors": 0,
+            "tx_bytes": 0,
+            "rx_frame_errors": 0,
+            "rx_dropped": 0,
+            "rx_crc_errors": 0,
+            "rx_bytes": 0,
+            "tx_errors": 0,
+            "rx_fifo_errors": 0,
+            "tx_fifo_errors": 0,
+            "tx_heartbeat_errors": 0,
+            "multicast": 0,
+            "rx_errors": 0,
+            "tx_compressed": 0
+        },
+        "eth1": {
+            "rx_over_errors": 0,
+            "tx_window_errors": 0,
+            "tx_aborted_errors": 0,
+            "rx_compressed": 0,
+            "tx_carrier_errors": 0,
+            "collisions": 0,
+            "tx_packets": 0,
+            "tx_dropped": 0,
+            "rx_packets": 0,
+            "rx_length_errors": 0,
+            "rx_missed_errors": 0,
+            "tx_bytes": 0,
+            "rx_frame_errors": 0,
+            "rx_dropped": 0,
+            "rx_crc_errors": 0,
+            "rx_bytes": 0,
+            "tx_errors": 0,
+            "rx_fifo_errors": 0,
+            "tx_fifo_errors": 0,
+            "tx_heartbeat_errors": 0,
+            "multicast": 0,
+            "rx_errors": 0,
+            "tx_compressed": 0
+        },
         "eth0": {
             "rx_over_errors": 0,
             "tx_window_errors": 0,
             "tx_aborted_errors": 0,
             "rx_compressed": 0,
-            "rx_nohandler": 0,
             "tx_carrier_errors": 0,
             "collisions": 0,
-            "tx_packets": 46834031,
+            "tx_packets": 33645,
             "tx_dropped": 0,
-            "rx_packets": 53756543,
+            "rx_packets": 41253,
             "rx_length_errors": 0,
             "rx_missed_errors": 0,
-            "tx_bytes": 16044645338,
+            "tx_bytes": 8047871,
             "rx_frame_errors": 0,
             "rx_dropped": 0,
             "rx_crc_errors": 0,
-            "rx_bytes": 70257201608,
+            "rx_bytes": 4764115,
             "tx_errors": 0,
             "rx_fifo_errors": 0,
             "tx_fifo_errors": 0,
@@ -278,17 +202,17 @@
         }
     },
     "system": {
-        "uptime": "2751895",
+        "uptime": "17415",
         "vendor": "Imperva",
-        "environment": "AWS",
-        "hard-asset-tag": "XEN",
-        "version": "14.7.1.20_0",
+        "environment": "VMWare",
+        "hard-asset-tag": "unknown",
+        "version": "13.6.0.40_0",
         "supported_hps": 5000,
-        "asset-tag": "AV2500",
-        "model": "AV2500",
+        "asset-tag": "V2500",
+        "model": "V2500",
         "supported_kbps": 500000
     },
-    "mx": "i-02a24728bf5767eaa",
+    "mx": "SecureSphereMX13",
     "hades_counters": {
         "total_number_of_requests_with_alert_total": "0",
         "http_hits_sec": 0,
@@ -303,180 +227,94 @@
         "kbps_application": 0,
         "sql_audit_phase2_events_sec": 0,
         "overload_sql_audit_phase2_events_sec_max": 0,
-        "connection_sec_max": 99,
-        "sql_hits_sec_max": 1228,
+        "connection_sec_max": 0,
+        "sql_hits_sec_max": 0,
         "total_number_of_requests_sent_to_the_server": "0",
         "sql_hits_sec": 0,
-        "sql_audit_phase2_events_sec_max": 1228,
+        "sql_audit_phase2_events_sec_max": 0,
         "connection_sec": 0,
-        "kbps_max": 201068,
-        "kbps_application_max": 201068,
+        "kbps_max": 0,
+        "kbps_application_max": 0,
         "overload_connection_sec_max": 0,
         "http_hits_sec_max": 0,
         "kbps": 0
     },
     "cores": {
-        "11": {
-            "packets_sec_max": "3716",
-            "queue_length_max": "1882",
-            "packets_sec": "0",
-            "queue_length": "0",
-            "kbps_max": "23664",
-            "kbps": "0"
-        },
-        "10": {
-            "packets_sec_max": "3022",
-            "queue_length_max": "847",
-            "packets_sec": "0",
-            "queue_length": "0",
-            "kbps_max": "8572",
-            "kbps": "0"
-        },
         "1": {
-            "packets_sec_max": "3058",
-            "queue_length_max": "1997",
+            "packets_sec_max": "0",
+            "queue_length_max": "2",
             "packets_sec": "0",
             "queue_length": "0",
-            "kbps_max": "17944",
+            "kbps_max": "0",
             "kbps": "0"
         },
         "0": {
-            "packets_sec_max": "3015",
-            "queue_length_max": "1053",
+            "packets_sec_max": "0",
+            "queue_length_max": "3",
             "packets_sec": "0",
             "queue_length": "0",
-            "kbps_max": "11060",
+            "kbps_max": "0",
             "kbps": "0"
         },
         "3": {
-            "packets_sec_max": "3030",
-            "queue_length_max": "2545",
+            "packets_sec_max": "0",
+            "queue_length_max": "2",
             "packets_sec": "0",
             "queue_length": "0",
-            "kbps_max": "15672",
+            "kbps_max": "0",
             "kbps": "0"
         },
         "2": {
-            "packets_sec_max": "2855",
-            "queue_length_max": "892",
+            "packets_sec_max": "0",
+            "queue_length_max": "2",
             "packets_sec": "0",
             "queue_length": "0",
-            "kbps_max": "18204",
-            "kbps": "0"
-        },
-        "5": {
-            "packets_sec_max": "3078",
-            "queue_length_max": "1859",
-            "packets_sec": "0",
-            "queue_length": "0",
-            "kbps_max": "19924",
-            "kbps": "0"
-        },
-        "4": {
-            "packets_sec_max": "3046",
-            "queue_length_max": "1701",
-            "packets_sec": "0",
-            "queue_length": "0",
-            "kbps_max": "19800",
-            "kbps": "0"
-        },
-        "7": {
-            "packets_sec_max": "3030",
-            "queue_length_max": "4128",
-            "packets_sec": "0",
-            "queue_length": "0",
-            "kbps_max": "18332",
-            "kbps": "0"
-        },
-        "6": {
-            "packets_sec_max": "1473",
-            "queue_length_max": "733",
-            "packets_sec": "0",
-            "queue_length": "0",
-            "kbps_max": "8676",
-            "kbps": "0"
-        },
-        "9": {
-            "packets_sec_max": "2847",
-            "queue_length_max": "1873",
-            "packets_sec": "0",
-            "queue_length": "0",
-            "kbps_max": "17504",
-            "kbps": "0"
-        },
-        "8": {
-            "packets_sec_max": "4298",
-            "queue_length_max": "1901",
-            "packets_sec": "0",
-            "queue_length": "0",
-            "kbps_max": "21724",
+            "kbps_max": "0",
             "kbps": "0"
         }
     },
     "cpu": {
         "last_sec_load": {
-            "cpu3_total": 0,
             "average": 0,
-            "cpu0_total": 1,
-            "cpu2_total": 0,
-            "cpu1_total": 0
+            "cpu0_total": 0,
+            "cpu1_total": 1
         },
         "sar": {},
         "top": {
             "1": {
                 "software": 0.0,
-                "system": 0.0,
+                "system": 0.29999999999999999,
                 "hardware": 0.0,
-                "idle": 99.7,
-                "user": 0.0,
-                "steal_time": 0.0,
-                "wait": 0.0,
-                "nice": 0.3
-            },
-            "0": {
-                "software": 0.0,
-                "system": 1.4,
-                "hardware": 0.0,
-                "idle": 97.3,
-                "user": 0.3,
-                "steal_time": 0.3,
-                "wait": 0.0,
-                "nice": 0.7
-            },
-            "3": {
-                "software": 0.0,
-                "system": 0.0,
-                "hardware": 0.0,
-                "idle": 100.0,
-                "user": 0.0,
+                "idle": 99.299999999999997,
+                "user": 0.29999999999999999,
                 "steal_time": 0.0,
                 "wait": 0.0,
                 "nice": 0.0
             },
-            "2": {
+            "0": {
                 "software": 0.0,
-                "system": 0.0,
+                "system": 0.29999999999999999,
                 "hardware": 0.0,
-                "idle": 99.7,
-                "user": 0.3,
+                "idle": 99.299999999999997,
+                "user": 0.29999999999999999,
                 "steal_time": 0.0,
                 "wait": 0.0,
                 "nice": 0.0
             },
             "system": {
-                "used": 0.103125,
-                "nice": 0.25,
-                "system": 0.35,
+                "used": 0.074999999999999997,
+                "nice": 0.0,
+                "system": 0.29999999999999999,
                 "hardware": 0.0,
-                "idle": 99.175,
-                "user": 0.15,
-                "steal_time": 0.075,
+                "idle": 99.299999999999997,
+                "user": 0.29999999999999999,
+                "steal_time": 0.0,
                 "wait": 0.0,
                 "software": 0.0
             }
         },
         "last_min_load": {
-            "average": 0.05
+            "average": 0.0
         }
     }
 }

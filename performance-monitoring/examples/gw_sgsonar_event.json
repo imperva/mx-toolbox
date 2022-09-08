@@ -1,11 +1,12 @@
 {
-    "server_group_id": "520858184227134307",
+    "gw": "SecureSphereGW13Sniffing",
+    "server_group_id": "6493900295420446610",
     "event_type": "sg",
     "hades_counters": {
         "wfd_successful_hits_sec": "0",
-        "kbps_max": "24232",
-        "connection_sec_max": "4",
-        "sql_hits_sec_max": "40",
+        "kbps_max": "0",
+        "connection_sec_max": "0",
+        "sql_hits_sec_max": "0",
         "http_hits_sec_max": "0",
         "http_hits_sec": "0",
         "wfd_successful_hits_sec_max": "0",
@@ -16,14 +17,8 @@
         "sql_audit_phase2_events_sec": "0",
         "kbps": "0"
     },
-    "server_group": "isbt_sg",
-    "timestamp": "2021-01-06T13:32:09.380306",
-    "mx_host": "i-0e3ffb6c1767cfa2a",
-    "system": {
-        "model": "AV2500",
-        "version": "14.1.0.15_0",
-        "supported_hps": 5000,
-        "supported_kbps": 500000
-    },
-    "gateway": "i-00b939447e9dddc4d"
+    "server_group": "win2k12_oracle12",
+    "timestamp": "2022-09-07T17:26:14.115068",
+    "system": {},
+    "mx": "SecureSphereMX13"
 }
