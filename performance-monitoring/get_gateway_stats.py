@@ -662,7 +662,7 @@ def sendSonar(jsonObj):
                     logging.warning("retrying with socket connection: ")
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     s.connect((sonarEndpoint["host"], sonarEndpoint["port"]))
-                    s.sendall(b'{0}'.format(json.dumps(jsonObj)))
+                    s.sendall(b'{0}'.format(json.dumps(jsonObj)+"\n"))
                     s.close()
                 except socket.error as msg:
                     logging.warning("sendSonar() exception: ")
