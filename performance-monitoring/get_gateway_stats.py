@@ -357,6 +357,12 @@ def getSysStats():
         sysStat = influxDbStats["imperva_gw_sys"]["model="+model]
         GWSonarStats["system"]["model"] = GWMODEL
         
+        pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/gateway/status'], stdout=PIPE)
+        output = pipe.communicate()
+        influxDbStats["imperva_gw_sys"]["status"] = strim(output[0])
+        GWStats["status"] = strim(output[0])
+        GWSonarStats["system"]["status"] = strim(output[0])
+
         pipe = Popen(['/opt/SecureSphere/etc/impctl/bin/platform/show'], stdout=PIPE)
         output = pipe.communicate()
         for stat in output[0].split("\n"):
