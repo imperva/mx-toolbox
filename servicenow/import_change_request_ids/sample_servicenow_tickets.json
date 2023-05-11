@@ -1,0 +1,30 @@
+[
+    {
+        "number": "CHG12345678",
+        "shortDescription": "Change control modification of database",
+        "description": "Update database",
+        "approval": "Approved",
+        "state": "Closed Complete",
+        "plannedStartDate": "2023-05-05 14:07:36",
+        "actualWorkStart": "2023-05-05 14:07:36",
+        "plannedEndDate": "2023-05-05 17:07:36",
+        "actualWorkEnd": "2023-05-05 14:08:32",
+        "affectedCis": [
+            {
+                "name": "server 1"
+            }
+        ]
+    },
+    {
+        "number": "CHG12345679",
+        "shortDescription": "Operational Deployment",
+        "description": "Deployment of system",
+        "approval": "Approved",
+        "state": "Closed Complete",
+        "plannedStartDate": "2023-05-05 14:53:22",
+        "actualWorkStart": "2023-05-05 14:53:22",
+        "plannedEndDate": "2023-05-05 17:53:22",
+        "actualWorkEnd": "2023-05-05 14:54:00",
+        "affectedCis": []
+    }
+]
