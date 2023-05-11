@@ -13,8 +13,8 @@ CONFIG = ss.initConfig("config.json")
 datasetCols = {
 	"dataset-name":CONFIG["ticket_dataset_name"],
 	"columns":[
-		{"name":"id","key":True},
-		{"name":"number","key":False},
+        {"name":"id","key":True},
+        {"name":"number","key":False},
         {"name":"short_description","key":False},
         {"name":"description","key":False},
         {"name":"approval","key":False},
