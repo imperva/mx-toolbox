@@ -119,11 +119,10 @@ def makeCall(dra_host, action, method="GET", data=None):
 			stdout, stderr = proc.communicate(input=None)
 			response = stdout.decode('utf-8')
 			error = stderr.decode('utf-8')
-		logging.warning("API ERROR (" + method + " https://" + url.split("'@").pop() + ") status code: "+str(response))
+		logging.warning("API ERROR (" + method + " https://" + url.split("@").pop() + ") status code: "+str(response))
 		return json.loads(str(response))
 	except Exception as e:
 		logging.warning("ERROR - "+str(e))
-
 
 if __name__ == '__main__':
     run()
