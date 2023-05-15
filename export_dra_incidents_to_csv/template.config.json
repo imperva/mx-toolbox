@@ -1,0 +1,9 @@
+{
+    "log_level": "debug",
+    "environment": "dev",
+    "dra": {
+        "endpoint": "https://1.2.3.4",
+        "username": "YOURUSER",
+        "password": "YOURPASSWORD"
+    }
+}
