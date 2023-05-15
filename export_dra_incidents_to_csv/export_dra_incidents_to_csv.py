@@ -9,6 +9,7 @@ from subprocess import PIPE,Popen
 import logging
 import urllib
 import time
+from datetime import datetime, timedelta, timezone
 import copy
 
 ############ ENV Settings ############
@@ -67,7 +68,7 @@ def run():
         row.append(str(incident["event_category"]))
         row.append(str(incident["type_code"]))
         row.append(str(incident["type_description"]))
-        row.append(str(incident["event_time"]))
+        row.append(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(incident["event_time"]) / 1000)))
         row.append("|".join(incident["source_username"]))
         row.append("|".join(incident["source_host"]))
         row.append("|".join(incident["source_ip"]))
