@@ -25,8 +25,8 @@ if len(sys.argv)<2:
 	quit()
 
 ############ GLOBALS ############
-# PATH2REPORT = '/opt/SecureSphere/server/SecureSphere/jakarta-tomcat-secsph/webapps/SecureSphere/'+sys.argv[1]
-PATH2REPORT = sys.argv[1]
+PATH2REPORT = '/opt/SecureSphere/server/SecureSphere/jakarta-tomcat-secsph/webapps/SecureSphere/'+sys.argv[1]
+# PATH2REPORT = sys.argv[1]
 DATASETNAME = "db_hosts"
 SOURCECOLNAME = "Target Server IP"
 ip_host_mapping = {}
