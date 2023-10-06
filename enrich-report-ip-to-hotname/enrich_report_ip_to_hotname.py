@@ -29,8 +29,8 @@ PATH2REPORT = '/opt/SecureSphere/server/SecureSphere/jakarta-tomcat-secsph/webap
 # PATH2REPORT = sys.argv[1]
 DATASETNAME = "db_hosts"
 SOURCECOLNAME = "Target Server IP"
+DESTCOLNAME = "Target Server Host Name"
 ip_host_mapping = {}
-datasetCols = {"dataset-name":DATASETNAME,"columns":[], "number-of-columns":1}
 logging.warning("\n\n===========  Start enrich report ip to hostname ===========\n")
 logging.warning('DATASETNAME='+DATASETNAME)
 logging.warning('PATH2REPORT='+PATH2REPORT)
@@ -47,23 +47,21 @@ def run():
 		response = ss.makeCall(CONFIG["mx"]["endpoint"],session_id, "/conf/dataSets/"+DATASETNAME+"/data")
 		responseObj = response.json()
 		for record in responseObj["records"]:
-			ip_host_mapping[record["ip"]] = record["hostname"]
-
+			ip_host_mapping[record["database_name"]] = record["server_name"]
 		i=0
 		reader = csv.reader(f)
 		headerIndex = {}
 		for row in reader:
 			if i==0:
-				datasetCols["columns"].append({"name":"id","key":True})
 				j=0
-				row.append("DB Hostname")
 				CSV_DATA.append('"'+'","'.join(row)+'"')
 				for header in row:
 					headerIndex[header] = j
 					j+=1
 			else:
-				if row[headerIndex[SOURCECOLNAME]] in ip_host_mapping:
-					row.append(ip_host_mapping[row[headerIndex[SOURCECOLNAME]]])
+				if row[headerIndex[DESTCOLNAME]]=="".trim():
+					if row[headerIndex[SOURCECOLNAME]] in ip_host_mapping:
+						row[headerIndex[DESTCOLNAME]] = [row[headerIndex[SOURCECOLNAME]]]
 				else:
 					row.append("N/A")				
 				CSV_DATA.append('"'+'","'.join(row)+'"')
