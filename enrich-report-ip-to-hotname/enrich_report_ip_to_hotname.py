@@ -59,7 +59,7 @@ def run():
 					headerIndex[header] = j
 					j+=1
 			else:
-				if row[headerIndex[DESTCOLNAME]]=="".trim():
+				if row[headerIndex[DESTCOLNAME]].strip()=="":
 					if row[headerIndex[SOURCECOLNAME]] in ip_host_mapping:
 						row[headerIndex[DESTCOLNAME]] = ip_host_mapping[row[headerIndex[SOURCECOLNAME]]]
 				else:
