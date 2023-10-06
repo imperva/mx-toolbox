@@ -61,7 +61,7 @@ def run():
 			else:
 				if row[headerIndex[DESTCOLNAME]]=="".trim():
 					if row[headerIndex[SOURCECOLNAME]] in ip_host_mapping:
-						row[headerIndex[DESTCOLNAME]] = [row[headerIndex[SOURCECOLNAME]]]
+						row[headerIndex[DESTCOLNAME]] = ip_host_mapping[row[headerIndex[SOURCECOLNAME]]]
 				else:
 					row.append("N/A")				
 				CSV_DATA.append('"'+'","'.join(row)+'"')
