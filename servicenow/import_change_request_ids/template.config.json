@@ -1,0 +1,17 @@
+{
+    "log_level": "debug",
+    "environment": "dev",
+    "ticket_dataset_name":"servicenow_tickets",
+    "mx": {
+        "endpoint": "https://127.0.0.1:8083",
+        "username": "admin",
+        "password": "yourpasswordhere"
+    },
+    "servicenow": {
+        "endpoint": "https://yourinstance.service-now.com/api",
+        "username": "your.username",
+        "password": "yourpasswordhere",
+        "change_request_filter": "sysparm_query=active%3Dtrue&sysparm_fields=short_description,number,start_date,end_date,assigned_to,cmdb_ci"
+    }
+}
+
